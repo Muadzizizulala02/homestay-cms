@@ -1,0 +1,12 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Default deny: all data access goes through the Cloud Functions REST API
+    // (Admin SDK bypasses these rules). This is a defense-in-depth backstop,
+    // not the primary authorization mechanism.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
