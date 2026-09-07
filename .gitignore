@@ -1,0 +1,30 @@
+# Claude Code local settings
+.claude/settings.local.json
+
+# Node
+node_modules/
+npm-debug.log*
+
+# Angular
+homestay-cms-frontend/.angular/
+homestay-cms-frontend/dist/
+homestay-cms-frontend/.vscode/
+
+# Firebase Functions
+functions/lib/
+functions/.env
+firebase-debug.log
+firestore-debug.log
+ui-debug.log
+.firebase/
+
+# Environment secrets
+.env
+.env.local
+*.env.local
+
+# Vercel
+.vercel/
+
+# OS
+.DS_Store
