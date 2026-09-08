@@ -1,4 +1,4 @@
-# Homestay CMS
+# Homestay CMS (Muadz & Arif)
 
 Property booking platform (Angular + Firebase). See [HOMESTAY_CMS_PROJECT_PLAN.md](./HOMESTAY_CMS_PROJECT_PLAN.md) for the full project plan.
 
