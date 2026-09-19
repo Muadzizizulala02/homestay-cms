@@ -150,9 +150,20 @@ export class BookingPage implements OnInit {
       })
       .subscribe({
         next: (booking) => {
-          this.submitting.set(false);
           this.confirmedBooking.set(booking);
           this.step.set('confirmation');
+
+          // Best-effort: if Billplz isn't configured yet, or the gateway call fails, the guest
+          // still has a valid pending_payment booking — just without an online payment option
+          // right now. Never block the confirmation on this.
+          this.bookingService.createPayment(booking.id).subscribe({
+            next: ({ redirectUrl }) => {
+              window.location.href = redirectUrl;
+            },
+            error: () => {
+              this.submitting.set(false);
+            },
+          });
         },
         error: (err) => {
           this.submitting.set(false);

@@ -15,16 +15,16 @@ firebase deploy --only functions,firestore
 cd homestay-cms-frontend && vercel --prod
 ```
 
-## Environment variables (planned — see each project's `.env.example`)
+## Environment variables (see each project's `.env.example`)
 
-**Frontend** (`homestay-cms-frontend/.env.example`): Firebase web config keys, API base URL, Cloudinary cloud name (public), Billplz is server-only (no public keys needed client-side beyond the redirect URL returned by the API).
+**Frontend** (`homestay-cms-frontend/.env.example`): Firebase web config keys, API base URL, Cloudinary cloud name (public). Billplz is entirely server-only — no Billplz keys ever reach the frontend; it only ever receives the `redirectUrl` the backend returns.
 
-**Backend** (`functions/.env.example`): `FIREBASE_PROJECT_ID`, `SENDGRID_API_KEY`, and — as of Phase 4 — `CLOUDINARY_CLOUD_NAME`/`CLOUDINARY_API_KEY`/`CLOUDINARY_API_SECRET` (required for the media/accommodation-photo upload routes; `functions/src/config/env.ts` throws a clear error naming the missing variable if one of these is read before being set, rather than failing silently). Billplz secret key + collection ID + X-Signature key will be added when `payment.service` is implemented (Phase 6 — see `PAYMENT.md`). The stale `STRIPE_SECRET_KEY`/`STRIPE_PUBLIC_KEY` entries left over from the superseded plan have been removed from both `.env.example` files.
+**Backend** (`functions/.env.example`): `FIREBASE_PROJECT_ID`, `SENDGRID_API_KEY`; `CLOUDINARY_CLOUD_NAME`/`CLOUDINARY_API_KEY`/`CLOUDINARY_API_SECRET` (media uploads); `BILLPLZ_SECRET_KEY`/`BILLPLZ_COLLECTION_ID`/`BILLPLZ_X_SIGNATURE_KEY`/`BILLPLZ_BASE_URL` (payments — use the sandbox values and `https://www.billplz-sandbox.com` while testing, switch to production values + `https://www.billplz.com` to go live); `FRONTEND_BASE_URL`/`API_BASE_URL` (the public origins Billplz redirects to / calls back — **cannot be `localhost`**, since Billplz can't reach your machine directly; local webhook testing needs a tunnel, e.g. `ngrok http 5001`, with `API_BASE_URL` pointed at the tunnel). `functions/src/config/env.ts` throws a clear error naming the missing variable if any of these is read before being set, rather than failing silently.
 
 None of these are committed; only `.env.example` placeholder files are tracked.
 
 ## Known gaps to close before a real deploy
 
 - No CI/CD pipeline yet (no `.github/workflows`).
-- `.gitignore` does not yet explicitly exclude service-account key files (`*serviceAccount*.json`, `*firebase-adminsdk*.json`) — add this even though no such file exists yet, as a safety net.
 - No Storage rules/config exist (expected — media goes through Cloudinary, not Firebase Storage; see `ARCHITECTURE.md`).
+- The Billplz webhook has never been exercised against the real gateway in this environment (no tunnel set up, no real sandbox credentials) — verified instead via `payment.service.test.ts` with a mocked `fetch` and a locally-computed valid signature. Test it for real with a tunnel before taking payments live.

@@ -1,7 +1,9 @@
 import express, { type NextFunction, type Request, type Response } from 'express';
+import { z } from 'zod';
 import { validate } from '../middleware/validate.middleware';
 import { bookingLookupQuerySchema, createBookingSchema } from '../validation/booking.schema';
 import * as bookingService from '../services/booking.service';
+import * as paymentService from '../services/payment.service';
 
 const router = express.Router();
 
@@ -12,6 +14,20 @@ router.post('/bookings', validate(createBookingSchema), async (req: Request, res
     next(err);
   }
 });
+
+// Deliberately separate from booking creation: an external HTTP call (to Billplz) must never
+// happen inside the booking-creation Firestore transaction (see payment.service.ts).
+router.post(
+  '/bookings/:id/payment',
+  validate(z.object({ id: z.string().min(1) }), 'params'),
+  async (req: Request<{ id: string }>, res: Response, next: NextFunction) => {
+    try {
+      res.status(200).json(await paymentService.createPaymentForBooking(req.params.id));
+    } catch (err) {
+      next(err);
+    }
+  }
+);
 
 router.get(
   '/bookings/lookup',

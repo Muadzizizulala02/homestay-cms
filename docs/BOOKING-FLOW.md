@@ -1,6 +1,6 @@
 # Booking Flow
 
-Status: the guest journey up through booking creation is implemented and live (`/booking`, reached from each accommodation detail page). Payment (steps 7–9 below) is not — a confirmed booking today ends at `pending_payment` with a message that the homestay will be in touch to arrange payment, rather than faking a completed transaction.
+Status: the full guest journey through payment is implemented, including server-side webhook verification. Only the confirmation *email* (step 9) remains — Phase 8.
 
 ## Guest journey
 
@@ -10,9 +10,11 @@ Status: the guest journey up through booking creation is implemented and live (`
 4. ⏳ Priced breakdown shown *before* booking creation — not built; the authoritative price (nights × rate, any seasonal adjustment) is only shown *after* creation succeeds, on the confirmation step, since it's computed server-side in `createBooking` itself and there's no separate "quote" endpoint. Not a security issue (the price a guest is charged is never client-supplied either way) — just means the guest doesn't see it until after committing to create the booking record.
 5. ✅ Enter guest details (name, email, phone, notes)
 6. ✅ Review and confirm — client-side review screen, then `POST /bookings` (server-side validation + the transactional availability check + real pricing all happen here)
-7. ⏳ Redirect to Billplz-hosted payment page (see `PAYMENT.md`) — not built
-8. ⏳ Billplz webhook confirms payment server-side — not built
-9. ⏳ Confirmation email — not built (Phase 8). Today's confirmation is an in-page message only, shown immediately after step 6 succeeds.
+7. ✅ Redirect to Billplz-hosted payment page (see `PAYMENT.md`) — `POST /bookings/:id/payment` creates the bill and returns its URL; the frontend does this automatically right after booking creation succeeds and redirects the browser (`window.location.href`)
+8. ✅ Billplz webhook confirms payment server-side (`POST /payments/webhook/billplz`, signature-verified)
+9. ⏳ Confirmation email — not built (Phase 8). Today's confirmation is in-page only.
+
+**Fallback behavior**: if payment creation fails (most likely today, since this environment has no real Billplz credentials configured) or Billplz isn't configured at all, the guest simply stays on the in-page confirmation showing their booking reference and a "we'll contact you to arrange payment" message — a missing/broken payment gateway never blocks a guest from completing a booking record.
 
 No account creation at any point. A guest who wants to check on a booking later uses `GET /bookings/lookup?reference=&email=` (✅ implemented backend; no dedicated frontend page yet — the confirmation step shows the reference directly, so there's been no UI need for a separate lookup page yet).
 
@@ -42,4 +44,4 @@ A `pending_payment` booking holds its dates for ~20 minutes. A scheduled sweep (
 
 ## Refunds / cancellations (v1)
 
-Admin-initiated only, from the booking detail screen in the CMS: triggers a Billplz refund API call, updates payment status, and (per the site's cancellation policy) may auto-cancel the booking. Self-service guest cancellation is an open decision — see `PROJECT-OVERVIEW.md`.
+Admin-initiated only. ✅ `POST /admin/bookings/:id/refund` (backend only — no admin bookings screen exists yet to call it from) records the payment as `refunded` and cancels the booking. It does not move any money: Billplz has no refund API, so the admin must process the actual refund manually in the Billplz dashboard first — see `PAYMENT.md`. Self-service guest cancellation is an open decision — see `PROJECT-OVERVIEW.md`.

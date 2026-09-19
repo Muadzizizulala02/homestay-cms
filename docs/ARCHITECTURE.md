@@ -28,7 +28,7 @@ Admin routes require: a valid Firebase Auth ID token, verified server-side, carr
 functions/src/
   index.ts                 exports `api` only — a thin wrapper around app.ts
   app.ts                   ✅ Express app assembly: cors, json body parsing, route mounting, error handler
-  config/                  firebase.ts (existing), env.ts ✅ (Cloudinary secrets, lazily checked)
+  config/                  firebase.ts (existing), env.ts ✅ (Cloudinary + Billplz secrets, lazily checked)
   types/                   ✅ accommodation, booking, payment, media, site-settings
   utils/                   ✅ app-error.ts — AppError(statusCode, message, code)
   middleware/              ✅ auth.middleware (requireAdmin), validate.middleware (zod), error.middleware
@@ -37,21 +37,26 @@ functions/src/
                             ✅ booking.service (createBooking, getAvailability, expireStalePendingBookings,
                               getBookingByReferenceAndEmail)
                             ✅ accommodation.service, media.service, site-settings.service
-                            ⏳ payment.service, email.service — planned
+                            ✅ payment.service (createPaymentForBooking, verifyBillplzSignature,
+                              handleBillplzWebhook, markPaymentRefunded)
+                            ⏳ email.service — planned
   routes/
     health.routes.ts          ✅ GET /health (existing)
     public.routes.ts          ✅ GET /site-settings, /accommodations, /accommodations/:slug,
                                 /accommodations/:id/availability, /gallery — no auth, read-only,
                                 thin pass-throughs to already-tested services
-    booking.routes.ts          ✅ POST /bookings, GET /bookings/lookup — no auth (guests never log in);
-                                the transactional double-booking-prevention logic lives entirely in
-                                booking.service, this route is just request validation + a response shape
+    booking.routes.ts          ✅ POST /bookings, POST /bookings/:id/payment, GET /bookings/lookup —
+                                no auth (guests never log in); the transactional double-booking-
+                                prevention logic lives entirely in booking.service
+    payment.routes.ts          ✅ POST /payments/webhook/billplz — no auth middleware (Billplz calls
+                                this server-to-server); the X-Signature check inside the handler is
+                                what actually authenticates the caller, not a bearer token
     admin/auth.routes.ts       ✅ GET /admin/me — requireAdmin-protected, the first proof the auth
                                 wiring works end-to-end over real HTTP with a real Firebase Auth token
     admin/accommodation.routes.ts ✅ full CRUD, requireAdmin + zod-validated
     admin/media.routes.ts      ✅ sign-upload + record/list/update/delete, requireAdmin + zod-validated
     admin/content.routes.ts    ✅ GET/PUT site settings, requireAdmin + zod-validated
-    (everything else)         ⏳ planned — availability-blocking/admin-bookings/payment routes
+    admin/bookings.routes.ts   ✅ POST /:id/refund only — the full list/detail/status screen is ⏳ planned
   validation/                 ✅ accommodation.schema.ts, media.schema.ts, site-settings.schema.ts,
                                 booking.schema.ts (zod)
   controllers/                — not introduced; routes call services directly, since each route is a
@@ -63,9 +68,9 @@ Business logic (the booking transaction, pricing calculation, payment verificati
 
 There is no public registration endpoint. Admin accounts are created with `functions/scripts/create-admin.js` (a standalone script using the Admin SDK, not deployed as a Cloud Function) — see `DEVELOPMENT.md` for usage.
 
-Media storage: Cloudinary, configured via `functions/src/config/env.ts` (throws a clear "missing env var" error if read before `CLOUDINARY_CLOUD_NAME`/`CLOUDINARY_API_KEY`/`CLOUDINARY_API_SECRET` are set, rather than failing silently or crashing unrelated routes at cold start).
+Media storage: Cloudinary, configured via `functions/src/config/env.ts` (throws a clear "missing env var" error if read before `CLOUDINARY_CLOUD_NAME`/`CLOUDINARY_API_KEY`/`CLOUDINARY_API_SECRET` are set, rather than failing silently or crashing unrelated routes at cold start). The same `env.ts` module holds the Billplz secrets the same way.
 
-Verification for this layer: `functions/src/**/__tests__/*.test.ts`, run via `npm test` (see `DEVELOPMENT.md`) — 53 tests covering pricing rules, the booking transaction (including a concurrency test asserting exactly one of two simultaneous overlapping bookings succeeds), availability reporting, guest booking lookup by reference+email (including the 404-on-mismatched-email case), booking expiry, all three middleware, an integration test hitting `GET /admin/me` over real HTTP with tokens signed by the Auth emulator, accommodation CRUD (including the public active-only listing/slug lookup, slug-uniqueness, and delete-with-bookings guards) against the Firestore emulator, media service logic (including the public gallery filter) against a mocked Cloudinary SDK, and site-settings get/merge-update behavior. `public.routes.ts`/`booking.routes.ts`/`admin/content.routes.ts` themselves aren't covered by a dedicated HTTP-level test yet — they're thin pass-throughs to already-tested services, following the exact pattern `admin/auth.routes.ts` already proved correct over real HTTP.
+Verification for this layer: `functions/src/**/__tests__/*.test.ts`, run via `npm test` (see `DEVELOPMENT.md`) — 62 tests covering pricing rules, the booking transaction (including a concurrency test asserting exactly one of two simultaneous overlapping bookings succeeds), availability reporting, guest booking lookup by reference+email (including the 404-on-mismatched-email case), booking expiry, all three middleware, an integration test hitting `GET /admin/me` over real HTTP with tokens signed by the Auth emulator, accommodation CRUD (including the public active-only listing/slug lookup, slug-uniqueness, and delete-with-bookings guards) against the Firestore emulator, media service logic (including the public gallery filter) against a mocked Cloudinary SDK, site-settings get/merge-update behavior, and payment.service (signature verification with a tampered-payload case, bill creation with a mocked `fetch` including the duplicate-bill-prevention path, the full webhook-to-confirmed-booking flow with a locally-computed valid signature, and refund recording). `public.routes.ts`/`booking.routes.ts`/`payment.routes.ts`/`admin/content.routes.ts`/`admin/bookings.routes.ts` themselves aren't covered by a dedicated HTTP-level test yet — they're thin pass-throughs to already-tested services, following the exact pattern `admin/auth.routes.ts` already proved correct over real HTTP. The Billplz webhook specifically has not been exercised end-to-end against the real gateway — Billplz can't reach `localhost`, so that needs a public tunnel (see `PAYMENT.md`) this environment doesn't have.
 
 ## Frontend structure
 
@@ -78,8 +83,10 @@ src/app/
     accommodation-list/, accommodation-detail/ ✅ public listing + per-slug detail page (detail page
                     has an inline date/guest picker that hands off to booking/ via query params)
     booking/        ✅ the guest booking flow — dates→availability check, guest details, review,
-                    submit; ends at a "pending payment, we'll contact you" confirmation since Billplz
-                    isn't wired up yet (see docs/BOOKING-FLOW.md). noindexed via SeoService.
+                    submit, then an automatic redirect to Billplz's hosted payment page. Falls back
+                    to an in-page "pending payment, we'll contact you" confirmation if payment
+                    creation fails (e.g. no real Billplz credentials configured) — see
+                    docs/BOOKING-FLOW.md. noindexed via SeoService.
     gallery/        ✅ public gallery grid (lazy-loaded images)
     about/          ✅ about/host copy + key-free Google Maps embed
     faq/            ✅ check-in/out, house rules, cancellation policy, FAQ accordion (native <details>)
@@ -101,7 +108,7 @@ src/app/
                   media.service.ts (admin CRUD + public listPublicGallery; signs + uploads straight
                   to Cloudinary via fetch — deliberately bypasses HttpClient/auth.interceptor so the
                   Firebase ID token is never sent to a third-party host), site-settings.service.ts,
-                  booking.service.ts (getAvailability, create, lookup)
+                  booking.service.ts (getAvailability, create, lookup, createPayment)
     guards/      ✅ admin.guard.ts (CanActivateFn — redirects to /admin/login if not an admin)
     interceptors/ ✅ auth.interceptor.ts (attaches the ID token, but only to requests aimed at
                   environment.apiUrl — never to third-party requests like a maps API)
