@@ -3,6 +3,7 @@ import cors from 'cors';
 import './config/firebase';
 import healthRoutes from './routes/health.routes';
 import publicRoutes from './routes/public.routes';
+import bookingRoutes from './routes/booking.routes';
 import adminAuthRoutes from './routes/admin/auth.routes';
 import adminAccommodationRoutes from './routes/admin/accommodation.routes';
 import adminMediaRoutes from './routes/admin/media.routes';
@@ -16,6 +17,7 @@ app.use(express.json());
 
 app.use('/api/v1', healthRoutes);
 app.use('/api/v1', publicRoutes);
+app.use('/api/v1', bookingRoutes);
 app.use('/api/v1/admin', adminAuthRoutes);
 app.use('/api/v1/admin/accommodations', adminAccommodationRoutes);
 app.use('/api/v1/admin/media', adminMediaRoutes);

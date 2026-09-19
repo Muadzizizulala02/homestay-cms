@@ -15,8 +15,9 @@ Planning complete (2026-09-19). Implemented so far:
 - **Accommodation + media CMS**: full create/read/update/delete for room/unit types, and a Cloudinary-backed signed-upload flow for both the general gallery and per-accommodation photos, each with a working admin UI (`/admin/accommodation`, `/admin/media`).
 - **Site content CMS**: `siteSettings` singleton (hero copy, about, contact, check-in/out, house rules, FAQ, cancellation policy) with an admin editor at `/admin/content`.
 - **Public website**: Home, Accommodation (list + detail), Gallery, About, FAQ & house rules, Contact — all live, all reading real data from the backend (no hardcoded content). Placeholder/default copy renders correctly out of the box before any admin editing happens.
+- **Booking flow**: a guest can pick a unit, check real availability, and create an actual `pending_payment` booking with server-computed pricing and the transactional double-booking-prevention guarantee — end to end, no fake data. It stops there: no payment gateway is wired up, so the guest sees a "we'll contact you to arrange payment" message rather than a completed transaction.
 
-Not yet built: availability calendar management, the bookings admin screen, and the booking/payment flow (so there's no live "book now" transaction yet — accommodation detail pages link to Contact instead). Full technical SEO (sitemap, robots.txt, structured data) is deferred to the dedicated SEO/performance phase; today each public page only sets its own `<title>`/meta description. See `CHANGELOG.md` for the detailed log.
+Not yet built: availability calendar management (admin-side manual blocking), the bookings admin screen, and the payment gateway itself (Billplz — see `PAYMENT.md`). Full technical SEO (sitemap, robots.txt, structured data) is deferred to the dedicated SEO/performance phase; today each public page only sets its own `<title>`/meta description. See `CHANGELOG.md` for the detailed log.
 
 ## Scope decision: superseding the original plan
 

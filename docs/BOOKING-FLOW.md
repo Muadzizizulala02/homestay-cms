@@ -1,20 +1,20 @@
 # Booking Flow
 
-Status: planned, not yet implemented.
+Status: the guest journey up through booking creation is implemented and live (`/booking`, reached from each accommodation detail page). Payment (steps 7–9 below) is not — a confirmed booking today ends at `pending_payment` with a message that the homestay will be in touch to arrange payment, rather than faking a completed transaction.
 
 ## Guest journey
 
-1. Pick check-in/check-out dates and guest count (from Home or Accommodation page)
-2. Live availability check against `accommodations/{id}/availability`
-3. Pick an accommodation/unit
-4. See a priced breakdown (nights × rate, any seasonal adjustment, shown line by line) — computed server-side
-5. Enter guest details (name, email, phone, notes)
-6. Review and confirm
-7. Redirect to Billplz-hosted payment page (see `PAYMENT.md`)
-8. Billplz webhook confirms payment server-side
-9. Confirmation page + email with booking reference
+1. ✅ Pick an accommodation/unit (from the Accommodation list/detail pages)
+2. ✅ Pick check-in/check-out dates and guest count (a small widget on the accommodation detail page, pre-filling `/booking`'s date/guest fields via query params)
+3. ✅ Live availability check (`GET /accommodations/:id/availability`) — client-side min/max-stay and capacity checks run first for instant feedback, then the real availability check hits the server
+4. ⏳ Priced breakdown shown *before* booking creation — not built; the authoritative price (nights × rate, any seasonal adjustment) is only shown *after* creation succeeds, on the confirmation step, since it's computed server-side in `createBooking` itself and there's no separate "quote" endpoint. Not a security issue (the price a guest is charged is never client-supplied either way) — just means the guest doesn't see it until after committing to create the booking record.
+5. ✅ Enter guest details (name, email, phone, notes)
+6. ✅ Review and confirm — client-side review screen, then `POST /bookings` (server-side validation + the transactional availability check + real pricing all happen here)
+7. ⏳ Redirect to Billplz-hosted payment page (see `PAYMENT.md`) — not built
+8. ⏳ Billplz webhook confirms payment server-side — not built
+9. ⏳ Confirmation email — not built (Phase 8). Today's confirmation is an in-page message only, shown immediately after step 6 succeeds.
 
-No account creation at any point. A guest who wants to check on a booking later uses `/booking/lookup` with their reference + email.
+No account creation at any point. A guest who wants to check on a booking later uses `GET /bookings/lookup?reference=&email=` (✅ implemented backend; no dedicated frontend page yet — the confirmation step shows the reference directly, so there's been no UI need for a separate lookup page yet).
 
 ## Statuses
 

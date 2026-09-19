@@ -1,6 +1,6 @@
 # API
 
-Status: health check, admin auth check, accommodation/media CRUD, site-content CRUD, and the public read routes are implemented (✅ below). Booking/payment routes are planned (⏳).
+Status: health check, admin auth check, accommodation/media CRUD, site-content CRUD, the public read routes, and booking creation/lookup are implemented (✅ below). Only payment routes remain (⏳).
 
 All endpoints are mounted under `/api/v1` on the single `api` Cloud Function (Express), assembled in `functions/src/app.ts`. Admin endpoints require a Firebase Auth ID token with a `role: admin` custom claim.
 
@@ -11,9 +11,9 @@ All endpoints are mounted under `/api/v1` on the single `api` Cloud Function (Ex
 - ✅ `GET /accommodations` — list **active** accommodations only
 - ✅ `GET /accommodations/:slug` — single accommodation detail; 404s for an unknown OR inactive slug (an inactive unit reads as "not found" to a guest, not as an authorization error)
 - ✅ `GET /gallery` — media items tagged `association.type === 'gallery'`, ordered
-- ⏳ `GET /accommodations/:id/availability?from=&to=` — availability for a date range
-- ⏳ `POST /bookings` — create a booking (runs the availability transaction, returns a `pending_payment` booking + Billplz redirect URL)
-- ⏳ `GET /bookings/lookup?reference=&email=` — guest-facing status check, no account
+- ✅ `GET /accommodations/:id/availability?from=&to=` — takes the accommodation's Firestore doc `id` (not its slug), returns only the dates in range that are already `booked`/`blocked`
+- ✅ `POST /bookings` — validated by `createBookingSchema`; runs the transactional availability check (`booking.service.createBooking`), returns a `pending_payment` booking with server-computed pricing. No Billplz redirect yet — that's added in `PAYMENT.md`'s phase.
+- ✅ `GET /bookings/lookup?reference=&email=` — guest-facing status check, no account; requires the matching email specifically so a reference alone (short, somewhat guessable) can't be used to view someone else's booking
 - ⏳ `POST /payments/webhook/billplz` — Billplz webhook (signature-verified, not guest-facing)
 
 ## Admin (auth required — `requireAdmin` on every route below)

@@ -1,7 +1,13 @@
 import { describe, it, expect } from 'vitest';
 import { Timestamp } from 'firebase-admin/firestore';
 import { db } from '../../config/firebase';
-import { createBooking, expireStalePendingBookings, type CreateBookingInput } from '../booking.service';
+import {
+  createBooking,
+  expireStalePendingBookings,
+  getAvailability,
+  getBookingByReferenceAndEmail,
+  type CreateBookingInput,
+} from '../booking.service';
 import { AppError } from '../../utils/app-error';
 import type { Accommodation } from '../../types/accommodation.types';
 import type { GuestDetails } from '../../types/booking.types';
@@ -120,6 +126,46 @@ describe('createBooking', () => {
         .get();
       expect(doc.data()?.bookingId).toBe(survivor.id);
     }
+  });
+});
+
+describe('getAvailability', () => {
+  it('reports only the nights that are actually taken', async () => {
+    const accommodationId = await seedAccommodation();
+    await createBooking(bookingInput(accommodationId, { checkInDate: '2026-11-20', checkOutDate: '2026-11-22' }));
+
+    const availability = await getAvailability(accommodationId, '2026-11-19', '2026-11-24');
+    expect(availability).toEqual({
+      '2026-11-20': 'booked',
+      '2026-11-21': 'booked',
+    });
+  });
+});
+
+describe('getBookingByReferenceAndEmail', () => {
+  it('finds a booking by matching reference and email', async () => {
+    const accommodationId = await seedAccommodation();
+    const booking = await createBooking(
+      bookingInput(accommodationId, { checkInDate: '2026-11-25', checkOutDate: '2026-11-27' })
+    );
+
+    const found = await getBookingByReferenceAndEmail(booking.reference, guest.email);
+    expect(found.id).toBe(booking.id);
+  });
+
+  it('404s for a mismatched email, even with a valid reference', async () => {
+    const accommodationId = await seedAccommodation();
+    const booking = await createBooking(
+      bookingInput(accommodationId, { checkInDate: '2026-11-28', checkOutDate: '2026-11-30' })
+    );
+
+    await expect(getBookingByReferenceAndEmail(booking.reference, 'someone-else@example.com')).rejects.toThrow(
+      AppError
+    );
+  });
+
+  it('404s for an unknown reference', async () => {
+    await expect(getBookingByReferenceAndEmail('BK-00000000-ZZZZ', guest.email)).rejects.toThrow(AppError);
   });
 });
 

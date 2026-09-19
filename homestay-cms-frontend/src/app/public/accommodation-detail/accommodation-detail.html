@@ -28,6 +28,29 @@
       </ul>
     }
 
-    <a routerLink="/contact" class="cta">Enquire to book</a>
+    <div class="booking-widget">
+      <h2>Check availability</h2>
+      <div class="field-row">
+        <label>
+          Check-in
+          <input type="date" [ngModel]="checkInDate()" (ngModelChange)="checkInDate.set($event)" />
+        </label>
+        <label>
+          Check-out
+          <input type="date" [ngModel]="checkOutDate()" (ngModelChange)="checkOutDate.set($event)" />
+        </label>
+        <label>
+          Guests
+          <input
+            type="number"
+            min="1"
+            [max]="u.capacity"
+            [ngModel]="guestCount()"
+            (ngModelChange)="guestCount.set($event)"
+          />
+        </label>
+      </div>
+      <button type="button" class="cta" (click)="goToBooking()">Check availability &amp; book</button>
+    </div>
   </section>
 }

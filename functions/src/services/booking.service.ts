@@ -124,6 +124,26 @@ export async function getAvailability(
 }
 
 /**
+ * Guest-facing, no-account lookup — a booking reference alone isn't sufficient to view a
+ * booking, since references are short and somewhat guessable; requiring the guest's own
+ * email as well means someone else's reference can't be used to snoop on their booking.
+ */
+export async function getBookingByReferenceAndEmail(reference: string, email: string): Promise<Booking> {
+  const snap = await db
+    .collection('bookings')
+    .where('reference', '==', reference)
+    .where('guest.email', '==', email)
+    .limit(1)
+    .get();
+
+  if (snap.empty) {
+    throw new AppError(404, 'Booking not found', 'BOOKING_NOT_FOUND');
+  }
+
+  return snap.docs[0].data() as Booking;
+}
+
+/**
  * Sweeps pending bookings whose hold has expired, flips them to `expired`, and releases
  * their nights so abandoned checkouts don't permanently lock inventory. Intended to run on
  * a schedule (wiring the Cloud Scheduler trigger itself is a later phase — see docs/CHANGELOG.md).

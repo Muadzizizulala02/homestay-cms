@@ -45,6 +45,7 @@ export const routes: Routes = [
       { path: 'about', loadComponent: () => import('./public/about/about').then((m) => m.AboutPage) },
       { path: 'faq', loadComponent: () => import('./public/faq/faq').then((m) => m.FaqPage) },
       { path: 'contact', loadComponent: () => import('./public/contact/contact').then((m) => m.ContactPage) },
+      { path: 'booking', loadComponent: () => import('./public/booking/booking').then((m) => m.BookingPage) },
       { path: '**', loadComponent: () => import('./public/not-found/not-found').then((m) => m.NotFoundPage) },
     ],
   },
