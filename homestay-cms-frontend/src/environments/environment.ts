@@ -9,5 +9,4 @@ export const environment = {
     messagingSenderId: 'YOUR_SENDER_ID',
     appId: 'YOUR_APP_ID',
   },
-  stripePublicKey: 'pk_test_xxx',
 };

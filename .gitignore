@@ -22,6 +22,8 @@ ui-debug.log
 .env
 .env.local
 *.env.local
+*serviceAccount*.json
+*firebase-adminsdk*.json
 
 # Vercel
 .vercel/
