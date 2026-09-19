@@ -3,16 +3,18 @@
 ## Stack (existing, kept)
 
 - **Frontend**: Angular 22, standalone components + signals (no NgModules), Angular Material 22 + SCSS (M3 theming, custom palette rather than Material defaults — see `UI-UX.md`), Vitest for unit tests, Prettier for formatting. Hosted on Vercel.
-- **Backend**: Node 22, TypeScript (strict), Express app running inside a single Firebase Cloud Function (`api`), mounted at `/api/v1`. Requires the Firebase Blaze (pay-as-you-go) plan to deploy.
+- **Backend**: Node 22, TypeScript (strict), Express app running inside a single Firebase Cloud Function named `api`, reachable at `.../api/v1/...`. Requires the Firebase Blaze (pay-as-you-go) plan to deploy.
 - **Database**: Firestore, in the `homestay-cms` Firebase project.
 - **Auth**: Firebase Auth (admin accounts only).
 - **Media storage**: Cloudinary (not Firebase Storage — see decision below).
-- **Payments**: Billplz (not Stripe — see `PAYMENT.md` for the decision and comparison).
+- **Payments**: ToyyibPay (not Billplz or Stripe — see `PAYMENT.md` for the decision and comparison; switched from Billplz after planning because Billplz requires a registered company to sign up).
 - **Email**: SendGrid.
 
 ## Why Express-on-Cloud-Functions (kept from the existing scaffold)
 
 Already working, already deployed to the `homestay-cms` Firebase project, and gives one Express app (familiar routing/middleware model) instead of many discrete `onCall`/`onRequest` functions. No reason to change it.
+
+> **Gotcha (cost real time to find — see `CHANGELOG.md`, "Fix: API routes were unreachable"):** the Cloud Function is named `api`, and Firebase strips that function-name segment from the URL *before* Express ever sees the request. A client calling `.../api/v1/health` has Express receive only `/v1/health`. `app.ts` therefore mounts everything at `/v1`, **not** `/api/v1` — mounting at `/api/v1` compiles fine, passes any test that talks to the Express `app` object directly (`supertest`, as `admin/auth.routes.test.ts` does), and then 404s on every single real request, through the emulator or in production. If you add a new route file, mount it at `/v1...`, not `/api/v1...`. The frontend's `environment.apiUrl` is correct as-is (`.../api/v1`) — that `api` is a required, real part of the URL a caller sends; it just isn't part of what Express itself routes on.
 
 ## Authorization model
 
@@ -28,7 +30,7 @@ Admin routes require: a valid Firebase Auth ID token, verified server-side, carr
 functions/src/
   index.ts                 exports `api` only — a thin wrapper around app.ts
   app.ts                   ✅ Express app assembly: cors, json body parsing, route mounting, error handler
-  config/                  firebase.ts (existing), env.ts ✅ (Cloudinary + Billplz secrets, lazily checked)
+  config/                  firebase.ts (existing), env.ts ✅ (Cloudinary + ToyyibPay secrets, lazily checked)
   types/                   ✅ accommodation, booking, payment, media, site-settings
   utils/                   ✅ app-error.ts — AppError(statusCode, message, code)
   middleware/              ✅ auth.middleware (requireAdmin), validate.middleware (zod), error.middleware
@@ -37,8 +39,8 @@ functions/src/
                             ✅ booking.service (createBooking, getAvailability, expireStalePendingBookings,
                               getBookingByReferenceAndEmail)
                             ✅ accommodation.service, media.service, site-settings.service
-                            ✅ payment.service (createPaymentForBooking, verifyBillplzSignature,
-                              handleBillplzWebhook, markPaymentRefunded)
+                            ✅ payment.service (createPaymentForBooking, verifyToyyibPaySignature,
+                              handleToyyibPayWebhook, markPaymentRefunded)
                             ⏳ email.service — planned
   routes/
     health.routes.ts          ✅ GET /health (existing)
@@ -48,8 +50,8 @@ functions/src/
     booking.routes.ts          ✅ POST /bookings, POST /bookings/:id/payment, GET /bookings/lookup —
                                 no auth (guests never log in); the transactional double-booking-
                                 prevention logic lives entirely in booking.service
-    payment.routes.ts          ✅ POST /payments/webhook/billplz — no auth middleware (Billplz calls
-                                this server-to-server); the X-Signature check inside the handler is
+    payment.routes.ts          ✅ POST /payments/webhook/toyyibpay — no auth middleware (ToyyibPay
+                                calls this server-to-server); the hash check inside the handler is
                                 what actually authenticates the caller, not a bearer token
     admin/auth.routes.ts       ✅ GET /admin/me — requireAdmin-protected, the first proof the auth
                                 wiring works end-to-end over real HTTP with a real Firebase Auth token
@@ -68,9 +70,9 @@ Business logic (the booking transaction, pricing calculation, payment verificati
 
 There is no public registration endpoint. Admin accounts are created with `functions/scripts/create-admin.js` (a standalone script using the Admin SDK, not deployed as a Cloud Function) — see `DEVELOPMENT.md` for usage.
 
-Media storage: Cloudinary, configured via `functions/src/config/env.ts` (throws a clear "missing env var" error if read before `CLOUDINARY_CLOUD_NAME`/`CLOUDINARY_API_KEY`/`CLOUDINARY_API_SECRET` are set, rather than failing silently or crashing unrelated routes at cold start). The same `env.ts` module holds the Billplz secrets the same way.
+Media storage: Cloudinary, configured via `functions/src/config/env.ts` (throws a clear "missing env var" error if read before `CLOUDINARY_CLOUD_NAME`/`CLOUDINARY_API_KEY`/`CLOUDINARY_API_SECRET` are set, rather than failing silently or crashing unrelated routes at cold start). The same `env.ts` module holds the ToyyibPay secrets the same way.
 
-Verification for this layer: `functions/src/**/__tests__/*.test.ts`, run via `npm test` (see `DEVELOPMENT.md`) — 62 tests covering pricing rules, the booking transaction (including a concurrency test asserting exactly one of two simultaneous overlapping bookings succeeds), availability reporting, guest booking lookup by reference+email (including the 404-on-mismatched-email case), booking expiry, all three middleware, an integration test hitting `GET /admin/me` over real HTTP with tokens signed by the Auth emulator, accommodation CRUD (including the public active-only listing/slug lookup, slug-uniqueness, and delete-with-bookings guards) against the Firestore emulator, media service logic (including the public gallery filter) against a mocked Cloudinary SDK, site-settings get/merge-update behavior, and payment.service (signature verification with a tampered-payload case, bill creation with a mocked `fetch` including the duplicate-bill-prevention path, the full webhook-to-confirmed-booking flow with a locally-computed valid signature, and refund recording). `public.routes.ts`/`booking.routes.ts`/`payment.routes.ts`/`admin/content.routes.ts`/`admin/bookings.routes.ts` themselves aren't covered by a dedicated HTTP-level test yet — they're thin pass-throughs to already-tested services, following the exact pattern `admin/auth.routes.ts` already proved correct over real HTTP. The Billplz webhook specifically has not been exercised end-to-end against the real gateway — Billplz can't reach `localhost`, so that needs a public tunnel (see `PAYMENT.md`) this environment doesn't have.
+Verification for this layer: `functions/src/**/__tests__/*.test.ts`, run via `npm test` (see `DEVELOPMENT.md`) — 67 tests covering pricing rules, the booking transaction (including a concurrency test asserting exactly one of two simultaneous overlapping bookings succeeds), availability reporting, guest booking lookup by reference+email (including the 404-on-mismatched-email case), booking expiry, all three middleware, an integration test hitting `GET /admin/me` over real HTTP with tokens signed by the Auth emulator, accommodation CRUD (including the public active-only listing/slug lookup, slug-uniqueness, and delete-with-bookings guards) against the Firestore emulator, media service logic (including the public gallery filter) against a mocked Cloudinary SDK, site-settings get/merge-update behavior, and payment.service (hash verification with a tampered-payload case, bill creation with a mocked `fetch` including the duplicate-bill-prevention and missing-bill-code-in-response paths, the full webhook-to-confirmed-booking flow with a locally-computed valid hash, and refund recording). `public.routes.ts`/`booking.routes.ts`/`payment.routes.ts`/`admin/content.routes.ts`/`admin/bookings.routes.ts` themselves aren't covered by a dedicated HTTP-level test yet — they're thin pass-throughs to already-tested services, following the exact pattern `admin/auth.routes.ts` already proved correct over real HTTP. The ToyyibPay webhook specifically has not been exercised end-to-end against the real gateway — ToyyibPay can't reach `localhost`, so that needs a public tunnel (see `PAYMENT.md`) this environment doesn't have.
 
 ## Frontend structure
 
@@ -83,9 +85,9 @@ src/app/
     accommodation-list/, accommodation-detail/ ✅ public listing + per-slug detail page (detail page
                     has an inline date/guest picker that hands off to booking/ via query params)
     booking/        ✅ the guest booking flow — dates→availability check, guest details, review,
-                    submit, then an automatic redirect to Billplz's hosted payment page. Falls back
-                    to an in-page "pending payment, we'll contact you" confirmation if payment
-                    creation fails (e.g. no real Billplz credentials configured) — see
+                    submit, then an automatic redirect to ToyyibPay's hosted payment page. Falls
+                    back to an in-page "pending payment, we'll contact you" confirmation if payment
+                    creation fails (e.g. no real ToyyibPay credentials configured) — see
                     docs/BOOKING-FLOW.md. noindexed via SeoService.
     gallery/        ✅ public gallery grid (lazy-loaded images)
     about/          ✅ about/host copy + key-free Google Maps embed

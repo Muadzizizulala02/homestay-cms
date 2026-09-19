@@ -4,7 +4,7 @@ import type { PaymentStatus } from './booking.types';
 export interface Payment {
   id: string;
   bookingId: string;
-  gateway: 'billplz';
+  gateway: 'toyyibpay';
   gatewayBillId: string;
   amount: number;
   method: string | null;

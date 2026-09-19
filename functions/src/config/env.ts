@@ -7,7 +7,7 @@ function requireEnv(name: string): string {
 }
 
 // Getters, not eagerly-read constants: importing this module must never crash routes
-// that don't need Cloudinary/Billplz (e.g. /health, /admin/me) just because they aren't
+// that don't need Cloudinary/ToyyibPay (e.g. /health, /admin/me) just because they aren't
 // configured yet.
 export const env = {
   get cloudinaryCloudName(): string {
@@ -19,24 +19,22 @@ export const env = {
   get cloudinaryApiSecret(): string {
     return requireEnv('CLOUDINARY_API_SECRET');
   },
-  get billplzSecretKey(): string {
-    return requireEnv('BILLPLZ_SECRET_KEY');
+  /** Also used to compute/verify the callback hash — ToyyibPay has no separate signing key. */
+  get toyyibpaySecretKey(): string {
+    return requireEnv('TOYYIBPAY_SECRET_KEY');
   },
-  get billplzCollectionId(): string {
-    return requireEnv('BILLPLZ_COLLECTION_ID');
-  },
-  get billplzXSignatureKey(): string {
-    return requireEnv('BILLPLZ_X_SIGNATURE_KEY');
+  get toyyibpayCategoryCode(): string {
+    return requireEnv('TOYYIBPAY_CATEGORY_CODE');
   },
   /** No secret involved and a sensible default exists, so this one isn't required. */
-  get billplzBaseUrl(): string {
-    return process.env['BILLPLZ_BASE_URL'] || 'https://www.billplz-sandbox.com';
+  get toyyibpayBaseUrl(): string {
+    return process.env['TOYYIBPAY_BASE_URL'] || 'https://dev.toyyibpay.com';
   },
-  /** The deployed frontend origin — Billplz redirects the guest back here after payment. */
+  /** The deployed frontend origin — ToyyibPay redirects the guest back here after payment. */
   get frontendBaseUrl(): string {
     return requireEnv('FRONTEND_BASE_URL');
   },
-  /** This backend's own public origin — Billplz calls back here server-to-server. */
+  /** This backend's own public origin — ToyyibPay calls back here server-to-server. */
   get apiBaseUrl(): string {
     return requireEnv('API_BASE_URL');
   },

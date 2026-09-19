@@ -1,5 +1,66 @@
 # Changelog
 
+## 2026-09-19 — Fix: `FIREBASE_PROJECT_ID` in `.env` crashed the entire Functions emulator
+
+Reported by the user: the site loaded (nav, footer, layout) but showed no content at all — no hero text, no rooms, nothing. Diagnosed by checking `firebase-debug.log` directly rather than guessing: `Failed to load function definition from source: FirebaseError: Failed to load environment variables from .env.` — the whole `api` function failed to register, so *every* route 404'd with "Function us-central1-api does not exist," not a partial failure.
+
+**Root cause**: `functions/.env` (and `.env.example`, its template) had `FIREBASE_PROJECT_ID=homestay-cms`. Cloud Functions reserves the `FIREBASE_` key prefix for its own internally-managed config and refuses to load the function at all if a `.env` file defines one — this isn't specific to our code, it's how the platform's dotenv loading works. The line had been sitting in `.env.example` since the original scaffold (before this session), unused by any of our own code (`initializeApp()` auto-detects the project without it), and harmless until this was the first time a real `functions/.env` actually existed to be loaded.
+
+**Fix**: removed the line from both `functions/.env` and `functions/.env.example`, added a warning comment to the latter so it doesn't get re-added. Restarted the emulator cleanly (env var changes need a full restart) and confirmed via `curl` that `/health` and `/site-settings` both work again, returning the real seeded "Persada Hills Homestay" data — no frontend changes were needed, just the backend restart.
+
+Added a dedicated troubleshooting entry to `DEV-MODE.md` for this exact symptom ("every route 404s with an empty valid-functions list").
+
+## 2026-09-19 — Add dummy data seed script; verified persistence end-to-end
+
+Asked directly for dummy data. Added `functions/scripts/seed-dummy-data.js` (same pattern as `create-admin.js` — standalone, `--emulator`-gated, safe to re-run) seeding a fictional "Persada Hills Homestay": full `siteSettings/main` (hero, about, host intro, address/geo, contact, socials, check-in/out, house rules, FAQ, cancellation policy), three accommodations (Garden View Room, Family Suite with a weekend rate override, Cozy Cabin) with Unsplash placeholder photos, and three gallery items.
+
+Ran it for real rather than just handing over the script: started the emulator suite (`--export-on-exit`/`--import` from the persistence work above), seeded the data, created the admin account (`muadzkhalid6@gmail.com` / `password`), then deliberately cycled the emulator (clean `SIGINT` shutdown → confirmed `emulator-data/` actually got written to disk → fresh restart importing from it) to prove the persistence setup from the previous entry genuinely round-trips, not just that the CLI flags exist. All 3 accommodations, site settings, and the admin account survived the restart. Left the emulator running afterward.
+
+Documented the script in `DEV-MODE.md` under a new "Optional: seed placeholder content" section, including the known limitation that its gallery items' placeholder Cloudinary public IDs won't resolve to real assets once Cloudinary is actually configured (delete-via-admin-UI would fail for those specific seeded items; not an issue for anything uploaded for real).
+
+## 2026-09-19 — Persist local emulator data across restarts
+
+Asked directly: local Firestore/Auth emulator data was in-memory only — every restart lost the admin account, rooms, and content, per `DEV-MODE.md`'s own (accurate, at the time) description.
+
+- Added `--export-on-exit=./emulator-data --import=./emulator-data` to the documented `firebase emulators:start` command (`README.md`, `DEVELOPMENT.md`, `DEV-MODE.md`) and to `functions/package.json`'s `serve` script (which also gained the previously-missing `auth` emulator in the same edit).
+- Created `emulator-data/` at repo root (required to exist for `--import` to not error on a fresh checkout) with a `.gitkeep`; `.gitignore` updated to `emulator-data/*` + `!emulator-data/.gitkeep` so the directory itself is tracked but its actual data (which can contain guest PII from testing) never is.
+- Verified: the installed Firebase CLI's own `--help` output confirms both flags exist and behave as documented (export triggers only on a clean/SIGINT exit) — a full write-restart-read round trip wasn't run against the user's own live emulator to avoid disrupting their active session; this is standard, well-documented Firebase tooling, not custom behavior.
+- Updated `DEV-MODE.md`'s troubleshooting section (missing import directory, unclean-shutdown data loss) and its dev-vs-production table.
+
+## 2026-09-19 — Added DEV-MODE.md
+
+Requested directly: a single, ordered walkthrough for running the whole stack locally (frontend + Functions/Firestore/Auth emulators + an optional ngrok tunnel for payment testing), consolidating instructions that had only existed scattered across chat up to this point. Includes a troubleshooting section built from the actual issues hit while first setting this up this session (the `/api/v1` vs `/v1` route-mounting bug, env vars needing a full emulator restart vs. code changes auto-reloading, stray emulator processes holding ports, `create-admin` failing when the Auth emulator isn't running) and a dev-vs-production comparison table. Linked from `docs/README.md`'s index. No code changed.
+
+## 2026-09-19 — Switch payment gateway from Billplz to ToyyibPay
+
+**Reason:** the user needs a registered company (SSM) to open a Billplz account and doesn't have one. ToyyibPay was researched the same way Billplz was before implementing (not assumed): confirmed it explicitly supports individual/personal registration with no SSM requirement (a personal bank account under the Dewan Ekonomi GIG Malaysia structure), confirmed it has a real webhook integrity check (MD5 hash — weaker than Billplz's HMAC-SHA256, but a genuine secret-tied check, not nothing), and confirmed — same as Billplz — it has no documented refund API (their ToS frames refunds as a merchant "instruction" they may decline, not an API call).
+
+**Changed** (all in `functions/src/`, all gateway-internal — the public API shape `createPaymentForBooking`/`markPaymentRefunded`/the `/bookings/:id/payment` and `/payments/webhook/*` routes stays the same, so **no frontend changes were needed** beyond one route-name string):
+- `config/env.ts`: `BILLPLZ_*` getters → `TOYYIBPAY_SECRET_KEY`/`TOYYIBPAY_CATEGORY_CODE`/`TOYYIBPAY_BASE_URL` (default `https://dev.toyyibpay.com`). ToyyibPay uses one secret key for both bill creation and callback verification — no separate signing key like Billplz's X-Signature key.
+- `services/payment.service.ts`: bill creation now posts to `{TOYYIBPAY_BASE_URL}/index.php/api/createBill` with the secret key *in the form body* (not HTTP Basic Auth) and parses a JSON **array** response (`[{ "BillCode": "..." }]`) rather than an object; the payment page URL is constructed client-side as `{base}/{BillCode}` rather than returned directly. Verification is now `verifyToyyibPaySignature()` — `MD5(secretKey + status + order_id + refno + "ok")` compared with `crypto.timingSafeEqual` — replacing the HMAC-SHA256 `verifyBillplzSignature()`. `handleToyyibPayWebhook()` reads ToyyibPay's field names (`billcode`, `status` as `'1'`/`'2'`/`'3'`, `order_id`, `refno`) in place of Billplz's (`id`, `paid` as `'true'`/`'false'`).
+- `types/payment.types.ts`: `gateway: 'billplz'` → `'toyyibpay'`.
+- `routes/payment.routes.ts`: `POST /payments/webhook/billplz` → `POST /payments/webhook/toyyibpay`.
+- `.env.example` (both projects) and all doc references updated to match.
+- Rewrote `payment.service.test.ts` against the new contract (same coverage shape as before, plus one new case: a malformed gateway response missing `BillCode`). 67 tests total (was 66 — one net-new test).
+
+**Verified**: `npm run build` clean; full suite (67/67) run twice in a row against the same live shared emulator to rule out any repeat-run collision like the one found and fixed in the Billplz version; confirmed the new `/v1/payments/webhook/toyyibpay` route is live through the real Functions emulator (`curl` — got the expected 500 from the still-unset `TOYYIBPAY_SECRET_KEY` in that particular running process, not a 404, i.e. routing is correct and the failure is exactly "no credentials configured yet"); confirmed `/health` and `/accommodations` are unaffected. Not verified: an actual round trip against the real ToyyibPay sandbox (no account/tunnel set up in this environment) — same limitation as Billplz had.
+
+**Side note, unrelated to the swap**: this session's test runs (across this and prior phases) have been executing against the user's real local `homestay-cms` Firestore emulator rather than an isolated instance, since that instance was already live when verification ran. This has left ~70 dummy "Test Room"/"Garden Room" accommodation documents in the local dev database. Harmless (Firestore emulator data isn't persisted across restarts by default) but visible in `/admin/accommodation` until the emulator is next restarted — flagged to the user directly.
+
+Updated `PAYMENT.md` (major rewrite — preserves the original Billplz comparison as historical context), `API.md`, `ARCHITECTURE.md`, `DEPLOYMENT.md`, `BOOKING-FLOW.md`, `PROJECT-OVERVIEW.md`, `SECURITY.md`, `DEVELOPMENT.md`.
+
+## 2026-09-19 — Fix: every API route was unreachable through the real Functions emulator/production URL
+
+Found while the user was manually testing the admin dashboard for the first time: login worked, but "Could not verify your session with the backend API" on `/admin/me`. Manual `curl` against the actual emulator URL (`http://127.0.0.1:5001/homestay-cms/us-central1/api/v1/...`) showed a plain Express 404 ("Cannot GET /v1/health") — not our JSON error format, meaning Express was running and receiving requests, just with no matching route.
+
+**Root cause**: the deployed Cloud Function is named `api`. Firebase strips the function-name segment from the URL before Express ever sees the request, so a client calling `.../api/v1/health` has Express receive only `/v1/health`. Every route in `app.ts` was mounted at `/api/v1/...`, which never matched anything a real caller could ever send. This affected **every route in the application**, in every phase back to Phase 3 — it just went undetected because every backend test that exercises HTTP (`admin/auth.routes.test.ts`, via `supertest`) talks to the Express `app` object directly, bypassing the Cloud Functions URL-routing layer entirely. Internally-consistent, passing tests; a genuinely broken app for any real caller. Confirmed via direct `curl` against the live emulator both before and after the fix — not something the automated suite alone would ever have caught.
+
+**Fix**: `app.ts` now mounts everything at `/v1` (not `/api/v1`); `admin/auth.routes.test.ts`'s `supertest` calls updated to match (`/v1/admin/me`, not `/api/v1/admin/me`). No change needed on the frontend — `environment.apiUrl` (`.../api/v1`) was already correct, since that `api` segment is a real, required part of the URL a caller sends; it was only ever the *internal* Express mount that was wrong. See `app.ts`'s new comment and the callout added to `ARCHITECTURE.md`.
+
+Verified: rebuilt (`npm run build`) and confirmed the *already-running* Functions emulator picked up the change without a restart (it watches `lib/`); direct `curl` against `/health`, `/site-settings`, `/accommodations`, and `/admin/me` (401 without a token) all now return correctly through the real emulator URL, not just via `supertest`. Full suite re-run: 66/66 passing (the true total — `admin/auth.routes.test.ts`'s 4 tests were being run all along, just sometimes excluded from the count reported in earlier changelog entries when verifying against an instance missing the Auth emulator; those earlier "49"/"53"/"62" figures undercounted by 4 for that reason, not because tests were missing).
+
+**Lesson for future work on this repo**: a green `supertest`-based route test proves the Express app is internally self-consistent, not that a real client can reach it through the actual Cloud Function URL. Whenever a new route is added, sanity-check it with a real `curl` against the running emulator at least once, the way `DEVELOPMENT.md` now describes — don't rely on `npm test` alone for that specific class of bug.
+
 ## 2026-09-19 — Phase 7: Billplz payment integration
 
 - **Researched the exact Billplz API contract before implementing** (create-bill endpoint/auth/fields, webhook field list, X-Signature algorithm) rather than guessing from the earlier planning-phase comparison — and found the earlier plan's refund claim was wrong.

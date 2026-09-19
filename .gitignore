@@ -18,6 +18,12 @@ firestore-debug.log
 ui-debug.log
 .firebase/
 
+# Persisted local emulator data (see docs/DEV-MODE.md) — can contain guest PII from testing.
+# The directory itself is tracked (via .gitkeep) so `--import` doesn't fail on a fresh clone;
+# only its contents are ignored.
+emulator-data/*
+!emulator-data/.gitkeep
+
 # Environment secrets
 .env
 .env.local

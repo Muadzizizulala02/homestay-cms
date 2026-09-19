@@ -20,6 +20,7 @@ This directory is the project's long-term memory. It exists so that both the dev
 | [API.md](./API.md) | REST endpoint surface under `/api/v1` |
 | [DEPLOYMENT.md](./DEPLOYMENT.md) | How to deploy, environment variables, hosting |
 | [DEVELOPMENT.md](./DEVELOPMENT.md) | Local setup, running emulators, conventions |
+| [DEV-MODE.md](./DEV-MODE.md) | Step-by-step: running the whole stack locally, testing payments, troubleshooting |
 | [CHANGELOG.md](./CHANGELOG.md) | Dated log of what changed and why |
 
 The original planning session's full output also lives at `/home/muadz/.claude/plans/homestay-cms-jaunty-galaxy.md` (outside the repo) — these docs are the in-repo, durable version of that plan, updated as implementation proceeds.

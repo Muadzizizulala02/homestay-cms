@@ -15,7 +15,7 @@ router.post('/bookings', validate(createBookingSchema), async (req: Request, res
   }
 });
 
-// Deliberately separate from booking creation: an external HTTP call (to Billplz) must never
+// Deliberately separate from booking creation: an external HTTP call (to ToyyibPay) must never
 // happen inside the booking-creation Firestore transaction (see payment.service.ts).
 router.post(
   '/bookings/:id/payment',

@@ -20,7 +20,7 @@ Status: partially implemented. The Firestore deny-all rule (item 1 below) alread
 - **File uploads**: Cloudinary signed uploads only; backend validates MIME type, size, and dimensions before issuing the upload signature; filenames are not trusted (regenerated server-side) to prevent path traversal; no executable file types accepted.
 - **Secrets**: environment variables / Secret Manager only, never committed. `.gitignore` should additionally cover `*serviceAccount*.json` / `*firebase-adminsdk*.json` as a safety net even though no such file currently exists in the repo.
 - **Error handling**: structured error responses that never leak stack traces or internal identifiers to the client.
-- **Webhook verification**: Billplz `X-Signature` HMAC verified before trusting any webhook payload.
+- **Webhook verification**: ✅ implemented — ToyyibPay's callback hash verified (`crypto.timingSafeEqual`) before trusting any webhook payload. See `PAYMENT.md`.
 
 ## Explicitly out of scope for v1
 

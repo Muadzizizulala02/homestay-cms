@@ -9,36 +9,36 @@ import type { PaymentStatus } from '../types/booking.types';
 
 const COLLECTION = 'payments';
 
-interface CreateBillplzBillInput {
+interface CreateToyyibPayBillInput {
   amountInCents: number;
   email: string;
   name: string;
-  mobile?: string;
+  phone: string;
   description: string;
   reference: string;
 }
 
-async function createBillplzBill(input: CreateBillplzBillInput): Promise<{ id: string; url: string }> {
+async function createToyyibPayBill(input: CreateToyyibPayBillInput): Promise<{ billCode: string; url: string }> {
   const body = new URLSearchParams({
-    collection_id: env.billplzCollectionId,
-    email: input.email,
-    name: input.name,
-    amount: String(input.amountInCents),
-    callback_url: `${env.apiBaseUrl}/api/v1/payments/webhook/billplz`,
-    redirect_url: `${env.frontendBaseUrl}/booking/confirmation?reference=${encodeURIComponent(input.reference)}`,
-    description: input.description,
-    reference_1_label: 'Booking reference',
-    reference_1: input.reference,
+    userSecretKey: env.toyyibpaySecretKey,
+    categoryCode: env.toyyibpayCategoryCode,
+    billName: input.reference.slice(0, 30),
+    billDescription: input.description.slice(0, 100),
+    billPriceSetting: '1', // fixed amount, not guest-entered
+    billPayorInfo: '1', // require name/email/phone
+    billAmount: String(input.amountInCents),
+    billReturnUrl: `${env.frontendBaseUrl}/booking/confirmation?reference=${encodeURIComponent(input.reference)}`,
+    billCallbackUrl: `${env.apiBaseUrl}/api/v1/payments/webhook/toyyibpay`,
+    billExternalReferenceNo: input.reference,
+    billTo: input.name,
+    billEmail: input.email,
+    billPhone: input.phone,
+    billPaymentChannel: '2', // FPX + card
   });
-  if (input.mobile) {
-    body.set('mobile', input.mobile);
-  }
 
-  // Billplz auth: HTTP Basic with the secret key as the username and an empty password.
-  const auth = Buffer.from(`${env.billplzSecretKey}:`).toString('base64');
-  const res = await fetch(`${env.billplzBaseUrl}/api/v3/bills`, {
+  const res = await fetch(`${env.toyyibpayBaseUrl}/index.php/api/createBill`, {
     method: 'POST',
-    headers: { Authorization: `Basic ${auth}`, 'Content-Type': 'application/x-www-form-urlencoded' },
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     body,
   });
 
@@ -46,14 +46,20 @@ async function createBillplzBill(input: CreateBillplzBillInput): Promise<{ id: s
     throw new AppError(502, 'Could not create a payment with the gateway', 'PAYMENT_GATEWAY_ERROR');
   }
 
-  const data = (await res.json()) as { id: string; url: string };
-  return { id: data.id, url: data.url };
+  // ToyyibPay responds with a JSON array, e.g. [{ "BillCode": "abc123" }].
+  const data = (await res.json()) as Array<{ BillCode?: string }>;
+  const billCode = data[0]?.BillCode;
+  if (!billCode) {
+    throw new AppError(502, 'Payment gateway did not return a bill code', 'PAYMENT_GATEWAY_ERROR');
+  }
+
+  return { billCode, url: `${env.toyyibpayBaseUrl}/${billCode}` };
 }
 
 /**
- * Creates (or reuses) a Billplz bill for a pending_payment booking and records it in `payments`.
- * Deliberately not part of the booking-creation transaction: an external HTTP call inside a
- * Firestore transaction risks creating duplicate bills if the transaction retries.
+ * Creates (or reuses) a ToyyibPay bill for a pending_payment booking and records it in
+ * `payments`. Deliberately not part of the booking-creation transaction: an external HTTP
+ * call inside a Firestore transaction risks creating duplicate bills if the transaction retries.
  */
 export async function createPaymentForBooking(bookingId: string): Promise<{ redirectUrl: string }> {
   const bookingDoc = await db.collection('bookings').doc(bookingId).get();
@@ -72,16 +78,16 @@ export async function createPaymentForBooking(bookingId: string): Promise<{ redi
       throw new AppError(409, 'This booking has already been paid', 'ALREADY_PAID');
     }
     if (existing.status === 'pending') {
-      // Reuse the bill already created rather than creating a duplicate at Billplz.
-      return { redirectUrl: `${env.billplzBaseUrl}/bills/${existing.gatewayBillId}` };
+      // Reuse the bill already created rather than creating a duplicate at ToyyibPay.
+      return { redirectUrl: `${env.toyyibpayBaseUrl}/${existing.gatewayBillId}` };
     }
   }
 
-  const bill = await createBillplzBill({
+  const bill = await createToyyibPayBill({
     amountInCents: Math.round(booking.price.total * 100),
     email: booking.guest.email,
     name: booking.guest.name,
-    mobile: booking.guest.phone,
+    phone: booking.guest.phone,
     description: `Booking ${booking.reference}`,
     reference: booking.reference,
   });
@@ -91,8 +97,8 @@ export async function createPaymentForBooking(bookingId: string): Promise<{ redi
   const payment: Payment = {
     id: paymentRef.id,
     bookingId,
-    gateway: 'billplz',
-    gatewayBillId: bill.id,
+    gateway: 'toyyibpay',
+    gatewayBillId: bill.billCode,
     amount: booking.price.total,
     method: null,
     status: 'pending',
@@ -105,45 +111,49 @@ export async function createPaymentForBooking(bookingId: string): Promise<{ redi
 }
 
 /**
- * Verifies a Billplz X-Signature: sort every field except x_signature by key (ascending,
- * case-insensitive), concatenate each as `key+value`, join with `|`, HMAC-SHA256 with the
- * X Signature key, and compare to the provided value. This is the only thing that may ever
- * flip a payment to `paid` — the frontend redirect is UX only and is never trusted.
+ * Verifies a ToyyibPay callback: hash = MD5(secretKey + status + order_id + refno + "ok").
+ * Weaker than an HMAC (MD5 is an older, collision-prone hash) but still a real integrity check
+ * tied to a secret only we and ToyyibPay know — this, not the browser return URL, is the only
+ * thing that may ever flip a payment to `paid`.
  */
-export function verifyBillplzSignature(payload: Record<string, string>): boolean {
-  const { x_signature: providedSignature, ...rest } = payload;
-  if (!providedSignature) {
+export function verifyToyyibPaySignature(payload: Record<string, string>): boolean {
+  const { hash: providedHash, status, order_id: orderId, refno } = payload;
+  if (!providedHash || status === undefined || orderId === undefined || refno === undefined) {
     return false;
   }
 
-  const sortedKeys = Object.keys(rest).sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
-  const sourceString = sortedKeys.map((key) => `${key}${rest[key]}`).join('|');
-  const expected = crypto.createHmac('sha256', env.billplzXSignatureKey).update(sourceString).digest('hex');
+  const expected = crypto
+    .createHash('md5')
+    .update(`${env.toyyibpaySecretKey}${status}${orderId}${refno}ok`)
+    .digest('hex');
 
   const expectedBuffer = Buffer.from(expected, 'hex');
-  const providedBuffer = Buffer.from(providedSignature, 'hex');
+  const providedBuffer = Buffer.from(providedHash, 'hex');
   if (expectedBuffer.length !== providedBuffer.length) {
     return false;
   }
   return crypto.timingSafeEqual(expectedBuffer, providedBuffer);
 }
 
-/** Handles Billplz's server-to-server callback. Must respond quickly — Billplz times out at 20s. */
-export async function handleBillplzWebhook(payload: Record<string, string>): Promise<void> {
-  if (!verifyBillplzSignature(payload)) {
+/** Handles ToyyibPay's server-to-server callback. status: 1=success, 2=pending, 3=fail. */
+export async function handleToyyibPayWebhook(payload: Record<string, string>): Promise<void> {
+  if (!verifyToyyibPaySignature(payload)) {
     throw new AppError(401, 'Invalid webhook signature', 'INVALID_SIGNATURE');
   }
 
-  const paymentSnap = await db.collection(COLLECTION).where('gatewayBillId', '==', payload['id']).limit(1).get();
+  const paymentSnap = await db
+    .collection(COLLECTION)
+    .where('gatewayBillId', '==', payload['billcode'])
+    .limit(1)
+    .get();
   if (paymentSnap.empty) {
-    // Unknown bill — acknowledge quietly. Billplz retries on a non-200, and there is nothing
-    // useful an error would communicate for a bill that isn't ours.
+    // Unknown bill — acknowledge quietly rather than erroring; nothing useful to report.
     return;
   }
 
   const paymentDoc = paymentSnap.docs[0];
   const payment = paymentDoc.data() as Payment;
-  const isPaid = payload['paid'] === 'true';
+  const isPaid = payload['status'] === '1';
   const paymentStatus: PaymentStatus = isPaid ? 'paid' : 'failed';
 
   await db.runTransaction(async (tx) => {
@@ -162,9 +172,10 @@ export async function handleBillplzWebhook(payload: Record<string, string>): Pro
 }
 
 /**
- * Records a booking's payment as refunded. Billplz has no refund API (confirmed against their
- * docs — refunds are dashboard-only), so this does not move any money; it only updates our own
- * records once the admin has processed the actual refund manually in the Billplz dashboard.
+ * Records a booking's payment as refunded. ToyyibPay has no publicly documented refund API
+ * (their Terms of Service describe refunds as a merchant-initiated instruction they may decline,
+ * not an API call) — this does not move any money; it only updates our own records once the
+ * admin has processed the actual refund through ToyyibPay themselves.
  */
 export async function markPaymentRefunded(bookingId: string): Promise<void> {
   const paymentSnap = await db.collection(COLLECTION).where('bookingId', '==', bookingId).limit(1).get();

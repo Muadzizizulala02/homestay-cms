@@ -153,7 +153,7 @@ export class BookingPage implements OnInit {
           this.confirmedBooking.set(booking);
           this.step.set('confirmation');
 
-          // Best-effort: if Billplz isn't configured yet, or the gateway call fails, the guest
+          // Best-effort: if ToyyibPay isn't configured yet, or the gateway call fails, the guest
           // still has a valid pending_payment booking — just without an online payment option
           // right now. Never block the confirmation on this.
           this.bookingService.createPayment(booking.id).subscribe({

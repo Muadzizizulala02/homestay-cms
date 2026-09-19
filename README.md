@@ -23,14 +23,17 @@ npm install
 npm run build
 ```
 
-Run the local emulators from the repo root (uses `firebase.json`):
+Run the local emulators from the repo root (uses `firebase.json`). `--export-on-exit`/`--import` persist Firestore/Auth data across restarts (into the gitignored `emulator-data/`) — drop both flags for a clean-slate emulator instead:
 
 ```bash
-firebase emulators:start --only functions,firestore
-# Functions:  http://127.0.0.1:5001/homestay-cms/us-central1/api
-# Firestore:  http://127.0.0.1:8080
+firebase emulators:start --only functions,firestore,auth --export-on-exit=./emulator-data --import=./emulator-data
+# Functions:   http://127.0.0.1:5001/homestay-cms/us-central1/api
+# Firestore:   http://127.0.0.1:8080
+# Auth:        http://127.0.0.1:9099
 # Emulator UI: http://127.0.0.1:4000
 ```
+
+See [docs/DEV-MODE.md](./docs/DEV-MODE.md) for the full local dev walkthrough.
 
 ## Deploy
 

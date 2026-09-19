@@ -64,7 +64,7 @@ export class BookingService {
     return this.http.get<Booking>(`${this.baseUrl}/bookings/lookup`, { params: { reference, email } });
   }
 
-  /** May fail if Billplz isn't configured yet — callers should fall back gracefully, not error out. */
+  /** May fail if ToyyibPay isn't configured yet — callers should fall back gracefully, not error out. */
   createPayment(bookingId: string): Observable<{ redirectUrl: string }> {
     return this.http.post<{ redirectUrl: string }>(`${this.baseUrl}/bookings/${bookingId}/payment`, {});
   }

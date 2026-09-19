@@ -3,7 +3,7 @@
   "scripts": {
     "build": "tsc",
     "build:watch": "tsc --watch",
-    "serve": "npm run build && firebase emulators:start --only functions,firestore",
+    "serve": "npm run build && firebase emulators:start --only functions,firestore,auth --export-on-exit=../emulator-data --import=../emulator-data",
     "shell": "npm run build && firebase functions:shell",
     "start": "npm run shell",
     "test": "firebase emulators:exec --only firestore,auth --project demo-test \"vitest run\"",
