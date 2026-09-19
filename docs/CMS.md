@@ -1,6 +1,6 @@
 # CMS
 
-Status: planned, not yet implemented.
+Status: accommodation and media management are implemented (backend + admin UI). Site content, availability, and bookings screens are still planned.
 
 Deliberately small in scope — this serves one owner-operator, not a multi-tenant CMS.
 
@@ -10,11 +10,17 @@ Single editor for the `siteSettings` singleton: hero, headline/intro, about copy
 
 ## Media
 
-Upload to Cloudinary via a backend-signed-upload endpoint. Assign each item to the general gallery or to a specific accommodation. Reorder. Delete removes the asset from Cloudinary too, not just the Firestore reference (avoids orphaned files).
+✅ **Implemented**: `/admin/media` — upload to Cloudinary via a backend-signed-upload endpoint (`POST /admin/media/sign-upload`, `functions/src/services/media.service.ts`), the browser then uploads directly to Cloudinary so the API secret never leaves the server. Delete removes the asset from Cloudinary via `cloudinary.uploader.destroy()`, not just the Firestore reference. Alt text is editable inline.
+
+This general gallery manager is decoupled from accommodation photos by design: an accommodation's `photos` field is a plain array of Cloudinary URLs managed from within the accommodation form itself (same signed-upload flow, different call — `MediaService.uploadRaw()` skips writing a `media` collection document). The `media` collection is specifically for the general Gallery page's content, not per-room photos.
+
+Not yet built: reordering (the `order` field exists and defaults to append-order, but there's no drag-to-reorder UI yet), assigning an existing gallery item to an accommodation after the fact.
 
 ## Accommodation
 
-CRUD for room/unit types: name, slug, description, photos, capacity, beds, amenities (multi-select from a fixed list), base price, seasonal rate rules, min/max stay, active/inactive toggle.
+✅ **Implemented**: `/admin/accommodation` (`functions/src/services/accommodation.service.ts`, `functions/src/routes/admin/accommodation.routes.ts`) — create/read/update/delete for room/unit types: slug, name, description, photos, capacity, beds, amenities (free-text, comma-separated in the UI — not yet a fixed multi-select list), base price, min/max stay, active/inactive toggle. Deleting an accommodation that has any bookings is rejected (409 `ACCOMMODATION_HAS_BOOKINGS`) — the admin is told to deactivate it instead, so booking history is never orphaned.
+
+Not yet built: an editing UI for `weekdayRates`/`seasonalRates` (the backend type and validation support them; only base price is editable from the form today) — a fixed-list amenity picker instead of free text.
 
 ## Availability
 

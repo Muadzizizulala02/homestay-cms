@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-09-19 — Phase 4: accommodation + media management
+
+- Added `functions/src/services/accommodation.service.ts` and `routes/admin/accommodation.routes.ts` — full CRUD for room/unit types (`functions/src/validation/accommodation.schema.ts` for request validation). Enforces slug uniqueness and `minStay <= maxStay` at write time (checked against the merged record for partial updates, not just the request body in isolation). Deleting an accommodation with any existing booking is rejected with 409 `ACCOMMODATION_HAS_BOOKINGS` — the fix is to deactivate it, not delete it, so booking history never points at a missing accommodation.
+- Added `functions/src/services/media.service.ts` and `routes/admin/media.routes.ts` — Cloudinary-backed media management: a signed-upload endpoint so the browser can upload directly to Cloudinary without the API secret ever reaching it, plus record/list/update/delete for the resulting media items (delete removes the Cloudinary asset itself, not just the Firestore reference). Added the `cloudinary` SDK dependency and `functions/src/config/env.ts` (typed, lazily-checked env var access — a clear error naming the missing variable, not a silent failure or an unrelated route crashing at cold start).
+- Wired both route files into `app.ts`.
+- **Frontend**: added `admin/accommodation/` (list + `accommodation-form-dialog/` for create/edit, including inline photo upload that writes straight into the accommodation's own `photos` array) and `admin/media/` (gallery manager — upload, inline alt-text editing, delete). Added `shared/services/accommodation.service.ts` and `shared/services/media.service.ts` (the latter uploads to Cloudinary via a direct `fetch` call, deliberately bypassing `HttpClient`/`auth.interceptor` so the Firebase ID token is never sent to a third-party host). Dashboard now links to both new pages.
+- Tests: `accommodation.service.test.ts` (9 tests, against the Firestore emulator — covers create/read/update/delete, slug-uniqueness, stay-range validation, and the delete-with-bookings guard) and `media.service.test.ts` (5 tests, against a mocked Cloudinary SDK — no real Cloudinary account needed to verify the signing/record/update/delete logic, though actually uploading a file does need real credentials, which this environment doesn't have yet). Backend suite: 42/42 passing. Frontend: `ng build` and `ng test` (3/3) still pass.
+- Updated `ARCHITECTURE.md`, `CMS.md`, `API.md`, `DEPLOYMENT.md`, `PROJECT-OVERVIEW.md` to match.
+- Known gaps, deliberately deferred rather than half-built: no UI yet for `weekdayRates`/`seasonalRates` (backend supports them; only base price is editable from the form), amenities are free-text rather than a fixed multi-select list, no drag-to-reorder for gallery items.
+
 ## 2026-09-19 — Fix: local admin login was broken (emulator wiring + project ID mismatch)
 
 Reported by the user immediately after Phase 3: `npm run create-admin -- --emulator` succeeded, but the login page still couldn't sign in.

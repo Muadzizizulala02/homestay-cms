@@ -1,5 +1,5 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatToolbarModule } from '@angular/material/toolbar';
@@ -8,7 +8,7 @@ import { AuthService } from '../../shared/services/auth.service';
 
 @Component({
   selector: 'app-admin-dashboard',
-  imports: [MatButtonModule, MatCardModule, MatToolbarModule],
+  imports: [RouterLink, MatButtonModule, MatCardModule, MatToolbarModule],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.scss',
 })

@@ -1,0 +1,54 @@
+<mat-toolbar color="primary">
+  <a routerLink="/admin/dashboard" aria-label="Back to dashboard">
+    <button mat-icon-button type="button"><mat-icon>arrow_back</mat-icon></button>
+  </a>
+  <span>Accommodation</span>
+  <span class="spacer"></span>
+  <button mat-flat-button type="button" (click)="openCreateDialog()">
+    <mat-icon>add</mat-icon>
+    Add accommodation
+  </button>
+</mat-toolbar>
+
+<div class="content">
+  @if (accommodations().length === 0) {
+    <p class="empty">No accommodation yet. Add the first room or unit type.</p>
+  } @else {
+    <table mat-table [dataSource]="accommodations()" class="mat-elevation-z1">
+      <ng-container matColumnDef="name">
+        <th mat-header-cell *matHeaderCellDef>Name</th>
+        <td mat-cell *matCellDef="let row">{{ row.name }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="capacity">
+        <th mat-header-cell *matHeaderCellDef>Capacity</th>
+        <td mat-cell *matCellDef="let row">{{ row.capacity }} guests</td>
+      </ng-container>
+
+      <ng-container matColumnDef="basePrice">
+        <th mat-header-cell *matHeaderCellDef>Base price</th>
+        <td mat-cell *matCellDef="let row">RM {{ row.basePrice }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="active">
+        <th mat-header-cell *matHeaderCellDef>Status</th>
+        <td mat-cell *matCellDef="let row">{{ row.active ? 'Active' : 'Inactive' }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="actions">
+        <th mat-header-cell *matHeaderCellDef></th>
+        <td mat-cell *matCellDef="let row">
+          <button mat-icon-button type="button" (click)="openEditDialog(row)" aria-label="Edit">
+            <mat-icon>edit</mat-icon>
+          </button>
+          <button mat-icon-button type="button" (click)="deleteAccommodation(row)" aria-label="Delete">
+            <mat-icon>delete</mat-icon>
+          </button>
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="columns"></tr>
+      <tr mat-row *matRowDef="let row; columns: columns"></tr>
+    </table>
+  }
+</div>

@@ -19,7 +19,7 @@ cd homestay-cms-frontend && vercel --prod
 
 **Frontend** (`homestay-cms-frontend/.env.example`): Firebase web config keys, API base URL, Cloudinary cloud name (public), Billplz is server-only (no public keys needed client-side beyond the redirect URL returned by the API).
 
-**Backend** (`functions/.env.example`): `FIREBASE_PROJECT_ID`, `SENDGRID_API_KEY` today; Billplz secret key + collection ID + X-Signature key, and Cloudinary API key/secret will be added when `payment.service`/`media.service` are implemented (Phase 6/7 — see `PAYMENT.md`). The stale `STRIPE_SECRET_KEY`/`STRIPE_PUBLIC_KEY` entries left over from the superseded plan have been removed from both `.env.example` files.
+**Backend** (`functions/.env.example`): `FIREBASE_PROJECT_ID`, `SENDGRID_API_KEY`, and — as of Phase 4 — `CLOUDINARY_CLOUD_NAME`/`CLOUDINARY_API_KEY`/`CLOUDINARY_API_SECRET` (required for the media/accommodation-photo upload routes; `functions/src/config/env.ts` throws a clear error naming the missing variable if one of these is read before being set, rather than failing silently). Billplz secret key + collection ID + X-Signature key will be added when `payment.service` is implemented (Phase 6 — see `PAYMENT.md`). The stale `STRIPE_SECRET_KEY`/`STRIPE_PUBLIC_KEY` entries left over from the superseded plan have been removed from both `.env.example` files.
 
 None of these are committed; only `.env.example` placeholder files are tracked.
 

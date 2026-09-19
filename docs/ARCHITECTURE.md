@@ -37,18 +37,25 @@ functions/src/
                             ✅ booking.service (createBooking, getAvailability, expireStalePendingBookings)
                             ⏳ payment.service, email.service, media.service — planned
   routes/
-    health.routes.ts        ✅ GET /health (existing)
-    admin/auth.routes.ts     ✅ GET /admin/me — requireAdmin-protected, the first proof the auth
-                              wiring works end-to-end over real HTTP with a real Firebase Auth token
-    (everything else)       ⏳ planned — content/accommodation/availability/bookings/payment routes
-  controllers/              ⏳ planned — routes call services directly for now since there's only one
+    health.routes.ts          ✅ GET /health (existing)
+    admin/auth.routes.ts       ✅ GET /admin/me — requireAdmin-protected, the first proof the auth
+                                wiring works end-to-end over real HTTP with a real Firebase Auth token
+    admin/accommodation.routes.ts ✅ full CRUD, requireAdmin + zod-validated
+    admin/media.routes.ts      ✅ sign-upload + record/list/update/delete, requireAdmin + zod-validated
+    (everything else)         ⏳ planned — content/availability/bookings/payment routes
+  validation/                 ✅ accommodation.schema.ts, media.schema.ts (zod)
+  controllers/                — not introduced; routes call services directly, since each route is a
+                                thin one-liner and an extra layer would just be indirection with no
+                                behavior of its own (revisit if a route needs real pre/post-processing)
 ```
 
-Business logic (the booking transaction, pricing calculation, payment verification) lives in `services/`, never in controllers, routes, or the frontend.
+Business logic (the booking transaction, pricing calculation, payment verification, accommodation/media CRUD) lives in `services/`, never in routes or the frontend.
 
 There is no public registration endpoint. Admin accounts are created with `functions/scripts/create-admin.js` (a standalone script using the Admin SDK, not deployed as a Cloud Function) — see `DEVELOPMENT.md` for usage.
 
-Verification for this layer: `functions/src/**/__tests__/*.test.ts`, run via `npm test` (see `DEVELOPMENT.md`) — 28 tests covering pricing rules, the booking transaction (including a concurrency test asserting exactly one of two simultaneous overlapping bookings succeeds), booking expiry, all three middleware, and an integration test hitting `GET /admin/me` over real HTTP with tokens signed by the Auth emulator (no token → 401, non-admin token → 403, admin token → 200).
+Media storage: Cloudinary, configured via `functions/src/config/env.ts` (throws a clear "missing env var" error if read before `CLOUDINARY_CLOUD_NAME`/`CLOUDINARY_API_KEY`/`CLOUDINARY_API_SECRET` are set, rather than failing silently or crashing unrelated routes at cold start).
+
+Verification for this layer: `functions/src/**/__tests__/*.test.ts`, run via `npm test` (see `DEVELOPMENT.md`) — 42 tests covering pricing rules, the booking transaction (including a concurrency test asserting exactly one of two simultaneous overlapping bookings succeeds), booking expiry, all three middleware, an integration test hitting `GET /admin/me` over real HTTP with tokens signed by the Auth emulator, accommodation CRUD (including the slug-uniqueness and delete-with-bookings guards) against the Firestore emulator, and media service logic against a mocked Cloudinary SDK (no real Cloudinary account needed to verify the signing/record/update/delete logic — only actually uploading a file needs real credentials).
 
 ## Frontend structure
 
@@ -58,11 +65,17 @@ src/app/
               booking (stepper), booking-lookup, not-found
   admin/
     login/       ✅ email/password form, generic error message (never reveals which field was wrong)
-    dashboard/    ✅ shell — shows the signed-in admin's email and calls GET /admin/me to prove
-                  the frontend-to-backend auth chain actually works, not just that login succeeded
-    (everything else) ⏳ planned — content, media, accommodation, availability, bookings, settings
+    dashboard/    ✅ shell — shows the signed-in admin's email, calls GET /admin/me to prove
+                  the frontend-to-backend auth chain actually works, and links to the pages below
+    accommodation/ ✅ list + a dialog-based create/edit form (accommodation-form-dialog/), including
+                    inline photo upload straight into the accommodation's own `photos` array
+    media/        ✅ gallery manager — upload, inline alt-text editing, delete
+    (everything else) ⏳ planned — site content, availability, bookings, settings
   shared/
-    services/    ✅ auth.service.ts (wraps Firebase Auth), api.service.ts (HttpClient wrapper)
+    services/    ✅ auth.service.ts (wraps Firebase Auth), api.service.ts (HttpClient wrapper),
+                  accommodation.service.ts, media.service.ts (signs + uploads straight to
+                  Cloudinary via fetch — deliberately bypasses HttpClient/auth.interceptor so the
+                  Firebase ID token is never sent to a third-party host)
     guards/      ✅ admin.guard.ts (CanActivateFn — redirects to /admin/login if not an admin)
     interceptors/ ✅ auth.interceptor.ts (attaches the ID token, but only to requests aimed at
                   environment.apiUrl — never to third-party requests like a maps API)

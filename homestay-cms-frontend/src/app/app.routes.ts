@@ -11,6 +11,16 @@ export const routes: Routes = [
     canActivate: [adminGuard],
     loadComponent: () => import('./admin/dashboard/dashboard').then((m) => m.Dashboard),
   },
+  {
+    path: 'admin/accommodation',
+    canActivate: [adminGuard],
+    loadComponent: () => import('./admin/accommodation/accommodation').then((m) => m.AccommodationPage),
+  },
+  {
+    path: 'admin/media',
+    canActivate: [adminGuard],
+    loadComponent: () => import('./admin/media/media').then((m) => m.MediaPage),
+  },
   // TODO(Phase 5): replace with the real public homepage once it exists.
   { path: '', redirectTo: 'admin/login', pathMatch: 'full' },
 ];
