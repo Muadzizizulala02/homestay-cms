@@ -12,6 +12,7 @@ import { v2 as cloudinary } from 'cloudinary';
 import {
   createSignedUploadParams,
   deleteMediaItem,
+  listGalleryMedia,
   listMedia,
   recordMediaItem,
   updateMediaItem,
@@ -71,5 +72,25 @@ describe('media.service', () => {
 
   it('404s when deleting an unknown media item', async () => {
     await expect(deleteMediaItem('does-not-exist')).rejects.toThrow(AppError);
+  });
+
+  it('public gallery listing only returns gallery-associated items', async () => {
+    const gallery = await recordMediaItem({
+      cloudinaryPublicId: `gallery-${Date.now()}`,
+      url: 'https://res.cloudinary.com/demo-cloud/image/upload/gallery.jpg',
+      altText: 'Garden view',
+      association: { type: 'gallery' },
+    });
+    const roomPhoto = await recordMediaItem({
+      cloudinaryPublicId: `room-${Date.now()}`,
+      url: 'https://res.cloudinary.com/demo-cloud/image/upload/room.jpg',
+      altText: 'Room interior',
+      association: { type: 'accommodation', accommodationId: 'some-room-id' },
+    });
+
+    const galleryOnly = await listGalleryMedia();
+    const ids = galleryOnly.map((item) => item.id);
+    expect(ids).toContain(gallery.id);
+    expect(ids).not.toContain(roomPhoto.id);
   });
 });

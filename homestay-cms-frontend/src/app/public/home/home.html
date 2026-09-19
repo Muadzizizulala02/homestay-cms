@@ -1,0 +1,42 @@
+@if (settings(); as s) {
+  <section class="hero" [style.background-image]="s.heroImageUrl ? 'url(' + s.heroImageUrl + ')' : null">
+    <div class="hero-content">
+      <h1>{{ s.heroHeadline }}</h1>
+      @if (s.heroSubheadline) {
+        <p class="lead">{{ s.heroSubheadline }}</p>
+      }
+      <a routerLink="/accommodation" class="cta">Check availability</a>
+    </div>
+  </section>
+}
+
+@if (featured().length > 0) {
+  <section class="section">
+    <h2>Our accommodation</h2>
+    <div class="grid">
+      @for (unit of featured(); track unit.id) {
+        <a class="unit-card" [routerLink]="['/accommodation', unit.slug]">
+          @if (unit.photos[0]) {
+            <img [src]="unit.photos[0]" [alt]="unit.name" />
+          }
+          <div class="unit-body">
+            <h3>{{ unit.name }}</h3>
+            <p>Up to {{ unit.capacity }} guests</p>
+            <p class="price">From RM {{ unit.basePrice }} / night</p>
+          </div>
+        </a>
+      }
+    </div>
+    <a routerLink="/accommodation" class="see-all">See all accommodation &rarr;</a>
+  </section>
+}
+
+@if (settings(); as s) {
+  @if (s.aboutContent) {
+    <section class="section about-teaser">
+      <h2>About us</h2>
+      <p>{{ s.aboutContent }}</p>
+      <a routerLink="/about">Learn more &rarr;</a>
+    </section>
+  }
+}

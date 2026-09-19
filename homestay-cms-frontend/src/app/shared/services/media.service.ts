@@ -27,6 +27,11 @@ export class MediaService {
   private readonly http = inject(HttpClient);
   private readonly baseUrl = `${environment.apiUrl}/admin/media`;
 
+  /** Public — gallery-only items, no auth required. Used by the guest-facing Gallery page. */
+  listPublicGallery(): Observable<MediaItem[]> {
+    return this.http.get<MediaItem[]>(`${environment.apiUrl}/gallery`);
+  }
+
   list(): Observable<MediaItem[]> {
     return this.http.get<MediaItem[]>(this.baseUrl);
   }

@@ -1,0 +1,22 @@
+<section class="section">
+  <h1>Accommodation</h1>
+
+  @if (loaded() && units().length === 0) {
+    <p>No accommodation is listed yet — please check back soon.</p>
+  }
+
+  <div class="grid">
+    @for (unit of units(); track unit.id) {
+      <a class="unit-card" [routerLink]="['/accommodation', unit.slug]">
+        @if (unit.photos[0]) {
+          <img [src]="unit.photos[0]" [alt]="unit.name" />
+        }
+        <div class="unit-body">
+          <h2>{{ unit.name }}</h2>
+          <p>{{ unit.capacity }} guests &middot; {{ unit.beds }} bed(s)</p>
+          <p class="price">From RM {{ unit.basePrice }} / night</p>
+        </div>
+      </a>
+    }
+  </div>
+</section>

@@ -12,6 +12,11 @@ export const routes: Routes = [
     loadComponent: () => import('./admin/dashboard/dashboard').then((m) => m.Dashboard),
   },
   {
+    path: 'admin/content',
+    canActivate: [adminGuard],
+    loadComponent: () => import('./admin/content/content').then((m) => m.ContentPage),
+  },
+  {
     path: 'admin/accommodation',
     canActivate: [adminGuard],
     loadComponent: () => import('./admin/accommodation/accommodation').then((m) => m.AccommodationPage),
@@ -21,6 +26,26 @@ export const routes: Routes = [
     canActivate: [adminGuard],
     loadComponent: () => import('./admin/media/media').then((m) => m.MediaPage),
   },
-  // TODO(Phase 5): replace with the real public homepage once it exists.
-  { path: '', redirectTo: 'admin/login', pathMatch: 'full' },
+  {
+    path: '',
+    loadComponent: () => import('./public/public-layout/public-layout').then((m) => m.PublicLayout),
+    children: [
+      { path: '', loadComponent: () => import('./public/home/home').then((m) => m.Home) },
+      {
+        path: 'accommodation',
+        loadComponent: () =>
+          import('./public/accommodation-list/accommodation-list').then((m) => m.AccommodationListPage),
+      },
+      {
+        path: 'accommodation/:slug',
+        loadComponent: () =>
+          import('./public/accommodation-detail/accommodation-detail').then((m) => m.AccommodationDetailPage),
+      },
+      { path: 'gallery', loadComponent: () => import('./public/gallery/gallery').then((m) => m.GalleryPage) },
+      { path: 'about', loadComponent: () => import('./public/about/about').then((m) => m.AboutPage) },
+      { path: 'faq', loadComponent: () => import('./public/faq/faq').then((m) => m.FaqPage) },
+      { path: 'contact', loadComponent: () => import('./public/contact/contact').then((m) => m.ContactPage) },
+      { path: '**', loadComponent: () => import('./public/not-found/not-found').then((m) => m.NotFoundPage) },
+    ],
+  },
 ];

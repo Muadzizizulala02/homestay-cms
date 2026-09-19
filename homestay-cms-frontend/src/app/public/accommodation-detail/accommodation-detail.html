@@ -1,0 +1,33 @@
+@if (notFound()) {
+  <section class="section">
+    <h1>Accommodation not found</h1>
+    <p><a routerLink="/accommodation">Back to accommodation</a></p>
+  </section>
+} @else if (unit(); as u) {
+  <section class="section">
+    @if (u.photos.length > 0) {
+      <div class="photo-strip">
+        @for (photo of u.photos; track photo) {
+          <img [src]="photo" [alt]="u.name" />
+        }
+      </div>
+    }
+
+    <h1>{{ u.name }}</h1>
+    <p class="meta">{{ u.capacity }} guests &middot; {{ u.beds }} bed(s) &middot; {{ u.minStay }}–{{ u.maxStay }} night stay</p>
+    <p class="price">From RM {{ u.basePrice }} / night</p>
+
+    <p class="description">{{ u.description }}</p>
+
+    @if (u.amenities.length > 0) {
+      <h2>Amenities</h2>
+      <ul class="amenities">
+        @for (amenity of u.amenities; track amenity) {
+          <li>{{ amenity }}</li>
+        }
+      </ul>
+    }
+
+    <a routerLink="/contact" class="cta">Enquire to book</a>
+  </section>
+}

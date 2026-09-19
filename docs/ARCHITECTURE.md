@@ -28,62 +28,80 @@ Admin routes require: a valid Firebase Auth ID token, verified server-side, carr
 functions/src/
   index.ts                 exports `api` only — a thin wrapper around app.ts
   app.ts                   ✅ Express app assembly: cors, json body parsing, route mounting, error handler
-  config/                  firebase.ts (existing), env.ts (planned)
+  config/                  firebase.ts (existing), env.ts ✅ (Cloudinary secrets, lazily checked)
   types/                   ✅ accommodation, booking, payment, media, site-settings
   utils/                   ✅ app-error.ts — AppError(statusCode, message, code)
   middleware/              ✅ auth.middleware (requireAdmin), validate.middleware (zod), error.middleware
                             ⏳ rateLimit.middleware — planned, not yet built
   services/                ✅ pricing.service (calculatePrice, enumerateNightsForRange)
                             ✅ booking.service (createBooking, getAvailability, expireStalePendingBookings)
-                            ⏳ payment.service, email.service, media.service — planned
+                            ✅ accommodation.service, media.service, site-settings.service
+                            ⏳ payment.service, email.service — planned
   routes/
     health.routes.ts          ✅ GET /health (existing)
+    public.routes.ts          ✅ GET /site-settings, /accommodations, /accommodations/:slug, /gallery
+                                — no auth, read-only, thin pass-throughs to already-tested services
     admin/auth.routes.ts       ✅ GET /admin/me — requireAdmin-protected, the first proof the auth
                                 wiring works end-to-end over real HTTP with a real Firebase Auth token
     admin/accommodation.routes.ts ✅ full CRUD, requireAdmin + zod-validated
     admin/media.routes.ts      ✅ sign-upload + record/list/update/delete, requireAdmin + zod-validated
-    (everything else)         ⏳ planned — content/availability/bookings/payment routes
-  validation/                 ✅ accommodation.schema.ts, media.schema.ts (zod)
+    admin/content.routes.ts    ✅ GET/PUT site settings, requireAdmin + zod-validated
+    (everything else)         ⏳ planned — availability/bookings/payment routes
+  validation/                 ✅ accommodation.schema.ts, media.schema.ts, site-settings.schema.ts (zod)
   controllers/                — not introduced; routes call services directly, since each route is a
                                 thin one-liner and an extra layer would just be indirection with no
                                 behavior of its own (revisit if a route needs real pre/post-processing)
 ```
 
-Business logic (the booking transaction, pricing calculation, payment verification, accommodation/media CRUD) lives in `services/`, never in routes or the frontend.
+Business logic (the booking transaction, pricing calculation, payment verification, accommodation/media/content CRUD) lives in `services/`, never in routes or the frontend.
 
 There is no public registration endpoint. Admin accounts are created with `functions/scripts/create-admin.js` (a standalone script using the Admin SDK, not deployed as a Cloud Function) — see `DEVELOPMENT.md` for usage.
 
 Media storage: Cloudinary, configured via `functions/src/config/env.ts` (throws a clear "missing env var" error if read before `CLOUDINARY_CLOUD_NAME`/`CLOUDINARY_API_KEY`/`CLOUDINARY_API_SECRET` are set, rather than failing silently or crashing unrelated routes at cold start).
 
-Verification for this layer: `functions/src/**/__tests__/*.test.ts`, run via `npm test` (see `DEVELOPMENT.md`) — 42 tests covering pricing rules, the booking transaction (including a concurrency test asserting exactly one of two simultaneous overlapping bookings succeeds), booking expiry, all three middleware, an integration test hitting `GET /admin/me` over real HTTP with tokens signed by the Auth emulator, accommodation CRUD (including the slug-uniqueness and delete-with-bookings guards) against the Firestore emulator, and media service logic against a mocked Cloudinary SDK (no real Cloudinary account needed to verify the signing/record/update/delete logic — only actually uploading a file needs real credentials).
+Verification for this layer: `functions/src/**/__tests__/*.test.ts`, run via `npm test` (see `DEVELOPMENT.md`) — 49 tests covering pricing rules, the booking transaction (including a concurrency test asserting exactly one of two simultaneous overlapping bookings succeeds), booking expiry, all three middleware, an integration test hitting `GET /admin/me` over real HTTP with tokens signed by the Auth emulator, accommodation CRUD (including the public active-only listing/slug lookup, slug-uniqueness, and delete-with-bookings guards) against the Firestore emulator, media service logic (including the public gallery filter) against a mocked Cloudinary SDK, and site-settings get/merge-update behavior. `public.routes.ts`/`admin/content.routes.ts` themselves aren't covered by a dedicated HTTP-level test yet — they're thin pass-throughs to already-tested services, following the exact pattern `admin/auth.routes.ts` already proved correct over real HTTP.
 
 ## Frontend structure
 
 ```
 src/app/
-  public/     ⏳ planned — home, accommodation (list+detail), gallery, about, faq, contact,
-              booking (stepper), booking-lookup, not-found
+  public/
+    public-layout/  ✅ nav (collapses to a hamburger below 720px) + footer, wraps all public routes,
+                    reads siteSettings for brand name/contact/footer content
+    home/           ✅ hero, featured accommodation teaser, about teaser
+    accommodation-list/, accommodation-detail/ ✅ public listing + per-slug detail page
+    gallery/        ✅ public gallery grid (lazy-loaded images)
+    about/          ✅ about/host copy + key-free Google Maps embed
+    faq/            ✅ check-in/out, house rules, cancellation policy, FAQ accordion (native <details>)
+    contact/        ✅ contact info + mailto/tel/WhatsApp links + socials — no submission form yet
+                    (no email-sending backend exists yet; see docs/SEO.md for why that's deliberate)
+    not-found/      ✅ 404 page, noindexed
   admin/
     login/       ✅ email/password form, generic error message (never reveals which field was wrong)
     dashboard/    ✅ shell — shows the signed-in admin's email, calls GET /admin/me to prove
                   the frontend-to-backend auth chain actually works, and links to the pages below
+    content/      ✅ site-settings editor (FormArray-based house rules / FAQ add-remove)
     accommodation/ ✅ list + a dialog-based create/edit form (accommodation-form-dialog/), including
                     inline photo upload straight into the accommodation's own `photos` array
     media/        ✅ gallery manager — upload, inline alt-text editing, delete
-    (everything else) ⏳ planned — site content, availability, bookings, settings
+    (everything else) ⏳ planned — availability, bookings, settings
   shared/
     services/    ✅ auth.service.ts (wraps Firebase Auth), api.service.ts (HttpClient wrapper),
-                  accommodation.service.ts, media.service.ts (signs + uploads straight to
-                  Cloudinary via fetch — deliberately bypasses HttpClient/auth.interceptor so the
-                  Firebase ID token is never sent to a third-party host)
+                  accommodation.service.ts (admin CRUD + public listPublic/getPublicBySlug),
+                  media.service.ts (admin CRUD + public listPublicGallery; signs + uploads straight
+                  to Cloudinary via fetch — deliberately bypasses HttpClient/auth.interceptor so the
+                  Firebase ID token is never sent to a third-party host), site-settings.service.ts
     guards/      ✅ admin.guard.ts (CanActivateFn — redirects to /admin/login if not an admin)
     interceptors/ ✅ auth.interceptor.ts (attaches the ID token, but only to requests aimed at
                   environment.apiUrl — never to third-party requests like a maps API)
-    models/      ⏳ planned
-  core/       firebase.config.ts (existing), seo.service.ts (planned — meta tags + structured data)
+    models/      ⏳ planned — types currently live alongside each service instead
+  core/       firebase.config.ts (existing), seo.service.ts ✅ (per-page title/meta description —
+              structured data and sitemap generation are planned, see docs/SEO.md)
 ```
 
 The scaffolded `auth/register`, `host/*`, `guest/*` folders (and the marketplace-shaped `admin/manage-users`, `admin/manage-reports`) were deleted — they were empty and belonged to the superseded marketplace model (see `PROJECT-OVERVIEW.md`). The default Angular CLI splash page in `app.html`/`app.ts` was also replaced with a plain `<router-outlet />` now that real routes exist.
+
+Public routes are nested under `PublicLayout` as an Angular route with `children` (so the nav/footer render once, not per-page); admin routes are flat top-level routes, each behind `adminGuard`, with no shared layout component — the two areas share nothing except `shared/services`.
 
 `admin.guard` checks `role: admin` off the current Firebase ID token's claims client-side (no round trip needed to gate navigation); `GET /admin/me` independently re-verifies the same token server-side, so a stale or tampered client-side check can never grant real API access.
 

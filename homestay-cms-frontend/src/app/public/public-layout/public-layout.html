@@ -1,0 +1,48 @@
+<header class="site-header">
+  <div class="bar">
+    <a routerLink="/" class="brand" (click)="closeMenu()">{{ settings()?.heroHeadline || 'Homestay' }}</a>
+
+    <button class="menu-toggle" type="button" (click)="toggleMenu()" aria-label="Toggle menu">
+      <mat-icon>{{ menuOpen() ? 'close' : 'menu' }}</mat-icon>
+    </button>
+
+    <nav class="nav" [class.open]="menuOpen()">
+      @for (link of navLinks; track link.path) {
+        <a [routerLink]="link.path" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: link.path === '/' }" (click)="closeMenu()">
+          {{ link.label }}
+        </a>
+      }
+      <a routerLink="/accommodation" class="cta" (click)="closeMenu()">Check availability</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <router-outlet />
+</main>
+
+<footer class="site-footer">
+  <div class="footer-grid">
+    <div>
+      <h3>{{ settings()?.heroHeadline || 'Homestay' }}</h3>
+      @if (settings()?.address) {
+        <p>{{ settings()?.address }}</p>
+      }
+    </div>
+    <div>
+      <h3>Contact</h3>
+      @if (settings()?.contactEmail) {
+        <p><a [href]="'mailto:' + settings()?.contactEmail">{{ settings()?.contactEmail }}</a></p>
+      }
+      @if (settings()?.contactPhone) {
+        <p><a [href]="'tel:' + settings()?.contactPhone">{{ settings()?.contactPhone }}</a></p>
+      }
+    </div>
+    <div>
+      <h3>Explore</h3>
+      <a routerLink="/faq">FAQ &amp; house rules</a><br />
+      <a routerLink="/contact">Contact us</a>
+    </div>
+  </div>
+  <p class="copyright">&copy; {{ currentYear }} {{ settings()?.heroHeadline || 'Homestay' }}</p>
+</footer>

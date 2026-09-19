@@ -27,6 +27,26 @@ export async function listAccommodations(): Promise<Accommodation[]> {
   return snap.docs.map((doc) => doc.data() as Accommodation);
 }
 
+/** Public listing — active units only, for the guest-facing website. */
+export async function listActiveAccommodations(): Promise<Accommodation[]> {
+  const snap = await db.collection(COLLECTION).where('active', '==', true).orderBy('name').get();
+  return snap.docs.map((doc) => doc.data() as Accommodation);
+}
+
+/** Public detail lookup by slug — 404s for an unknown OR inactive slug (same as not found to a guest). */
+export async function getActiveAccommodationBySlug(slug: string): Promise<Accommodation> {
+  const snap = await db
+    .collection(COLLECTION)
+    .where('slug', '==', slug)
+    .where('active', '==', true)
+    .limit(1)
+    .get();
+  if (snap.empty) {
+    throw new AppError(404, 'Accommodation not found', 'ACCOMMODATION_NOT_FOUND');
+  }
+  return snap.docs[0].data() as Accommodation;
+}
+
 export async function getAccommodation(id: string): Promise<Accommodation> {
   const doc = await db.collection(COLLECTION).doc(id).get();
   if (!doc.exists) {

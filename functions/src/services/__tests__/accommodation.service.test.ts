@@ -5,7 +5,9 @@ import {
   createAccommodation,
   deleteAccommodation,
   getAccommodation,
+  getActiveAccommodationBySlug,
   listAccommodations,
+  listActiveAccommodations,
   updateAccommodation,
   type CreateAccommodationInput,
 } from '../accommodation.service';
@@ -101,6 +103,27 @@ describe('accommodation.service', () => {
     // Still there, and the caller can deactivate it instead.
     const stillThere = await getAccommodation(created.id);
     expect(stillThere.id).toBe(created.id);
+  });
+
+  it('public listing excludes inactive accommodations', async () => {
+    const active = await createAccommodation(accommodationInput({ active: true }));
+    const inactive = await createAccommodation(accommodationInput({ active: false }));
+
+    const publicList = await listActiveAccommodations();
+    const ids = publicList.map((a) => a.id);
+    expect(ids).toContain(active.id);
+    expect(ids).not.toContain(inactive.id);
+  });
+
+  it('public slug lookup 404s for an inactive accommodation', async () => {
+    const inactive = await createAccommodation(accommodationInput({ active: false }));
+    await expect(getActiveAccommodationBySlug(inactive.slug)).rejects.toThrow(AppError);
+  });
+
+  it('public slug lookup finds an active accommodation', async () => {
+    const active = await createAccommodation(accommodationInput({ active: true }));
+    const found = await getActiveAccommodationBySlug(active.slug);
+    expect(found.id).toBe(active.id);
   });
 
   it('allows deactivating instead of deleting once a booking exists', async () => {

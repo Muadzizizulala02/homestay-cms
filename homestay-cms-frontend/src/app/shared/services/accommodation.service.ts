@@ -39,7 +39,18 @@ export type AccommodationInput = Omit<Accommodation, 'id'>;
 export class AccommodationService {
   private readonly http = inject(HttpClient);
   private readonly baseUrl = `${environment.apiUrl}/admin/accommodations`;
+  private readonly publicUrl = `${environment.apiUrl}/accommodations`;
 
+  /** Public — active units only, no auth required. Used by the guest-facing site. */
+  listPublic(): Observable<Accommodation[]> {
+    return this.http.get<Accommodation[]>(this.publicUrl);
+  }
+
+  getPublicBySlug(slug: string): Observable<Accommodation> {
+    return this.http.get<Accommodation>(`${this.publicUrl}/${slug}`);
+  }
+
+  /** Admin — all units, including inactive. */
   list(): Observable<Accommodation[]> {
     return this.http.get<Accommodation[]>(this.baseUrl);
   }

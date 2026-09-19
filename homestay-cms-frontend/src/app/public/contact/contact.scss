@@ -1,0 +1,21 @@
+.section {
+  max-width: 700px;
+  margin: 0 auto;
+  padding: 2.5rem 1.25rem;
+}
+
+.details p {
+  font-size: 1.05rem;
+  line-height: 1.8;
+}
+
+.social {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1rem;
+
+  a {
+    text-decoration: none;
+    font-weight: 500;
+  }
+}

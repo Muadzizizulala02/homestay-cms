@@ -7,6 +7,22 @@
         { "fieldPath": "status", "order": "ASCENDING" },
         { "fieldPath": "holdExpiresAt", "order": "ASCENDING" }
       ]
+    },
+    {
+      "collectionGroup": "accommodations",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "active", "order": "ASCENDING" },
+        { "fieldPath": "name", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "media",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "association.type", "order": "ASCENDING" },
+        { "fieldPath": "order", "order": "ASCENDING" }
+      ]
     }
   ],
   "fieldOverrides": []

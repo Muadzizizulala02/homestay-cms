@@ -13,8 +13,10 @@ Planning complete (2026-09-19). Implemented so far:
 - **Backend data layer**: Firestore types, the transaction-based booking service (double-booking prevention verified under concurrent load), pricing calculation, auth/validation/error middleware.
 - **Admin auth**: real Express app (`app.ts`) with a working `requireAdmin`-protected route (`GET /admin/me`), an admin provisioning script (no public registration endpoint), and a frontend login page + route guard + dashboard shell backed by Firebase Auth.
 - **Accommodation + media CMS**: full create/read/update/delete for room/unit types, and a Cloudinary-backed signed-upload flow for both the general gallery and per-accommodation photos, each with a working admin UI (`/admin/accommodation`, `/admin/media`).
+- **Site content CMS**: `siteSettings` singleton (hero copy, about, contact, check-in/out, house rules, FAQ, cancellation policy) with an admin editor at `/admin/content`.
+- **Public website**: Home, Accommodation (list + detail), Gallery, About, FAQ & house rules, Contact — all live, all reading real data from the backend (no hardcoded content). Placeholder/default copy renders correctly out of the box before any admin editing happens.
 
-Not yet built: site-content (siteSettings) editing, availability calendar management, the bookings admin screen, the public website, and the booking/payment flow. See `CHANGELOG.md` for the detailed log.
+Not yet built: availability calendar management, the bookings admin screen, and the booking/payment flow (so there's no live "book now" transaction yet — accommodation detail pages link to Contact instead). Full technical SEO (sitemap, robots.txt, structured data) is deferred to the dedicated SEO/performance phase; today each public page only sets its own `<title>`/meta description. See `CHANGELOG.md` for the detailed log.
 
 ## Scope decision: superseding the original plan
 

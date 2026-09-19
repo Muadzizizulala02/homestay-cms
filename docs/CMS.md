@@ -1,12 +1,14 @@
 # CMS
 
-Status: accommodation and media management are implemented (backend + admin UI). Site content, availability, and bookings screens are still planned.
+Status: site content, accommodation, and media management are implemented (backend + admin UI). Availability and bookings screens are still planned.
 
 Deliberately small in scope — this serves one owner-operator, not a multi-tenant CMS.
 
 ## Site content
 
-Single editor for the `siteSettings` singleton: hero, headline/intro, about copy, host intro, location/map, contact info, social links, check-in/out times, house rules, FAQ items (ordered), cancellation/refund policy, legal pages (privacy/terms — pending confirmation, see `PROJECT-OVERVIEW.md`), SEO defaults, social share image.
+✅ **Implemented**: `/admin/content` (`functions/src/services/site-settings.service.ts`, `functions/src/routes/admin/content.routes.ts`, singleton doc at `siteSettings/main`) — hero headline/subheadline, about copy, host intro, address, contact email/phone, check-in/out times, house rules (add/remove list), FAQ (add/remove question+answer pairs), cancellation/refund policy. `getSiteSettings()` returns sensible built-in defaults if the doc has never been saved, so the public site never shows broken/empty content before the admin's first edit.
+
+Not yet built: hero image / social-share image upload from within this form (the field exists on the type; there's no UI control for it yet — an admin can't currently set `heroImageUrl` without a direct API call), social links list editing, geo-coordinates editing, legal pages (privacy/terms — pending confirmation, see `PROJECT-OVERVIEW.md`), SEO defaults editing.
 
 ## Media
 

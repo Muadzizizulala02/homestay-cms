@@ -1,0 +1,13 @@
+<section class="section">
+  <h1>Gallery</h1>
+
+  @if (loaded() && items().length === 0) {
+    <p>No photos have been added yet — please check back soon.</p>
+  }
+
+  <div class="grid">
+    @for (item of items(); track item.id) {
+      <img [src]="item.url" [alt]="item.altText" loading="lazy" />
+    }
+  </div>
+</section>

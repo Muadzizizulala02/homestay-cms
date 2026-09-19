@@ -65,6 +65,16 @@ export async function listMedia(): Promise<MediaItem[]> {
   return snap.docs.map((doc) => doc.data() as MediaItem);
 }
 
+/** Public listing for the Gallery page — only items tagged for the general gallery. */
+export async function listGalleryMedia(): Promise<MediaItem[]> {
+  const snap = await db
+    .collection(COLLECTION)
+    .where('association.type', '==', 'gallery')
+    .orderBy('order')
+    .get();
+  return snap.docs.map((doc) => doc.data() as MediaItem);
+}
+
 export interface UpdateMediaInput {
   altText?: string;
   order?: number;
