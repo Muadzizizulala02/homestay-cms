@@ -9,7 +9,11 @@ A production-ready booking website + CMS for a **single homestay** (one physical
 
 ## Status
 
-Planning complete (2026-09-19). Backend data layer implemented: Firestore types, the transaction-based booking service (with the double-booking-prevention mechanism verified under concurrent load), pricing calculation, and auth/validation/error middleware — all covered by tests running against the Firestore emulator. No HTTP routes are wired up yet and no frontend pages exist beyond the Angular CLI default shell. See `CHANGELOG.md` for the detailed log.
+Planning complete (2026-09-19). Implemented so far:
+- **Backend data layer**: Firestore types, the transaction-based booking service (double-booking prevention verified under concurrent load), pricing calculation, auth/validation/error middleware.
+- **Admin auth**: real Express app (`app.ts`) with a working `requireAdmin`-protected route (`GET /admin/me`), an admin provisioning script (no public registration endpoint), and a frontend login page + route guard + dashboard shell backed by Firebase Auth.
+
+Not yet built: any other admin CMS screens (content/media/accommodation/availability/bookings), the public website, and the booking/payment flow. See `CHANGELOG.md` for the detailed log.
 
 ## Scope decision: superseding the original plan
 

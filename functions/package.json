@@ -6,7 +6,8 @@
     "serve": "npm run build && firebase emulators:start --only functions,firestore",
     "shell": "npm run build && firebase functions:shell",
     "start": "npm run shell",
-    "test": "firebase emulators:exec --only firestore --project demo-test \"vitest run\"",
+    "test": "firebase emulators:exec --only firestore,auth --project demo-test \"vitest run\"",
+    "create-admin": "node scripts/create-admin.js",
     "deploy": "firebase deploy --only functions",
     "logs": "firebase functions:log"
   },
@@ -26,6 +27,8 @@
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
     "@types/node": "^22.0.0",
+    "@types/supertest": "^6.0.2",
+    "supertest": "^7.0.0",
     "typescript": "^7.0.2",
     "vitest": "^4.0.8"
   },

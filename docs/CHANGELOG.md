@@ -1,5 +1,31 @@
 # Changelog
 
+## 2026-09-19 — Fix: local admin login was broken (emulator wiring + project ID mismatch)
+
+Reported by the user immediately after Phase 3: `npm run create-admin -- --emulator` succeeded, but the login page still couldn't sign in.
+
+Two bugs, both leftover from the original scaffold's unfilled placeholders:
+1. `core/firebase.config.ts` never called `connectAuthEmulator()` — the frontend was trying to reach real Firebase Auth servers with a fake API key instead of the local emulator.
+2. `create-admin.js --emulator` defaulted `GCLOUD_PROJECT` to `demo-test` (the automated test suite's throwaway project), but an interactively-run `firebase emulators:start` serves `.firebaserc`'s default project, `homestay-cms` — so the admin user was provisioned into a different emulator project than the one the browser/frontend actually talks to.
+
+Fixes:
+- `core/firebase.config.ts` now calls `connectAuthEmulator()` whenever `!environment.production` (i.e. always under `ng serve`).
+- `environment.development.ts`'s placeholder Firebase config (`your-project`, `YOUR_API_KEY`, etc.) replaced with values consistent with the local emulator (`projectId: 'homestay-cms'` — the only field emulator connections actually key off of — plus a correct `apiUrl` pointing at the functions emulator under the same project).
+- `create-admin.js --emulator` now defaults to `homestay-cms` (matching `.firebaserc`) instead of `demo-test`, with an optional `--project=` override for anyone running emulators under a different id.
+
+**Action needed once**: re-run `npm run create-admin -- --email=... --password=... --emulator` in `functions/` (idempotent — finds the existing user by email if already created) so the admin account exists under the correct project, then restart `ng serve` to pick up the environment file change.
+
+## 2026-09-19 — Phase 3: admin auth + CMS skeleton
+
+- Split `functions/src/app.ts` (Express app assembly) out of `index.ts` (now just the Cloud Functions wrapper), as planned in `ARCHITECTURE.md`.
+- Added the first real protected route, `GET /api/v1/admin/me` (`functions/src/routes/admin/auth.routes.ts`), using `requireAdmin` from Phase 2. Confirms the whole auth chain works over real HTTP, not just in mocked unit tests.
+- Added `functions/scripts/create-admin.js` — a standalone Admin SDK script (not deployed) that creates/updates a Firebase Auth user and grants the `role: admin` custom claim. There is still no public registration endpoint by design.
+- Added the Auth emulator to `firebase.json` (port 9099) and a `src/test/auth-emulator.ts` test helper that signs in against it to obtain genuine ID tokens for integration testing — `admin/auth.routes.ts` is now covered by an HTTP-level test (`supertest`) exercising the no-token / non-admin-token / admin-token cases against the real Firebase Auth emulator, not a mock.
+- **Frontend**: removed the empty marketplace-shaped scaffold folders (`auth/register`, `host/*`, `guest/*`, `admin/manage-users`, `admin/manage-reports`) and replaced the default Angular CLI splash page (`app.html`/`app.ts`) with a plain router outlet. Added `shared/services/auth.service.ts` (Firebase Auth wrapper exposing `isAdmin` from ID token claims), `shared/services/api.service.ts` (backend API wrapper), `shared/guards/admin.guard.ts` (route guard), a real `auth.interceptor.ts` (attaches the ID token only to requests aimed at our own API), and the first two admin pages: `admin/login/` and `admin/dashboard/` (the dashboard calls `GET /admin/me` on load to verify the backend session, not just that Firebase sign-in succeeded).
+- Updated `app.routes.ts`: `/admin/login`, `/admin/dashboard` (guarded), and a temporary `''  → /admin/login` redirect until the real homepage exists (Phase 5).
+- Verified: `npm run build` (functions, tsc) and `npm test` (functions, 28 tests against the Firestore + Auth emulators) both pass; `ng build` and `ng test` (frontend, 3 tests) both pass.
+- Updated `ARCHITECTURE.md`, `DEVELOPMENT.md`, `PROJECT-OVERVIEW.md` to match.
+
 ## 2026-09-19 — Phase 2: backend data layer (types, booking service, pricing, middleware)
 
 - Added Firestore TypeScript types: `functions/src/types/{accommodation,booking,payment,media,site-settings}.types.ts`.

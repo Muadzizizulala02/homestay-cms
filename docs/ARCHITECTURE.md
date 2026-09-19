@@ -26,7 +26,8 @@ Admin routes require: a valid Firebase Auth ID token, verified server-side, carr
 
 ```
 functions/src/
-  index.ts                 exports `api` only (unchanged — no new routes wired yet)
+  index.ts                 exports `api` only — a thin wrapper around app.ts
+  app.ts                   ✅ Express app assembly: cors, json body parsing, route mounting, error handler
   config/                  firebase.ts (existing), env.ts (planned)
   types/                   ✅ accommodation, booking, payment, media, site-settings
   utils/                   ✅ app-error.ts — AppError(statusCode, message, code)
@@ -35,27 +36,43 @@ functions/src/
   services/                ✅ pricing.service (calculatePrice, enumerateNightsForRange)
                             ✅ booking.service (createBooking, getAvailability, expireStalePendingBookings)
                             ⏳ payment.service, email.service, media.service — planned
-  routes/, controllers/    ⏳ planned — not built yet, so middleware above isn't wired into
-                            the Express app (app.ts) or index.ts until a route needs it
+  routes/
+    health.routes.ts        ✅ GET /health (existing)
+    admin/auth.routes.ts     ✅ GET /admin/me — requireAdmin-protected, the first proof the auth
+                              wiring works end-to-end over real HTTP with a real Firebase Auth token
+    (everything else)       ⏳ planned — content/accommodation/availability/bookings/payment routes
+  controllers/              ⏳ planned — routes call services directly for now since there's only one
 ```
 
-Business logic (the booking transaction, pricing calculation, payment verification) lives in `services/`, never in controllers, routes, or the frontend. The planned `app.ts` split (assembling the Express app separately from `index.ts`) happens when the first real route is added, rather than as an empty scaffold now.
+Business logic (the booking transaction, pricing calculation, payment verification) lives in `services/`, never in controllers, routes, or the frontend.
 
-Verification for this layer: `functions/src/**/__tests__/*.test.ts`, run via `npm test` (see `DEVELOPMENT.md`) — 24 tests covering pricing rules, the booking transaction (including a concurrency test asserting exactly one of two simultaneous overlapping bookings succeeds), booking expiry, and all three middleware.
+There is no public registration endpoint. Admin accounts are created with `functions/scripts/create-admin.js` (a standalone script using the Admin SDK, not deployed as a Cloud Function) — see `DEVELOPMENT.md` for usage.
 
-## Frontend structure (planned)
+Verification for this layer: `functions/src/**/__tests__/*.test.ts`, run via `npm test` (see `DEVELOPMENT.md`) — 28 tests covering pricing rules, the booking transaction (including a concurrency test asserting exactly one of two simultaneous overlapping bookings succeeds), booking expiry, all three middleware, and an integration test hitting `GET /admin/me` over real HTTP with tokens signed by the Auth emulator (no token → 401, non-admin token → 403, admin token → 200).
+
+## Frontend structure
 
 ```
 src/app/
-  public/     home, accommodation (list+detail), gallery, about, faq, contact,
+  public/     ⏳ planned — home, accommodation (list+detail), gallery, about, faq, contact,
               booking (stepper), booking-lookup, not-found
-  admin/      login, dashboard, content, media, accommodation, availability, bookings, settings
-  shared/     services (api.service, auth.service), guards (admin.guard),
-              interceptors (existing auth.interceptor), models, ui (reusable components)
-  core/       firebase.config.ts (existing), seo.service.ts (meta tags + structured data per route)
+  admin/
+    login/       ✅ email/password form, generic error message (never reveals which field was wrong)
+    dashboard/    ✅ shell — shows the signed-in admin's email and calls GET /admin/me to prove
+                  the frontend-to-backend auth chain actually works, not just that login succeeded
+    (everything else) ⏳ planned — content, media, accommodation, availability, bookings, settings
+  shared/
+    services/    ✅ auth.service.ts (wraps Firebase Auth), api.service.ts (HttpClient wrapper)
+    guards/      ✅ admin.guard.ts (CanActivateFn — redirects to /admin/login if not an admin)
+    interceptors/ ✅ auth.interceptor.ts (attaches the ID token, but only to requests aimed at
+                  environment.apiUrl — never to third-party requests like a maps API)
+    models/      ⏳ planned
+  core/       firebase.config.ts (existing), seo.service.ts (planned — meta tags + structured data)
 ```
 
-The scaffolded `auth/register`, `host/*`, `guest/*` folders are removed — they were empty and belonged to the superseded marketplace model (see `PROJECT-OVERVIEW.md`).
+The scaffolded `auth/register`, `host/*`, `guest/*` folders (and the marketplace-shaped `admin/manage-users`, `admin/manage-reports`) were deleted — they were empty and belonged to the superseded marketplace model (see `PROJECT-OVERVIEW.md`). The default Angular CLI splash page in `app.html`/`app.ts` was also replaced with a plain `<router-outlet />` now that real routes exist.
+
+`admin.guard` checks `role: admin` off the current Firebase ID token's claims client-side (no round trip needed to gate navigation); `GET /admin/me` independently re-verifies the same token server-side, so a stale or tampered client-side check can never grant real API access.
 
 ## Media storage decision
 
