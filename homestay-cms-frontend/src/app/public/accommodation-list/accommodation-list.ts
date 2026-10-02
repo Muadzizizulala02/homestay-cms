@@ -1,3 +1,5 @@
+import { ImgFade } from '../../shared/ui/img-fade/img-fade';
+import { Reveal } from '../../shared/ui/reveal/reveal';
 import { Skeleton } from '../../shared/ui/skeleton/skeleton';
 import { Component, OnInit, computed, effect, inject, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
@@ -14,7 +16,7 @@ interface StayParams {
 
 @Component({
   selector: 'app-accommodation-list',
-  imports: [RouterLink, Skeleton],
+  imports: [RouterLink, Skeleton, Reveal, ImgFade],
   templateUrl: './accommodation-list.html',
   styleUrl: './accommodation-list.scss',
 })

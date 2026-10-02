@@ -9,13 +9,15 @@ import { SiteContentService } from '../../shared/services/site-content.service';
 import { BookingBar } from '../../shared/ui/booking-bar/booking-bar';
 import { HeroSlideshow } from '../../shared/ui/hero-slideshow/hero-slideshow';
 import { Reveal } from '../../shared/ui/reveal/reveal';
+import { injectHeroTyping } from '../../shared/ui/hero-typing/hero-typing';
+import { ImgFade } from '../../shared/ui/img-fade/img-fade';
 import { Skeleton } from '../../shared/ui/skeleton/skeleton';
 
 const ROOMS_ON_HOME = 3;
 
 @Component({
   selector: 'app-home',
-  imports: [RouterLink, MatIconModule, BookingBar, HeroSlideshow, Skeleton, Reveal],
+  imports: [RouterLink, MatIconModule, BookingBar, HeroSlideshow, Skeleton, Reveal, ImgFade],
   templateUrl: './home.html',
   styleUrl: './home.scss',
 })
@@ -27,8 +29,11 @@ export class Home implements OnInit {
 
   readonly content = this.siteContent.content;
   readonly failed = this.siteContent.failed;
-  /** The headline split into words so each can rise in one after another. */
-  readonly headlineWords = computed(() => (this.content()?.heroHeadline ?? '').split(/\s+/).filter(Boolean));
+  /** The headline and intro line type themselves in a loop (static for reduced motion). */
+  readonly typing = injectHeroTyping(
+    computed(() => this.content()?.heroHeadline ?? ''),
+    computed(() => this.content()?.heroSubheadline ?? '')
+  );
   readonly featured = signal<Accommodation[]>([]);
   /** False until the rooms request finishes (success or error), so we show a skeleton, not nothing. */
   readonly roomsLoaded = signal(false);

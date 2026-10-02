@@ -7,12 +7,22 @@
   <div class="hero-inner">
     @if (content(); as c) {
       <h1 class="headline">
-        @for (word of headlineWords(); track $index) {
-          <span class="word" [style.--i]="$index">{{ word }}</span>{{ ' ' }}
-        }
+        <span class="visually-hidden">{{ c.heroHeadline }}</span>
+        <span aria-hidden="true"
+          ><span>{{ typing.head().on }}</span
+          ><span class="caret" [class.active]="typing.caret() === 'head'"></span
+          ><span class="untyped">{{ typing.head().off }}</span></span
+        >
       </h1>
       @if (c.heroSubheadline) {
-        <p class="lead">{{ c.heroSubheadline }}</p>
+        <p class="lead">
+          <span class="visually-hidden">{{ c.heroSubheadline }}</span>
+          <span aria-hidden="true"
+            ><span>{{ typing.lead().on }}</span
+            ><span class="caret" [class.active]="typing.caret() === 'lead'"></span
+            ><span class="untyped">{{ typing.lead().off }}</span></span
+          >
+        </p>
       }
     } @else if (!failed()) {
       <div class="hero-skeleton" aria-busy="true">
@@ -58,7 +68,7 @@
         <a class="room" [class.room-lead]="first" [routerLink]="['/accommodation', unit.slug]" [appReveal]="i * 120">
           <div class="room-media">
             @if (unit.photos[0]) {
-              <img [src]="unit.photos[0]" [alt]="unit.name" loading="lazy" />
+              <img appImgFade [src]="unit.photos[0]" [alt]="unit.name" loading="lazy" />
             } @else {
               <div class="room-photo-empty" aria-hidden="true"></div>
             }

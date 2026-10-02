@@ -33,9 +33,9 @@
   }
 
   @if (featured(); as unit) {
-    <article class="room room-featured">
+    <article class="room room-featured" appReveal>
       @if (unit.photos[0]) {
-        <img class="room-photo" [src]="unit.photos[0]" alt="" />
+        <div class="room-media"><img appImgFade class="room-photo" [src]="unit.photos[0]" alt="" /></div>
       }
       <div class="room-body">
         <h2 class="room-name">
@@ -53,10 +53,10 @@
 
   @if (others().length > 0) {
     <ul class="room-list">
-      @for (unit of others(); track unit.id) {
-        <li class="room">
+      @for (unit of others(); track unit.id; let i = $index) {
+        <li class="room" [appReveal]="i * 110">
           @if (unit.photos[0]) {
-            <img class="room-photo" [src]="unit.photos[0]" alt="" loading="lazy" />
+            <div class="room-media"><img appImgFade class="room-photo" [src]="unit.photos[0]" alt="" loading="lazy" /></div>
           }
           <div class="room-body">
             <h2 class="room-name">

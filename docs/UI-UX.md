@@ -29,6 +29,10 @@ The home hero cross-fades through the photos listed in **Admin > Site content > 
 
 Behaviour (`shared/ui/hero-slideshow`): a single photo is shown still with no controls; with two or more, **nothing is drawn over the photo**. Moving content must still be pausable, so one Pause/Play button exists for keyboard and screen-reader users: it is invisible until it receives focus, then appears bottom-right. It pauses while the tab is hidden; with `prefers-reduced-motion` it does not autoplay, does not fade and does not zoom. Each photo cross-fades (800 ms) while drifting slowly closer (a gentle zoom that resets only after the photo has faded out). The next image is preloaded so the fade never shows a blank. If no slideshow is set it falls back to the single `heroImageUrl`, then to the plain tile background.
 
+## Favicon and app icon
+
+The "HS" monogram set lives in `public/` (served at the site root): `favicon.ico`, 16/32 px PNGs, `apple-touch-icon.png`, 192/512 px Android icons and `site.webmanifest` (name "Homestay", theme colour `#14343a`). `index.html` links them all and sets `theme-color`. To change the icon, replace those files with a new set from the same generator and keep the names.
+
 ## Header and footer
 
 The header carries only the main journey: Home, Rooms, Gallery, the language toggle and "Book a stay". **About, FAQ & house rules and Contact live in the footer** under *Information*, with *Policies* (Privacy policy, Terms and conditions; Cancellation policy appears only when written) and *Follow us* (the social links). Any footer column with nothing to show is hidden.
@@ -39,8 +43,9 @@ Privacy and Terms are CMS-managed pages (`/privacy`, `/terms`), written in Engli
 
 One vocabulary, defined in `styles.scss`: things **rise ~20 px and fade in over ~0.6 s** on an ease-out curve (`@keyframes rise-in`, `.reveal`); hover/focus changes take 0.15-0.3 s. All of it is switched off under `prefers-reduced-motion` (content is simply shown).
 
-- **Home hero (one orchestrated moment on load):** the headline words rise in one after another, then the intro line, then the booking bar.
+- **Home hero typing (`shared/ui/hero-typing`):** the headline and intro line type themselves in a **constant loop**: type, hold ~5 s so it can be read, erase, rest, repeat. It is a pure function of time (`typing-logic.ts`, unit-tested), the untyped remainder stays in the same text flow (invisible) so lines never re-wrap or shift the layout, the caret has zero width, and the complete text is always present for screen readers and crawlers (the animated copy is `aria-hidden`). It pauses while the tab is hidden, restarts when the language changes, and under `prefers-reduced-motion` shows the full text with no caret. The booking bar rises in after it starts.
 - **Scroll reveal:** `appReveal` (`shared/ui/reveal`) fades sections into place the first time they scroll into view; list items stagger with `[appReveal]="index * 90"`. It never leaves anything hidden: no IntersectionObserver or reduced motion = shown immediately. Used on the home page sections, facilities, steps, rooms.
+- **Rooms page:** the title draws a turmeric rule under itself, the dates summary slides in from the side, each room fades up as it scrolls into view, photos ease in once loaded (`appImgFade`) and settle from a slight zoom, and on hover the photo zooms, the text nudges and the name's underline thickens.
 - **Pages:** every `.page` settles in when it appears; route changes cross-fade the content area with the router's View Transitions (`withViewTransitions()`; the header has its own `view-transition-name` so it stays put). Rooms list rows and gallery tiles rise in one after another; booking steps ease in.
 - **Hover / focus:** room and gallery photos zoom slowly inside their frame; nav links get a sliding underline; buttons lift 1 px; footer and "see all" links ease their underline; step numbers and facility icons nudge.
 - **Overlays:** the mobile menu fades/slides open (`visibility`, so closed links are not focusable); the important-notice popup and its backdrop fade and rise in (`@starting-style`); FAQ answers ease open (`::details-content`, Chromium 131+, instant elsewhere).

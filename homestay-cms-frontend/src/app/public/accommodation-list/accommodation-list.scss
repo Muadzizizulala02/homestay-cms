@@ -30,12 +30,29 @@
   gap: 0.9rem;
 }
 
+.room-media {
+  overflow: hidden;
+  background: var(--mist);
+  border-radius: var(--radius-s);
+}
+
 .room-photo {
   display: block;
   width: 100%;
+  height: 100%;
   object-fit: cover;
-  background: var(--mist);
-  border-radius: var(--radius-s);
+  transform: scale(1.06);
+
+  &.is-loaded {
+    transform: none;
+  }
+}
+
+// Slow zoom inside the frame when a room is hovered or its link is focused.
+.room:hover .room-photo.is-loaded,
+.room:focus-within .room-photo.is-loaded {
+  transform: scale(1.05);
+  transition: opacity 0.6s ease, transform 0.6s cubic-bezier(0.2, 0.7, 0.2, 1);
 }
 
 .room-name {
@@ -76,7 +93,7 @@
 .room-featured {
   margin-bottom: 2.5rem;
 
-  .room-photo {
+  .room-media {
     aspect-ratio: 4 / 3;
     border-radius: var(--radius-l);
   }
@@ -103,7 +120,7 @@
     border-bottom: 1px solid var(--mist);
   }
 
-  .room-photo {
+  .room-media {
     aspect-ratio: 1;
   }
 
@@ -118,7 +135,7 @@
     gap: 2rem;
     align-items: end;
 
-    .room-photo {
+    .room-media {
       aspect-ratio: 3 / 2;
     }
   }
@@ -128,27 +145,79 @@
     gap: 1.5rem;
     align-items: center;
 
-    .room-photo {
+    .room-media {
       aspect-ratio: 4 / 3;
     }
   }
 }
 
-// Rows rise in one after another when the list appears.
-.room-list > .room,
-.room-list > li {
-  animation: rise-in 0.5s cubic-bezier(0.2, 0.7, 0.2, 1) both;
-}
+// ---- Motion ----
+// The title draws a turmeric rule under itself, the dates summary slides in from the side, and
+// each room (above) fades up as it scrolls into view via appReveal.
+.rooms .page-title {
+  position: relative;
+  padding-bottom: 0.9rem;
+  margin-bottom: 1.25rem;
 
-@for $i from 1 through 8 {
-  .room-list > :nth-child(#{$i}) {
-    animation-delay: #{0.1 + $i * 0.08}s;
+  &::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 3.5rem;
+    height: 5px;
+    background: var(--kunyit);
+    border-radius: 2px;
+    transform-origin: left;
+    animation: draw-bar 0.8s cubic-bezier(0.2, 0.7, 0.2, 1) 0.3s both;
   }
 }
 
+.stay-summary {
+  animation: slide-in-left 0.6s cubic-bezier(0.2, 0.7, 0.2, 1) 0.45s both;
+}
+
+// On hover the text block nudges toward the photo's side and the name's underline thickens.
+.room-body {
+  transition: transform 0.35s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+.room:hover .room-body {
+  transform: translateX(6px);
+}
+
+.room-link {
+  text-decoration-thickness: 1px;
+  text-decoration-color: var(--kunyit);
+  transition: text-underline-offset 0.25s ease, text-decoration-thickness 0.25s ease;
+}
+
+.room:hover .room-link {
+  text-decoration: underline;
+  text-decoration-thickness: 3px;
+  text-underline-offset: 0.3em;
+}
+
+.room-price {
+  transition: color 0.25s ease;
+}
+
+.room:hover .room-price {
+  color: var(--moss);
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .room-list > .room,
-  .room-list > li {
+  .rooms .page-title::after,
+  .stay-summary {
     animation: none;
+  }
+
+  .room-photo,
+  .room-photo.is-loaded,
+  .room:hover .room-photo.is-loaded,
+  .room-body,
+  .room:hover .room-body {
+    transform: none;
+    transition: none;
   }
 }
