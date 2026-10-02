@@ -1,22 +1,60 @@
-<section class="section">
-  <h1>Accommodation</h1>
+<section class="page rooms">
+  <h1 class="page-title">{{ i18n.t('rooms.title') }}</h1>
 
-  @if (loaded() && units().length === 0) {
-    <p>No accommodation is listed yet — please check back soon.</p>
+  @if (summary()) {
+    <p class="stay-summary">
+      <strong>{{ summary() }}</strong>
+      <span>{{ i18n.t('rooms.summaryHint') }}</span>
+    </p>
   }
 
-  <div class="grid">
-    @for (unit of units(); track unit.id) {
-      <a class="unit-card" [routerLink]="['/accommodation', unit.slug]">
-        @if (unit.photos[0]) {
-          <img [src]="unit.photos[0]" [alt]="unit.name" />
-        }
-        <div class="unit-body">
-          <h2>{{ unit.name }}</h2>
-          <p>{{ unit.capacity }} guests &middot; {{ unit.beds }} bed(s)</p>
-          <p class="price">From RM {{ unit.basePrice }} / night</p>
-        </div>
-      </a>
-    }
-  </div>
+  @if (loaded() && units().length === 0) {
+    <div class="empty">
+      <h2>{{ i18n.t('rooms.emptyTitle') }}</h2>
+      <p>{{ i18n.t('rooms.emptyBody') }}</p>
+      <a class="btn btn-quiet" routerLink="/contact">{{ i18n.t('rooms.contactLink') }}</a>
+    </div>
+  }
+
+  @if (featured(); as unit) {
+    <article class="room room-featured">
+      @if (unit.photos[0]) {
+        <img class="room-photo" [src]="unit.photos[0]" alt="" />
+      }
+      <div class="room-body">
+        <h2 class="room-name">
+          <a [routerLink]="['/accommodation', unit.slug]" [queryParams]="linkParams()" class="room-link">
+            {{ unit.name }}
+          </a>
+        </h2>
+        <p class="room-facts">
+          {{ i18n.t('rooms.upTo', { count: unit.capacity }) }}, {{ i18n.t('rooms.bedsCount', { count: unit.beds }) }}
+        </p>
+        <p class="room-price">{{ i18n.t('rooms.fromPrice', { price: unit.basePrice }) }}</p>
+      </div>
+    </article>
+  }
+
+  @if (others().length > 0) {
+    <ul class="room-list">
+      @for (unit of others(); track unit.id) {
+        <li class="room">
+          @if (unit.photos[0]) {
+            <img class="room-photo" [src]="unit.photos[0]" alt="" loading="lazy" />
+          }
+          <div class="room-body">
+            <h2 class="room-name">
+              <a [routerLink]="['/accommodation', unit.slug]" [queryParams]="linkParams()" class="room-link">
+                {{ unit.name }}
+              </a>
+            </h2>
+            <p class="room-facts">
+              {{ i18n.t('rooms.upTo', { count: unit.capacity }) }}, {{ i18n.t('rooms.bedsCount', { count: unit.beds }) }}
+            </p>
+            <p class="room-price">{{ i18n.t('rooms.fromPrice', { price: unit.basePrice }) }}</p>
+          </div>
+        </li>
+      }
+    </ul>
+  }
 </section>

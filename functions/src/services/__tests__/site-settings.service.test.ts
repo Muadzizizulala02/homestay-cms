@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { getSiteSettings, updateSiteSettings } from '../site-settings.service';
+import { db } from '../../config/firebase';
+import { getPublicSiteSettings, getSiteSettings, updateSiteSettings } from '../site-settings.service';
 
 describe('site-settings.service', () => {
   it('returns sensible defaults before anything has been saved', async () => {
@@ -26,5 +27,64 @@ describe('site-settings.service', () => {
     await updateSiteSettings({ houseRules: ['No smoking', 'No pets'] });
     const updated = await updateSiteSettings({ houseRules: ['No parties'] });
     expect(updated.houseRules).toEqual(['No parties']);
+  });
+
+  it('fills in new content fields for a settings document saved before they existed', async () => {
+    // A document in the shape the app wrote before notices/facilities/translations were added.
+    await db.doc('siteSettings/main').set({
+      heroHeadline: 'Legacy Homestay',
+      heroSubheadline: '',
+      heroImageUrl: '',
+      aboutContent: '',
+      hostIntro: '',
+      address: '',
+      geo: { lat: 0, lng: 0 },
+      contactEmail: '',
+      contactPhone: '',
+      socialLinks: [],
+      checkInTime: '14:00',
+      checkOutTime: '12:00',
+      houseRules: [],
+      faqs: [],
+      cancellationPolicy: '',
+      seoDefaults: { title: '', description: '', shareImageUrl: '' },
+    });
+
+    const settings = await getSiteSettings();
+
+    expect(settings.heroHeadline).toBe('Legacy Homestay');
+    expect(settings.notices).toEqual([]);
+    expect(settings.facilities).toEqual([]);
+    expect(settings.translations).toEqual({ ms: {} });
+  });
+
+  it('stores notices, facilities and the Malay translation overlay', async () => {
+    const updated = await updateSiteSettings({
+      notices: [{ id: 'n1', title: 'Pool closed', body: 'Repairs until Friday.', important: true, active: true }],
+      facilities: [{ icon: 'wifi', label: 'Wi-Fi', description: 'Fast fibre', labelMs: 'Wi-Fi', descriptionMs: 'Gentian pantas' }],
+      translations: { ms: { heroHeadline: 'Selamat Datang', houseRules: ['Dilarang merokok'] } },
+    });
+
+    expect(updated.notices[0].title).toBe('Pool closed');
+    expect(updated.facilities[0].labelMs).toBe('Wi-Fi');
+    expect(updated.translations.ms.heroHeadline).toBe('Selamat Datang');
+
+    const reread = await getSiteSettings();
+    expect(reread.translations.ms.houseRules).toEqual(['Dilarang merokok']);
+  });
+
+  it('serves only active notices on the public read, while the admin read keeps drafts', async () => {
+    await updateSiteSettings({
+      notices: [
+        { id: 'live', title: 'Live', body: '', important: false, active: true },
+        { id: 'draft', title: 'Draft', body: '', important: true, active: false },
+      ],
+    });
+
+    const publicView = await getPublicSiteSettings();
+    const adminView = await getSiteSettings();
+
+    expect(publicView.notices.map((n) => n.id)).toEqual(['live']);
+    expect(adminView.notices.map((n) => n.id)).toEqual(['live', 'draft']);
   });
 });

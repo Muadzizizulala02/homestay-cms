@@ -1,42 +1,101 @@
-@if (settings(); as s) {
-  <section class="hero" [style.background-image]="s.heroImageUrl ? 'url(' + s.heroImageUrl + ')' : null">
-    <div class="hero-content">
-      <h1>{{ s.heroHeadline }}</h1>
-      @if (s.heroSubheadline) {
-        <p class="lead">{{ s.heroSubheadline }}</p>
+<section class="hero" [class.has-photo]="content()?.heroImageUrl" [style.background-image]="content()?.heroImageUrl ? 'url(' + content()?.heroImageUrl + ')' : null">
+  <div class="hero-inner">
+    @if (content(); as c) {
+      <h1>{{ c.heroHeadline }}</h1>
+      @if (c.heroSubheadline) {
+        <p class="lead">{{ c.heroSubheadline }}</p>
       }
-      <a routerLink="/accommodation" class="cta">Check availability</a>
-    </div>
-  </section>
-}
+    }
+  </div>
+</section>
+
+<div class="bar-wrap">
+  <app-booking-bar />
+</div>
 
 @if (featured().length > 0) {
-  <section class="section">
-    <h2>Our accommodation</h2>
-    <div class="grid">
-      @for (unit of featured(); track unit.id) {
-        <a class="unit-card" [routerLink]="['/accommodation', unit.slug]">
+  <section class="section rooms">
+    <div class="section-head">
+      <h2>{{ i18n.t('home.rooms.title') }}</h2>
+      <a routerLink="/accommodation" class="text-link">{{ i18n.t('home.rooms.all') }}</a>
+    </div>
+
+    <div class="room-list">
+      @for (unit of featured(); track unit.id; let first = $first) {
+        <a class="room" [class.room-lead]="first" [routerLink]="['/accommodation', unit.slug]">
           @if (unit.photos[0]) {
-            <img [src]="unit.photos[0]" [alt]="unit.name" />
+            <img [src]="unit.photos[0]" [alt]="unit.name" loading="lazy" />
+          } @else {
+            <div class="room-photo-empty" aria-hidden="true"></div>
           }
-          <div class="unit-body">
+          <div class="room-body">
             <h3>{{ unit.name }}</h3>
-            <p>Up to {{ unit.capacity }} guests</p>
-            <p class="price">From RM {{ unit.basePrice }} / night</p>
+            @if (first && description(unit)) {
+              <p class="room-desc">{{ description(unit) }}</p>
+            }
+            <p class="room-meta">{{ i18n.t('home.rooms.unit', { count: unit.capacity }) }}</p>
+            <p class="room-price">
+              {{ i18n.t('common.from') }} <strong>RM {{ unit.basePrice }}</strong> {{ i18n.t('common.perNight') }}
+            </p>
           </div>
         </a>
       }
     </div>
-    <a routerLink="/accommodation" class="see-all">See all accommodation &rarr;</a>
   </section>
 }
 
-@if (settings(); as s) {
-  @if (s.aboutContent) {
-    <section class="section about-teaser">
-      <h2>About us</h2>
-      <p>{{ s.aboutContent }}</p>
-      <a routerLink="/about">Learn more &rarr;</a>
-    </section>
-  }
+@if (content()?.facilities?.length) {
+  <section class="section facilities">
+    <h2>{{ i18n.t('home.facilities.title') }}</h2>
+    <ul class="facility-list">
+      @for (facility of content()?.facilities; track $index) {
+        <li>
+          <mat-icon aria-hidden="true">{{ facility.icon }}</mat-icon>
+          <div>
+            <h3>{{ facility.label }}</h3>
+            @if (facility.description) {
+              <p>{{ facility.description }}</p>
+            }
+          </div>
+        </li>
+      }
+    </ul>
+  </section>
+}
+
+<section class="section steps">
+  <h2>{{ i18n.t('home.steps.title') }}</h2>
+  <ol class="step-list">
+    @for (n of stepNumbers; track n) {
+      <li>
+        <span class="step-number" aria-hidden="true">{{ n }}</span>
+        <h3>{{ i18n.t('home.steps.' + n + '.title') }}</h3>
+        <p>{{ i18n.t('home.steps.' + n + '.body') }}</p>
+      </li>
+    }
+  </ol>
+</section>
+
+@if (content()?.houseRules?.length) {
+  <section class="section rules">
+    <h2>{{ i18n.t('home.rules.title') }}</h2>
+    <ul class="rule-list">
+      @for (rule of content()?.houseRules; track $index) {
+        <li>{{ rule }}</li>
+      }
+    </ul>
+    @if (content()?.checkInTime && content()?.checkOutTime) {
+      <p class="check-times">
+        {{ i18n.t('home.rules.checkTimes', { in: content()?.checkInTime ?? '', out: content()?.checkOutTime ?? '' }) }}
+      </p>
+    }
+  </section>
+}
+
+@if (content()?.aboutContent) {
+  <section class="section about">
+    <h2>{{ i18n.t('home.about.title') }}</h2>
+    <p class="prose">{{ content()?.aboutContent }}</p>
+    <a routerLink="/about" class="text-link">{{ i18n.t('home.about.more') }}</a>
+  </section>
 }

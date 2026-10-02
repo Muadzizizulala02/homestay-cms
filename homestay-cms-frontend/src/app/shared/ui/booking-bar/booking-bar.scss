@@ -1,0 +1,94 @@
+:host {
+  display: block;
+}
+
+// A strip that reads like a key tag: one solid surface, big tabular numerals for the night
+// count, one turmeric action. No shadows or gradients — the contrast with the hero does the work.
+.bar {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem 1rem;
+  align-items: end;
+  padding: 1.1rem 1.25rem 1.25rem;
+  background: var(--paper);
+  color: var(--ink);
+  border-radius: var(--radius-l);
+  border-bottom: 5px solid var(--kunyit);
+
+  @media (min-width: 900px) {
+    grid-template-columns: 1.2fr 1.2fr 0.8fr auto auto;
+    gap: 1rem 1.5rem;
+    padding: 1.4rem 1.75rem 1.5rem;
+  }
+}
+
+.cell {
+  display: grid;
+  gap: 0.3rem;
+  min-width: 0;
+}
+
+.guests {
+  grid-column: span 1;
+}
+
+.label {
+  font: 600 0.85rem var(--font-body);
+  color: var(--ink-soft);
+}
+
+.control {
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 3rem;
+  padding: 0.5rem 0.6rem;
+  font: 500 1.05rem var(--font-body);
+  color: var(--ink);
+  background: var(--plaster);
+  border: 0;
+  border-bottom: 2px solid var(--ink);
+  border-radius: var(--radius-s) var(--radius-s) 0 0;
+
+  &:focus-visible {
+    background: var(--paper);
+  }
+}
+
+.nights {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0;
+  min-height: 3rem;
+  align-self: end;
+}
+
+.nights-count {
+  font: 700 2.25rem/1 var(--font-display);
+  font-variant-numeric: tabular-nums;
+
+  &.dim {
+    color: var(--mist);
+  }
+}
+
+.nights-unit {
+  font: 500 0.95rem var(--font-body);
+  color: var(--ink-soft);
+}
+
+.cta {
+  grid-column: 1 / -1;
+  min-height: 3rem;
+
+  @media (min-width: 900px) {
+    grid-column: auto;
+  }
+}
+
+.error {
+  grid-column: 1 / -1;
+  margin: 0;
+  font: 500 0.9rem var(--font-body);
+  color: var(--danger);
+}

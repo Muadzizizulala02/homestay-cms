@@ -1,32 +1,52 @@
-@if (settings(); as s) {
-  <section class="section">
-    <h1>Contact us</h1>
+@if (content(); as c) {
+  <section class="page">
+    <h1 class="page-title">{{ i18n.t('contact.title') }}</h1>
 
-    <div class="details">
-      @if (s.contactEmail) {
-        <p><strong>Email:</strong> <a [href]="'mailto:' + s.contactEmail">{{ s.contactEmail }}</a></p>
-      }
-      @if (s.contactPhone) {
-        <p>
-          <strong>Phone:</strong> <a [href]="'tel:' + s.contactPhone">{{ s.contactPhone }}</a>
-          &middot; <a [href]="whatsappLink(s.contactPhone)" target="_blank" rel="noopener">WhatsApp</a>
-        </p>
-      }
-      @if (s.address) {
-        <p><strong>Address:</strong> {{ s.address }}</p>
-      }
-    </div>
+    @if (c.contactPhone) {
+      <a class="big" [href]="'tel:' + c.contactPhone">
+        <span class="label">{{ i18n.t('contact.call') }}</span>
+        <span class="value">{{ c.contactPhone }}</span>
+      </a>
+      <a class="whatsapp btn" [href]="whatsappLink(c.contactPhone)" target="_blank" rel="noopener">
+        {{ i18n.t('contact.whatsapp') }}
+        <span class="sr-only">{{ i18n.t('contact.opensNewTab') }}</span>
+      </a>
+    }
 
-    @if (s.socialLinks.length > 0) {
-      <div class="social">
-        @for (link of s.socialLinks; track link.url) {
-          <a [href]="link.url" target="_blank" rel="noopener">{{ link.platform }}</a>
-        }
+    @if (c.contactEmail) {
+      <a class="big" [href]="'mailto:' + c.contactEmail">
+        <span class="label">{{ i18n.t('contact.email') }}</span>
+        <span class="value">{{ c.contactEmail }}</span>
+      </a>
+    }
+
+    @if (c.address) {
+      <div class="address">
+        <h2>{{ i18n.t('contact.address') }}</h2>
+        <p>{{ c.address }}</p>
       </div>
     }
 
-    @if (!s.contactEmail && !s.contactPhone) {
-      <p>Contact details haven't been added yet.</p>
+    @if (settings(); as s) {
+      @if (s.socialLinks.length > 0) {
+        <div class="social">
+          <h2>{{ i18n.t('contact.social') }}</h2>
+          <ul>
+            @for (link of s.socialLinks; track link.url) {
+              <li>
+                <a [href]="link.url" target="_blank" rel="noopener">
+                  {{ link.platform }}
+                  <span class="sr-only">{{ i18n.t('contact.opensNewTab') }}</span>
+                </a>
+              </li>
+            }
+          </ul>
+        </div>
+      }
+    }
+
+    @if (!c.contactEmail && !c.contactPhone) {
+      <p>{{ i18n.t('contact.empty') }}</p>
     }
   </section>
 }

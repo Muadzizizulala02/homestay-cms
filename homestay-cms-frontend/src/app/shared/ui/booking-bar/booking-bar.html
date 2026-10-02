@@ -1,0 +1,50 @@
+<form class="bar" (ngSubmit)="submit()" novalidate>
+  <label class="cell">
+    <span class="label">{{ i18n.t('bar.checkIn') }}</span>
+    <input
+      class="control"
+      type="date"
+      name="checkIn"
+      [min]="today"
+      [ngModel]="checkIn()"
+      (ngModelChange)="onCheckInChange($event)"
+    />
+  </label>
+
+  <label class="cell">
+    <span class="label">{{ i18n.t('bar.checkOut') }}</span>
+    <input
+      class="control"
+      type="date"
+      name="checkOut"
+      [min]="minCheckOut()"
+      [ngModel]="checkOut()"
+      (ngModelChange)="checkOut.set($event)"
+    />
+  </label>
+
+  <label class="cell guests">
+    <span class="label">{{ i18n.t('bar.guests') }}</span>
+    <select class="control" name="guests" [ngModel]="guests()" (ngModelChange)="guests.set(+$event)">
+      @for (count of guestOptions; track count) {
+        <option [ngValue]="count">{{ count }}</option>
+      }
+    </select>
+  </label>
+
+  <p class="nights" aria-live="polite">
+    @if (nights() > 0) {
+      <span class="nights-count">{{ nights() }}</span>
+      <span class="nights-unit">{{ i18n.t('common.night') }}</span>
+    } @else {
+      <span class="nights-count dim">–</span>
+      <span class="nights-unit">{{ i18n.t('common.night') }}</span>
+    }
+  </p>
+
+  <button class="btn cta" type="submit">{{ i18n.t('bar.cta') }}</button>
+
+  @if (attempted() && datesInvalid()) {
+    <p class="error" role="alert">{{ i18n.t('bar.invalidDates') }}</p>
+  }
+</form>

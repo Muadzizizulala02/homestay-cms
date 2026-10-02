@@ -1,13 +1,45 @@
-<section class="section">
-  <h1>Gallery</h1>
+<section class="page">
+  <h1 class="page-title">{{ i18n.t('gallery.title') }}</h1>
 
   @if (loaded() && items().length === 0) {
-    <p>No photos have been added yet — please check back soon.</p>
+    <p>{{ i18n.t('gallery.empty') }}</p>
   }
 
-  <div class="grid">
-    @for (item of items(); track item.id) {
-      <img [src]="item.url" [alt]="item.altText" loading="lazy" />
+  <ul class="grid">
+    @for (item of items(); track item.id; let i = $index) {
+      <li>
+        <button
+          type="button"
+          class="thumb"
+          [attr.aria-label]="i18n.t('gallery.open', { alt: item.altText })"
+          (click)="open(i)"
+        >
+          <img [src]="item.url" [alt]="item.altText" loading="lazy" decoding="async" width="600" height="450" />
+        </button>
+      </li>
     }
-  </div>
+  </ul>
 </section>
+
+<dialog
+  #viewer
+  class="viewer"
+  [attr.aria-label]="i18n.t('gallery.viewer')"
+  (keydown)="onKey($event)"
+  (click)="onBackdrop($event)"
+>
+  @if (active(); as photo) {
+    <figure>
+      <img [src]="photo.url" [alt]="photo.altText" />
+      <figcaption>
+        <span>{{ photo.altText }}</span>
+        <span class="count">{{ i18n.t('gallery.position', { current: activeIndex() + 1, total: items().length }) }}</span>
+      </figcaption>
+    </figure>
+    <div class="controls">
+      <button type="button" class="btn btn-quiet" (click)="step(-1)">{{ i18n.t('gallery.previous') }}</button>
+      <button type="button" class="btn btn-quiet" (click)="step(1)">{{ i18n.t('gallery.next') }}</button>
+      <button type="button" class="btn" (click)="close()">{{ i18n.t('gallery.close') }}</button>
+    </div>
+  }
+</dialog>

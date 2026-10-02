@@ -181,8 +181,10 @@ describe('expireStalePendingBookings', () => {
       .doc(booking.id)
       .update({ holdExpiresAt: Timestamp.fromMillis(Date.now() - 1000) });
 
-    const expiredCount = await expireStalePendingBookings();
-    expect(expiredCount).toBeGreaterThanOrEqual(1);
+    // Not asserting the returned count: test files share one emulator database and run in
+    // parallel, so another file's sweep may legitimately expire this booking first. The
+    // assertions below check the outcome, which is what matters.
+    await expireStalePendingBookings();
 
     const bookingDoc = await db.collection('bookings').doc(booking.id).get();
     expect(bookingDoc.data()?.status).toBe('expired');

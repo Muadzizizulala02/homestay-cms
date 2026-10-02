@@ -5,10 +5,10 @@ Status: types and the booking transaction logic are implemented and tested (`fun
 ## Collections
 
 ### `siteSettings/main` (singleton)
-All admin-editable site copy and configuration: hero content, headline/intro, about copy, host intro, location/address/geo-coordinates, contact info, social links, check-in/out times, house rules, FAQ items (ordered array), cancellation/refund policy text, legal page content, SEO defaults, social share image.
+All admin-editable site copy and configuration: hero content, headline/intro, about copy, host intro, location/address/geo-coordinates, contact info, social links, check-in/out times, house rules, FAQ items (ordered array), cancellation/refund policy text, legal page content, SEO defaults, social share image, `notices[]` (announcements; `important` ones also pop up), `facilities[]` (icon + label + description), and `translations.ms` (Bahasa Malaysia versions of the free-text fields). `notices` and `facilities` carry inline optional `*Ms` fields; the other translated lists are complete independent Malay lists, not index-matched to the English ones. Documents saved before these fields existed are read with empty defaults.
 
 ### `accommodations/{id}`
-One document per room/unit type: `slug`, `name`, `description`, `photos[]`, `capacity`, `beds`, `amenities[]`, `basePrice`, `seasonalRates[]` (day-of-week or date-range overrides), `minStay`, `maxStay`, `active`.
+One document per room/unit type: `slug`, `name`, `description`, `descriptionMs?` (optional Malay description), `photos[]`, `capacity`, `beds`, `amenities[]`, `basePrice`, `seasonalRates[]` (day-of-week or date-range overrides), `minStay`, `maxStay`, `active`.
 
 Subcollection **`accommodations/{id}/availability/{YYYY-MM-DD}`** — one document per night. This is the core of the double-booking prevention design (see below): `status: booked | blocked`, `bookingId`.
 

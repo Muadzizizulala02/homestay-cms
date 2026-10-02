@@ -1,48 +1,73 @@
+<a class="skip-link" href="#main">{{ i18n.t('nav.skip') }}</a>
+
 <header class="site-header">
   <div class="bar">
-    <a routerLink="/" class="brand" (click)="closeMenu()">{{ settings()?.heroHeadline || 'Homestay' }}</a>
+    <a routerLink="/" class="brand" (click)="closeMenu()">{{ content()?.heroHeadline || 'Homestay' }}</a>
 
-    <button class="menu-toggle" type="button" (click)="toggleMenu()" aria-label="Toggle menu">
-      <mat-icon>{{ menuOpen() ? 'close' : 'menu' }}</mat-icon>
+    <button
+      class="menu-toggle"
+      type="button"
+      [attr.aria-expanded]="menuOpen()"
+      [attr.aria-label]="menuOpen() ? i18n.t('nav.closeMenu') : null"
+      aria-controls="primary-nav"
+      (click)="toggleMenu()"
+    >
+      {{ menuOpen() ? '×' : i18n.t('nav.menu') }}
     </button>
 
-    <nav class="nav" [class.open]="menuOpen()">
+    <nav id="primary-nav" class="nav" [class.open]="menuOpen()">
       @for (link of navLinks; track link.path) {
-        <a [routerLink]="link.path" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: link.path === '/' }" (click)="closeMenu()">
-          {{ link.label }}
+        <a
+          [routerLink]="link.path"
+          routerLinkActive="active"
+          [routerLinkActiveOptions]="{ exact: link.path === '/' }"
+          (click)="closeMenu()"
+        >
+          {{ i18n.t(link.labelKey) }}
         </a>
       }
-      <a routerLink="/accommodation" class="cta" (click)="closeMenu()">Check availability</a>
+      <button
+        type="button"
+        class="lang"
+        [attr.aria-label]="i18n.t('lang.switchLabel')"
+        (click)="i18n.toggle()"
+      >
+        <!-- lang goes on the visible word only, so a screen reader pronounces it in its own language. -->
+        <span [attr.lang]="i18n.lang() === 'en' ? 'ms' : 'en'">{{ i18n.t('lang.switchTo') }}</span>
+      </button>
+      <a routerLink="/accommodation" class="btn nav-cta" (click)="closeMenu()">{{ i18n.t('nav.book') }}</a>
     </nav>
   </div>
 </header>
 
-<main>
+<app-notices />
+
+<main id="main">
   <router-outlet />
 </main>
 
 <footer class="site-footer">
   <div class="footer-grid">
     <div>
-      <h3>{{ settings()?.heroHeadline || 'Homestay' }}</h3>
-      @if (settings()?.address) {
-        <p>{{ settings()?.address }}</p>
+      <p class="footer-brand">{{ content()?.heroHeadline || 'Homestay' }}</p>
+      @if (content()?.address) {
+        <p>{{ content()?.address }}</p>
       }
     </div>
     <div>
-      <h3>Contact</h3>
-      @if (settings()?.contactEmail) {
-        <p><a [href]="'mailto:' + settings()?.contactEmail">{{ settings()?.contactEmail }}</a></p>
+      <h2>{{ i18n.t('footer.contact') }}</h2>
+      @if (content()?.contactEmail) {
+        <p><a [href]="'mailto:' + content()?.contactEmail">{{ content()?.contactEmail }}</a></p>
       }
-      @if (settings()?.contactPhone) {
-        <p><a [href]="'tel:' + settings()?.contactPhone">{{ settings()?.contactPhone }}</a></p>
+      @if (content()?.contactPhone) {
+        <p><a [href]="'tel:' + content()?.contactPhone">{{ content()?.contactPhone }}</a></p>
       }
     </div>
     <div>
-      <h3>Explore</h3>
-      <a routerLink="/faq">FAQ &amp; house rules</a><br />
-      <a routerLink="/contact">Contact us</a>
+      <h2>{{ i18n.t('footer.explore') }}</h2>
+      <p><a routerLink="/faq">{{ i18n.t('footer.faqRules') }}</a></p>
+      <p><a routerLink="/contact">{{ i18n.t('footer.contactUs') }}</a></p>
     </div>
   </div>
-  <p class="copyright">&copy; {{ currentYear }} {{ settings()?.heroHeadline || 'Homestay' }}</p>
+  <p class="copyright">&copy; {{ currentYear }} {{ content()?.heroHeadline || 'Homestay' }}. {{ i18n.t('footer.rights') }}</p>
 </footer>

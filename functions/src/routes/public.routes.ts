@@ -11,7 +11,7 @@ const router = express.Router();
 
 router.get('/site-settings', async (_req: Request, res: Response, next: NextFunction) => {
   try {
-    res.status(200).json(await siteSettingsService.getSiteSettings());
+    res.status(200).json(await siteSettingsService.getPublicSiteSettings());
   } catch (err) {
     next(err);
   }

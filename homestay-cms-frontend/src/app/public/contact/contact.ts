@@ -1,6 +1,7 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { SeoService } from '../../core/seo.service';
-import { SiteSettingsService, type SiteSettings } from '../../shared/services/site-settings.service';
+import { I18nService } from '../../shared/i18n/i18n.service';
+import { SiteContentService } from '../../shared/services/site-content.service';
 
 @Component({
   selector: 'app-contact',
@@ -8,14 +9,16 @@ import { SiteSettingsService, type SiteSettings } from '../../shared/services/si
   styleUrl: './contact.scss',
 })
 export class ContactPage implements OnInit {
-  private readonly siteSettingsService = inject(SiteSettingsService);
+  private readonly siteContent = inject(SiteContentService);
   private readonly seo = inject(SeoService);
+  protected readonly i18n = inject(I18nService);
 
-  readonly settings = signal<SiteSettings | null>(null);
+  readonly content = this.siteContent.content;
+  readonly settings = this.siteContent.settings;
 
   ngOnInit(): void {
-    this.seo.setPage('Contact', 'Get in touch — phone, email, address, and social links.');
-    this.siteSettingsService.getPublic().subscribe((settings) => this.settings.set(settings));
+    this.seo.setPage(this.i18n.t('nav.contact'), this.i18n.t('contact.seoDescription'));
+    this.siteContent.ensureLoaded();
   }
 
   whatsappLink(phone: string): string {

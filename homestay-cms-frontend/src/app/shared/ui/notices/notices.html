@@ -1,0 +1,30 @@
+@if (stripNotices().length > 0) {
+  <div class="strip" role="region" [attr.aria-label]="i18n.t('notice.heading')">
+    @for (notice of stripNotices(); track notice.id) {
+      <div class="strip-item" [class.important]="notice.important">
+        <p>
+          <strong>{{ notice.title }}</strong>
+          @if (notice.body) {
+            {{ notice.body }}
+          }
+        </p>
+        <button type="button" class="dismiss" [attr.aria-label]="i18n.t('notice.dismiss')" (click)="dismissStrip(notice)">
+          &times;
+        </button>
+      </div>
+    }
+  </div>
+}
+
+<dialog #dialog class="popup" aria-labelledby="notice-popup-title" (cancel)="closePopup()">
+  <h2 id="notice-popup-title">{{ i18n.t('notice.important') }}</h2>
+  @for (notice of popupNotices(); track notice.id) {
+    <article class="popup-item">
+      <h3>{{ notice.title }}</h3>
+      @if (notice.body) {
+        <p>{{ notice.body }}</p>
+      }
+    </article>
+  }
+  <button type="button" class="btn" (click)="closePopup()">{{ i18n.t('notice.understood') }}</button>
+</dialog>

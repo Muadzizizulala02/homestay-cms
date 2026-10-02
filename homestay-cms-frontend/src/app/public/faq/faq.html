@@ -1,34 +1,52 @@
-@if (settings(); as s) {
-  <section class="section">
-    <h1>FAQ &amp; house rules</h1>
+@if (content(); as c) {
+  <section class="page">
+    <h1 class="page-title">{{ i18n.t('faq.title') }}</h1>
 
-    <div class="times">
-      <div><strong>Check-in</strong><span>{{ s.checkInTime }}</span></div>
-      <div><strong>Check-out</strong><span>{{ s.checkOutTime }}</span></div>
-    </div>
+    <dl class="times">
+      <div>
+        <dt>{{ i18n.t('faq.checkIn') }}</dt>
+        <dd>{{ c.checkInTime }}</dd>
+      </div>
+      <div>
+        <dt>{{ i18n.t('faq.checkOut') }}</dt>
+        <dd>{{ c.checkOutTime }}</dd>
+      </div>
+    </dl>
 
-    @if (s.houseRules.length > 0) {
-      <h2>House rules</h2>
-      <ul>
-        @for (rule of s.houseRules; track rule) {
-          <li>{{ rule }}</li>
+    <div class="layout">
+      <div class="questions">
+        <h2>{{ i18n.t('faq.questions') }}</h2>
+        @if (c.faqs.length > 0) {
+          @for (faq of c.faqs; track $index) {
+            <details class="item">
+              <summary>{{ faq.question }}</summary>
+              <p>{{ faq.answer }}</p>
+            </details>
+          }
+        } @else {
+          <p class="empty">{{ i18n.t('faq.noQuestions') }}</p>
         }
-      </ul>
-    }
 
-    @if (s.cancellationPolicy) {
-      <h2>Cancellation &amp; refund policy</h2>
-      <p>{{ s.cancellationPolicy }}</p>
-    }
+        @if (c.cancellationPolicy) {
+          <details class="item">
+            <summary>{{ i18n.t('faq.cancellation') }}</summary>
+            <p>{{ c.cancellationPolicy }}</p>
+          </details>
+        }
+      </div>
 
-    @if (s.faqs.length > 0) {
-      <h2>Frequently asked questions</h2>
-      @for (faq of s.faqs; track faq.question) {
-        <details class="faq-item">
-          <summary>{{ faq.question }}</summary>
-          <p>{{ faq.answer }}</p>
-        </details>
-      }
-    }
+      <div class="rules">
+        <h2>{{ i18n.t('faq.rules') }}</h2>
+        @if (c.houseRules.length > 0) {
+          <ul>
+            @for (rule of c.houseRules; track $index) {
+              <li>{{ rule }}</li>
+            }
+          </ul>
+        } @else {
+          <p class="empty">{{ i18n.t('faq.noRules') }}</p>
+        }
+      </div>
+    </div>
   </section>
 }

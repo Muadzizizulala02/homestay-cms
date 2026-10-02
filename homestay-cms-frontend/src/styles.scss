@@ -39,14 +39,134 @@ body {
   height: 100%;
 }
 
-// Headings use a serif display face across the public site so it reads as a real
-// hospitality brand rather than a default Material/app-shell look.
+// Design tokens for the public site (see docs/UI-UX.md). Kunyit (turmeric) is the single action
+// colour; ink teal carries text and dark surfaces; plaster is a cool grey-green, not cream.
+:root {
+  --ink: #14343a;
+  --ink-soft: #3d5559;
+  --plaster: #f2f4f1;
+  --paper: #ffffff;
+  --mist: #dce6e3;
+  --moss: #3e7a6b;
+  --kunyit: #e9a91d;
+  --kunyit-deep: #c98d0b;
+  --danger: #b3261e;
+
+  --font-display: 'Bricolage Grotesque', 'Trebuchet MS', sans-serif;
+  --font-body: 'Public Sans', system-ui, sans-serif;
+
+  --radius-s: 4px;
+  --radius-l: 14px;
+  --page-max: 1120px;
+  --gutter: clamp(1rem, 4vw, 2rem);
+}
+
 h1,
 h2,
 h3 {
-  font-family: 'Fraunces', Georgia, serif;
-  font-weight: 600;
-  line-height: 1.2;
+  font-family: var(--font-display);
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+}
+
+:focus-visible {
+  outline: 3px solid var(--kunyit-deep);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+// ---- Shared public-site building blocks (used by every public page) ----
+.page {
+  max-width: var(--page-max);
+  margin: 0 auto;
+  padding: clamp(2rem, 6vw, 4rem) var(--gutter);
+}
+
+.page-title {
+  font-size: clamp(2rem, 5vw, 3.25rem);
+  margin: 0 0 1rem;
+}
+
+.prose {
+  max-width: 62ch;
+  line-height: 1.7;
+  white-space: pre-line; // admin-written paragraphs keep their line breaks
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.8rem 1.4rem;
+  background: var(--kunyit);
+  color: var(--ink);
+  font: 600 1rem/1.2 var(--font-body);
+  border: 0;
+  border-radius: var(--radius-s);
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color 0.15s;
+
+  &:hover {
+    background: var(--kunyit-deep);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.btn-quiet {
+  background: transparent;
+  box-shadow: inset 0 0 0 2px var(--ink);
+
+  &:hover {
+    background: var(--ink);
+    color: var(--paper);
+  }
+}
+
+.field {
+  display: grid;
+  gap: 0.35rem;
+  font: 500 0.9rem var(--font-body);
+
+  .input {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 0.7rem 0.8rem;
+    font: 400 1rem var(--font-body);
+    color: var(--ink);
+    background: var(--paper);
+    border: 1.5px solid var(--ink-soft);
+    border-radius: var(--radius-s);
+
+    &:focus-visible {
+      border-color: var(--ink);
+    }
+  }
+
+  .hint {
+    font-weight: 400;
+    color: var(--ink-soft);
+  }
+
+  .error {
+    font-weight: 500;
+    color: var(--danger);
+  }
 }
 
 a {

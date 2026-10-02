@@ -23,6 +23,7 @@ const baseAccommodationSchema = z.object({
     .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, 'Slug must be lowercase, alphanumeric, hyphen-separated'),
   name: z.string().min(1).max(120),
   description: z.string().max(5000).default(''),
+  descriptionMs: z.string().max(5000).optional(),
   photos: z.array(z.string().url()).default([]),
   capacity: z.number().int().positive(),
   beds: z.number().int().positive(),

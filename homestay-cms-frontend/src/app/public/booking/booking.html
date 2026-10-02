@@ -1,120 +1,210 @@
 @if (notFound()) {
-  <section class="section">
-    <h1>Select a room first</h1>
-    <p><a routerLink="/accommodation">Browse accommodation</a></p>
+  <section class="page narrow">
+    <h1 class="page-title">{{ i18n.t('booking.notFoundTitle') }}</h1>
+    <p class="lead">{{ i18n.t('booking.notFoundBody') }}</p>
+    <a class="btn" routerLink="/accommodation">{{ i18n.t('booking.browse') }}</a>
   </section>
 } @else if (unit(); as u) {
-  <section class="section">
-    <h1>Book: {{ u.name }}</h1>
+  <section class="page narrow">
+    <h1 class="page-title">{{ i18n.t('booking.title', { name: u.name }) }}</h1>
 
-    <ol class="steps">
-      <li [class.active]="step() === 'dates'">1. Dates</li>
-      <li [class.active]="step() === 'guest'">2. Your details</li>
-      <li [class.active]="step() === 'review' || step() === 'confirmation'">3. Confirm</li>
+    <ol class="steps" [attr.aria-label]="i18n.t('booking.stepsLabel')">
+      @for (label of stepLabels; track label; let i = $index) {
+        <li
+          class="step"
+          [class.is-current]="i === stepIndex()"
+          [class.is-done]="i < stepIndex()"
+          [attr.aria-current]="i === stepIndex() ? 'step' : null"
+        >
+          <span class="step-num" aria-hidden="true">{{ i + 1 }}</span>
+          <span class="step-label">{{ i18n.t(label) }}</span>
+          @if (i < stepIndex()) {
+            <span class="visually-hidden">({{ i18n.t('booking.stepDone') }})</span>
+          }
+        </li>
+      }
     </ol>
 
     @if (step() === 'dates') {
-      <div class="step-panel">
-        <div class="field-row">
-          <label>
-            Check-in
-            <input type="date" [ngModel]="checkInDate()" (ngModelChange)="checkInDate.set($event)" />
-          </label>
-          <label>
-            Check-out
-            <input type="date" [ngModel]="checkOutDate()" (ngModelChange)="checkOutDate.set($event)" />
-          </label>
-          <label>
-            Guests
+      <form class="step-panel" (ngSubmit)="checkAvailabilityAndContinue()" novalidate>
+        <div class="row">
+          <div class="field">
+            <label for="b-in">{{ i18n.t('booking.checkIn') }}</label>
             <input
-              type="number"
-              min="1"
-              [max]="u.capacity"
-              [ngModel]="guestCount()"
-              (ngModelChange)="guestCount.set($event)"
+              id="b-in"
+              name="checkIn"
+              class="input"
+              type="date"
+              [ngModel]="checkInDate()"
+              (ngModelChange)="checkInDate.set($event)"
             />
-          </label>
+          </div>
+          <div class="field">
+            <label for="b-out">{{ i18n.t('booking.checkOut') }}</label>
+            <input
+              id="b-out"
+              name="checkOut"
+              class="input"
+              type="date"
+              [ngModel]="checkOutDate()"
+              (ngModelChange)="checkOutDate.set($event)"
+            />
+          </div>
+        </div>
+        <div class="field">
+          <label for="b-guests">{{ i18n.t('booking.guests') }}</label>
+          <input
+            id="b-guests"
+            name="guests"
+            class="input"
+            type="number"
+            inputmode="numeric"
+            min="1"
+            [max]="u.capacity"
+            [ngModel]="guestCount()"
+            (ngModelChange)="guestCount.set($event)"
+          />
+          @if (nights() > 0) {
+            <span class="hint">
+              {{ i18n.t('booking.nightsHint', { nights: i18n.t('bar.nights', { count: nights() }), count: u.capacity }) }}
+            </span>
+          }
+          @if (availabilityError(); as err) {
+            <span class="error" role="alert">{{ i18n.t(err.key, { count: err.count ?? 0 }) }}</span>
+          }
         </div>
 
-        @if (nights() > 0) {
-          <p class="hint">{{ nights() }} night(s) &middot; up to {{ u.capacity }} guests</p>
-        }
-
-        @if (availabilityError()) {
-          <p class="error">{{ availabilityError() }}</p>
-        }
-
-        <button type="button" class="cta" [disabled]="checkingAvailability()" (click)="checkAvailabilityAndContinue()">
-          {{ checkingAvailability() ? 'Checking…' : 'Check availability' }}
-        </button>
-      </div>
+        <div class="actions">
+          <button type="submit" class="btn" [disabled]="checkingAvailability()">
+            {{ checkingAvailability() ? i18n.t('booking.checking') : i18n.t('booking.checkAvailability') }}
+          </button>
+        </div>
+      </form>
     }
 
     @if (step() === 'guest') {
-      <div class="step-panel">
-        <label>
-          Full name
-          <input type="text" [ngModel]="guestName()" (ngModelChange)="guestName.set($event)" />
-        </label>
-        <label>
-          Email
-          <input type="email" [ngModel]="guestEmail()" (ngModelChange)="guestEmail.set($event)" />
-        </label>
-        <label>
-          Phone
-          <input type="tel" [ngModel]="guestPhone()" (ngModelChange)="guestPhone.set($event)" />
-        </label>
-        <label>
-          Notes (optional)
-          <textarea rows="3" [ngModel]="guestNotes()" (ngModelChange)="guestNotes.set($event)"></textarea>
-        </label>
+      <form class="step-panel" (ngSubmit)="goToReview()" novalidate>
+        <div class="field">
+          <label for="b-name">{{ i18n.t('booking.name') }}</label>
+          <input
+            id="b-name"
+            name="name"
+            class="input"
+            type="text"
+            autocomplete="name"
+            [ngModel]="guestName()"
+            (ngModelChange)="guestName.set($event)"
+          />
+          @if (guestAttempted() && !guestName().trim()) {
+            <span class="error" role="alert">{{ i18n.t('booking.err.name') }}</span>
+          }
+        </div>
+        <div class="field">
+          <label for="b-email">{{ i18n.t('booking.email') }}</label>
+          <input
+            id="b-email"
+            name="email"
+            class="input"
+            type="email"
+            autocomplete="email"
+            [ngModel]="guestEmail()"
+            (ngModelChange)="guestEmail.set($event)"
+          />
+          @if (guestAttempted() && !guestEmail().trim()) {
+            <span class="error" role="alert">{{ i18n.t('booking.err.email') }}</span>
+          }
+        </div>
+        <div class="field">
+          <label for="b-phone">{{ i18n.t('booking.phone') }}</label>
+          <input
+            id="b-phone"
+            name="phone"
+            class="input"
+            type="tel"
+            autocomplete="tel"
+            [ngModel]="guestPhone()"
+            (ngModelChange)="guestPhone.set($event)"
+          />
+          @if (guestAttempted() && !guestPhone().trim()) {
+            <span class="error" role="alert">{{ i18n.t('booking.err.phone') }}</span>
+          }
+        </div>
+        <div class="field">
+          <label for="b-notes">{{ i18n.t('booking.notes') }}</label>
+          <textarea
+            id="b-notes"
+            name="notes"
+            class="input"
+            rows="3"
+            [ngModel]="guestNotes()"
+            (ngModelChange)="guestNotes.set($event)"
+          ></textarea>
+          <span class="hint">{{ i18n.t('booking.notesHint') }}</span>
+        </div>
 
         <div class="actions">
-          <button type="button" (click)="backToDates()">Back</button>
-          <button type="button" class="cta" [disabled]="!guestDetailsValid()" (click)="goToReview()">Continue</button>
+          <button type="button" class="btn btn-quiet" (click)="backToDates()">{{ i18n.t('booking.back') }}</button>
+          <button type="submit" class="btn">{{ i18n.t('booking.continue') }}</button>
         </div>
-      </div>
+      </form>
     }
 
     @if (step() === 'review') {
       <div class="step-panel">
-        <h2>Review your booking</h2>
-        <p><strong>{{ u.name }}</strong></p>
-        <p>{{ checkInDate() }} &rarr; {{ checkOutDate() }} ({{ nights() }} night(s))</p>
-        <p>{{ guestCount() }} guest(s)</p>
-        <p>{{ guestName() }} &middot; {{ guestEmail() }} &middot; {{ guestPhone() }}</p>
-        @if (guestNotes()) {
-          <p><em>{{ guestNotes() }}</em></p>
-        }
+        <h2>{{ i18n.t('booking.review') }}</h2>
+        <dl class="summary">
+          <div>
+            <dt>{{ i18n.t('booking.reviewRoom') }}</dt>
+            <dd>{{ u.name }}</dd>
+          </div>
+          <div>
+            <dt>{{ i18n.t('booking.reviewDates') }}</dt>
+            <dd>{{ datesLabel() }} ({{ i18n.t('bar.nights', { count: nights() }) }})</dd>
+          </div>
+          <div>
+            <dt>{{ i18n.t('booking.reviewGuests') }}</dt>
+            <dd>{{ guestCount() }}</dd>
+          </div>
+          <div>
+            <dt>{{ i18n.t('booking.reviewContact') }}</dt>
+            <dd>{{ guestName() }}<br />{{ guestEmail() }}<br />{{ guestPhone() }}</dd>
+          </div>
+          @if (guestNotes()) {
+            <div>
+              <dt>{{ i18n.t('booking.reviewNotes') }}</dt>
+              <dd class="notes">{{ guestNotes() }}</dd>
+            </div>
+          }
+        </dl>
 
-        @if (submitError()) {
-          <p class="error">{{ submitError() }}</p>
+        @if (submitError(); as err) {
+          <p class="error" role="alert">{{ i18n.t(err.key) }}</p>
         }
 
         <div class="actions">
-          <button type="button" (click)="backToGuestDetails()">Back</button>
-          <button type="button" class="cta" [disabled]="submitting()" (click)="confirmBooking()">
-            {{ submitting() ? 'Booking…' : 'Confirm booking' }}
+          <button type="button" class="btn btn-quiet" (click)="backToGuestDetails()">{{ i18n.t('booking.back') }}</button>
+          <button type="button" class="btn" [disabled]="submitting()" (click)="confirmBooking()">
+            {{ submitting() ? i18n.t('booking.confirming') : i18n.t('booking.confirm') }}
           </button>
         </div>
       </div>
     }
 
     @if (step() === 'confirmation' && confirmedBooking(); as booking) {
-      <div class="step-panel confirmation">
-        <h2>Booking received</h2>
-        <p>Your reference: <strong>{{ booking.reference }}</strong></p>
-        <p>{{ booking.checkInDate }} &rarr; {{ booking.checkOutDate }} ({{ booking.price.nights }} night(s))</p>
-        <p class="total">Total: RM {{ booking.price.total }}</p>
+      <div class="step-panel confirmation" role="status">
+        <h2>{{ i18n.t('booking.received') }}</h2>
+        <p class="reference">
+          <span>{{ i18n.t('booking.reference') }}</span>
+          <strong>{{ booking.reference }}</strong>
+        </p>
+        <p>{{ confirmedDatesLabel() }} ({{ i18n.t('bar.nights', { count: booking.price.nights }) }})</p>
+        <p class="total">{{ i18n.t('booking.total') }}: RM {{ booking.price.total }}</p>
         @if (paymentUnavailable()) {
-          <p class="note">
-            Your dates are reserved. Online payment is currently being set up — we'll contact you at
-            {{ booking.guest.email }} to complete payment. Please keep your reference number for your records.
-          </p>
+          <p class="note">{{ i18n.t('booking.paymentUnavailable', { email: booking.guest.email }) }}</p>
         } @else {
-          <p class="note">Taking you to the secure payment page…</p>
+          <p class="note">{{ i18n.t('booking.paymentRedirect') }}</p>
         }
-        <a routerLink="/">Back to home</a>
+        <a class="btn btn-quiet" routerLink="/">{{ i18n.t('booking.home') }}</a>
       </div>
     }
   </section>

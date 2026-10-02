@@ -14,6 +14,36 @@ export interface SocialLink {
   url: string;
 }
 
+export interface Notice {
+  id: string;
+  title: string;
+  body: string;
+  titleMs?: string;
+  bodyMs?: string;
+  important: boolean;
+  active: boolean;
+}
+
+export interface Facility {
+  /** A Material icon name, e.g. "wifi". */
+  icon: string;
+  label: string;
+  description: string;
+  labelMs?: string;
+  descriptionMs?: string;
+}
+
+/** Bahasa Malaysia versions of the free-text content; any empty field falls back to English. */
+export interface MalayContent {
+  heroHeadline?: string;
+  heroSubheadline?: string;
+  aboutContent?: string;
+  hostIntro?: string;
+  cancellationPolicy?: string;
+  houseRules?: string[];
+  faqs?: FaqItem[];
+}
+
 export interface SiteSettings {
   heroHeadline: string;
   heroSubheadline: string;
@@ -30,6 +60,9 @@ export interface SiteSettings {
   houseRules: string[];
   faqs: FaqItem[];
   cancellationPolicy: string;
+  notices: Notice[];
+  facilities: Facility[];
+  translations: { ms: MalayContent };
   seoDefaults: { title: string; description: string; shareImageUrl: string };
 }
 

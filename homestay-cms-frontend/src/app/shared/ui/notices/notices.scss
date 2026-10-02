@@ -1,0 +1,91 @@
+:host {
+  display: block;
+}
+
+.strip {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+.strip-item {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  max-width: var(--page-max);
+  margin: 0 auto;
+  padding: 0.55rem var(--gutter);
+  font: 400 0.95rem/1.45 var(--font-body);
+
+  & + & {
+    border-top: 1px solid rgba(255, 255, 255, 0.18);
+  }
+
+  // Important notices keep a marker in the strip after the pop-up has been closed.
+  &.important {
+    box-shadow: inset 4px 0 0 var(--kunyit);
+  }
+
+  p {
+    margin: 0;
+  }
+
+  strong {
+    color: var(--kunyit);
+    margin-right: 0.35rem;
+  }
+}
+
+.dismiss {
+  flex: none;
+  width: 2.25rem;
+  height: 2.25rem;
+  margin: -0.35rem -0.5rem -0.35rem 0;
+  font-size: 1.4rem;
+  line-height: 1;
+  color: inherit;
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+
+.popup {
+  width: min(32rem, calc(100vw - 2rem));
+  padding: 1.75rem;
+  color: var(--ink);
+  background: var(--paper);
+  border: 0;
+  border-top: 6px solid var(--kunyit);
+  border-radius: var(--radius-s);
+  font-family: var(--font-body);
+
+  &::backdrop {
+    background: rgba(20, 52, 58, 0.65);
+  }
+
+  h2 {
+    margin: 0 0 1rem;
+    font-size: 1.5rem;
+  }
+
+  h3 {
+    margin: 0 0 0.25rem;
+    font-size: 1.1rem;
+  }
+
+  p {
+    margin: 0;
+    line-height: 1.55;
+    white-space: pre-line;
+  }
+
+  .btn {
+    margin-top: 1.25rem;
+  }
+}
+
+.popup-item + .popup-item {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--mist);
+}

@@ -1,56 +1,128 @@
 @if (notFound()) {
-  <section class="section">
-    <h1>Accommodation not found</h1>
-    <p><a routerLink="/accommodation">Back to accommodation</a></p>
+  <section class="page not-found">
+    <h1 class="page-title">{{ i18n.t('rooms.notFoundTitle') }}</h1>
+    <p>{{ i18n.t('rooms.notFoundBody') }}</p>
+    <a class="btn btn-quiet" routerLink="/accommodation">{{ i18n.t('rooms.backToRooms') }}</a>
   </section>
 } @else if (unit(); as u) {
-  <section class="section">
+  <section class="page detail">
     @if (u.photos.length > 0) {
-      <div class="photo-strip">
-        @for (photo of u.photos; track photo) {
-          <img [src]="photo" [alt]="u.name" />
+      <div class="gallery" role="group" [attr.aria-label]="i18n.t('rooms.gallery', { name: u.name })">
+        <img
+          class="gallery-main"
+          [src]="u.photos[activePhoto()]"
+          [alt]="i18n.t('rooms.photoAlt', { name: u.name, n: activePhoto() + 1, total: u.photos.length })"
+        />
+        @if (u.photos.length > 1) {
+          <ul class="gallery-strip">
+            @for (photo of u.photos; track photo; let i = $index) {
+              <li>
+                <button
+                  type="button"
+                  class="thumb"
+                  [attr.aria-pressed]="i === activePhoto()"
+                  [attr.aria-label]="i18n.t('rooms.photoAlt', { name: u.name, n: i + 1, total: u.photos.length })"
+                  (click)="selectPhoto(i)"
+                >
+                  <img [src]="photo" alt="" loading="lazy" />
+                </button>
+              </li>
+            }
+          </ul>
         }
       </div>
     }
 
-    <h1>{{ u.name }}</h1>
-    <p class="meta">{{ u.capacity }} guests &middot; {{ u.beds }} bed(s) &middot; {{ u.minStay }}–{{ u.maxStay }} night stay</p>
-    <p class="price">From RM {{ u.basePrice }} / night</p>
+    <div class="layout">
+      <div class="info">
+        <h1 class="page-title">{{ u.name }}</h1>
 
-    <p class="description">{{ u.description }}</p>
+        <p class="price">
+          <span class="price-from">{{ i18n.t('common.from') }}</span>
+          <span class="price-amount">RM {{ u.basePrice }}</span>
+          <span class="price-unit">{{ i18n.t('rooms.pricePerNight') }}</span>
+        </p>
 
-    @if (u.amenities.length > 0) {
-      <h2>Amenities</h2>
-      <ul class="amenities">
-        @for (amenity of u.amenities; track amenity) {
-          <li>{{ amenity }}</li>
+        @if (description()) {
+          <p class="prose">{{ description() }}</p>
         }
-      </ul>
-    }
 
-    <div class="booking-widget">
-      <h2>Check availability</h2>
-      <div class="field-row">
-        <label>
-          Check-in
-          <input type="date" [ngModel]="checkInDate()" (ngModelChange)="checkInDate.set($event)" />
-        </label>
-        <label>
-          Check-out
-          <input type="date" [ngModel]="checkOutDate()" (ngModelChange)="checkOutDate.set($event)" />
-        </label>
-        <label>
-          Guests
+        <h2 class="visually-hidden">{{ i18n.t('rooms.facts') }}</h2>
+        <dl class="facts">
+          <div>
+            <dt>{{ i18n.t('rooms.factGuests') }}</dt>
+            <dd>{{ u.capacity }}</dd>
+          </div>
+          <div>
+            <dt>{{ i18n.t('rooms.factBeds') }}</dt>
+            <dd>{{ u.beds }}</dd>
+          </div>
+          <div>
+            <dt>{{ i18n.t('rooms.factStay') }}</dt>
+            <dd>{{ i18n.t('rooms.stayRange', { min: u.minStay, max: u.maxStay }) }}</dd>
+          </div>
+        </dl>
+
+        @if (u.amenities.length > 0) {
+          <h2 class="section-title">{{ i18n.t('rooms.amenities') }}</h2>
+          <ul class="amenities">
+            @for (amenity of u.amenities; track amenity) {
+              <li>{{ amenity }}</li>
+            }
+          </ul>
+        }
+      </div>
+
+      <form class="booking-widget" (ngSubmit)="goToBooking()" novalidate>
+        <h2>{{ i18n.t('rooms.check.title') }}</h2>
+        <div class="dates">
+          <div class="field">
+            <label for="rd-in">{{ i18n.t('rooms.check.checkIn') }}</label>
+            <input
+              id="rd-in"
+              name="checkIn"
+              class="input"
+              type="date"
+              [ngModel]="checkInDate()"
+              (ngModelChange)="checkInDate.set($event)"
+            />
+          </div>
+          <div class="field">
+            <label for="rd-out">{{ i18n.t('rooms.check.checkOut') }}</label>
+            <input
+              id="rd-out"
+              name="checkOut"
+              class="input"
+              type="date"
+              [ngModel]="checkOutDate()"
+              (ngModelChange)="checkOutDate.set($event)"
+            />
+          </div>
+        </div>
+        <div class="field">
+          <label for="rd-guests">{{ i18n.t('rooms.check.guests') }}</label>
           <input
+            id="rd-guests"
+            name="guests"
+            class="input"
             type="number"
+            inputmode="numeric"
             min="1"
             [max]="u.capacity"
             [ngModel]="guestCount()"
             (ngModelChange)="guestCount.set($event)"
           />
-        </label>
-      </div>
-      <button type="button" class="cta" (click)="goToBooking()">Check availability &amp; book</button>
+          @if (nights() > 0) {
+            <span class="hint">
+              {{ i18n.t('rooms.check.nightsHint', { nights: i18n.t('bar.nights', { count: nights() }), count: u.capacity }) }}
+            </span>
+          }
+          @if (formError(); as err) {
+            <span class="error" role="alert">{{ i18n.t(err.key, { count: err.count ?? 0 }) }}</span>
+          }
+        </div>
+        <button type="submit" class="btn">{{ i18n.t('rooms.check.cta') }}</button>
+      </form>
     </div>
   </section>
 }

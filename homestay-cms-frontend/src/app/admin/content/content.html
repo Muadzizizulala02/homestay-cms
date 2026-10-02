@@ -5,77 +5,78 @@
   <span>Site content</span>
 </mat-toolbar>
 
-@if (loaded()) {
-  <form [formGroup]="form" class="content" (ngSubmit)="save()">
+<ng-template #fields let-g="group" let-ms="ms">
+  <ng-container [formGroup]="g">
     <h2>Homepage</h2>
     <mat-form-field appearance="outline" class="full">
       <mat-label>Hero headline</mat-label>
       <input matInput formControlName="heroHeadline" />
+      @if (ms) {
+        <mat-hint>Leave blank to show the English text.</mat-hint>
+      }
     </mat-form-field>
     <mat-form-field appearance="outline" class="full">
       <mat-label>Hero subheadline</mat-label>
       <input matInput formControlName="heroSubheadline" />
+      @if (ms) {
+        <mat-hint>Leave blank to show the English text.</mat-hint>
+      }
     </mat-form-field>
 
     <h2>About</h2>
     <mat-form-field appearance="outline" class="full">
       <mat-label>About the homestay</mat-label>
       <textarea matInput formControlName="aboutContent" rows="4"></textarea>
+      @if (ms) {
+        <mat-hint>Leave blank to show the English text.</mat-hint>
+      }
     </mat-form-field>
     <mat-form-field appearance="outline" class="full">
       <mat-label>Host introduction</mat-label>
       <textarea matInput formControlName="hostIntro" rows="3"></textarea>
+      @if (ms) {
+        <mat-hint>Leave blank to show the English text.</mat-hint>
+      }
     </mat-form-field>
 
-    <h2>Location &amp; contact</h2>
-    <mat-form-field appearance="outline" class="full">
-      <mat-label>Address</mat-label>
-      <input matInput formControlName="address" />
-    </mat-form-field>
-    <mat-form-field appearance="outline">
-      <mat-label>Contact email</mat-label>
-      <input matInput type="email" formControlName="contactEmail" />
-    </mat-form-field>
-    <mat-form-field appearance="outline">
-      <mat-label>Contact phone</mat-label>
-      <input matInput formControlName="contactPhone" />
-    </mat-form-field>
-
-    <h2>Check-in / check-out</h2>
-    <mat-form-field appearance="outline">
-      <mat-label>Check-in time</mat-label>
-      <input matInput formControlName="checkInTime" placeholder="14:00" />
-    </mat-form-field>
-    <mat-form-field appearance="outline">
-      <mat-label>Check-out time</mat-label>
-      <input matInput formControlName="checkOutTime" placeholder="12:00" />
-    </mat-form-field>
+    <h2>Cancellation / refund policy</h2>
     <mat-form-field appearance="outline" class="full">
       <mat-label>Cancellation / refund policy</mat-label>
       <textarea matInput formControlName="cancellationPolicy" rows="3"></textarea>
+      @if (ms) {
+        <mat-hint>Leave blank to show the English text.</mat-hint>
+      }
     </mat-form-field>
 
     <h2>House rules</h2>
+    @if (ms) {
+      <p class="hint">Leave blank to show the English text.</p>
+    }
     <div formArrayName="houseRules" class="list">
-      @for (rule of houseRules.controls; track $index) {
+      @for (rule of g.controls.houseRules.controls; track $index) {
         <div class="row">
           <mat-form-field appearance="outline" class="full">
-            <input matInput [formControlName]="$index" />
+            <input matInput [formControlName]="$index" aria-label="House rule" />
           </mat-form-field>
-          <button mat-icon-button type="button" (click)="removeHouseRule($index)" aria-label="Remove rule">
+          <button mat-icon-button type="button" (click)="removeRule(g, $index)" aria-label="Remove rule">
             <mat-icon>close</mat-icon>
           </button>
         </div>
       }
     </div>
-    <button mat-button type="button" (click)="addHouseRule()">
-      <mat-icon>add</mat-icon>
-      Add house rule
-    </button>
+    <div>
+      <button mat-button type="button" (click)="addRule(g, !ms)">
+        <mat-icon>add</mat-icon>
+        Add house rule
+      </button>
+    </div>
 
     <h2>FAQ</h2>
+    @if (ms) {
+      <p class="hint">Leave blank to show the English text.</p>
+    }
     <div formArrayName="faqs" class="list">
-      @for (faq of faqs.controls; track $index) {
+      @for (faq of g.controls.faqs.controls; track $index) {
         <div class="faq-row" [formGroupName]="$index">
           <mat-form-field appearance="outline" class="full">
             <mat-label>Question</mat-label>
@@ -85,20 +86,180 @@
             <mat-label>Answer</mat-label>
             <textarea matInput formControlName="answer" rows="2"></textarea>
           </mat-form-field>
-          <button mat-button type="button" color="warn" (click)="removeFaq($index)">
-            <mat-icon>close</mat-icon>
-            Remove
-          </button>
+          <div>
+            <button mat-button type="button" color="warn" (click)="removeFaq(g, $index)">
+              <mat-icon>close</mat-icon>
+              Remove
+            </button>
+          </div>
         </div>
       }
     </div>
-    <button mat-button type="button" (click)="addFaq()">
-      <mat-icon>add</mat-icon>
-      Add FAQ
-    </button>
+    <div>
+      <button mat-button type="button" (click)="addFaq(g, !ms)">
+        <mat-icon>add</mat-icon>
+        Add FAQ
+      </button>
+    </div>
+  </ng-container>
+</ng-template>
+
+@if (loaded()) {
+  <form [formGroup]="form" class="content" (ngSubmit)="save()">
+    <mat-button-toggle-group
+      class="lang-toggle"
+      aria-label="Content language"
+      [value]="language()"
+      (change)="setLanguage($event.value)"
+    >
+      <mat-button-toggle value="en">English</mat-button-toggle>
+      <mat-button-toggle value="ms">Bahasa Malaysia</mat-button-toggle>
+    </mat-button-toggle-group>
+
+    @if (language() === 'en') {
+      <ng-container
+        [ngTemplateOutlet]="fields"
+        [ngTemplateOutletContext]="{ group: form.controls.en, ms: false }"
+      />
+
+      <h2>Location &amp; contact</h2>
+      <mat-form-field appearance="outline" class="full">
+        <mat-label>Address</mat-label>
+        <input matInput formControlName="address" />
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>Contact email</mat-label>
+        <input matInput type="email" formControlName="contactEmail" />
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>Contact phone</mat-label>
+        <input matInput formControlName="contactPhone" />
+      </mat-form-field>
+
+      <h2>Check-in / check-out</h2>
+      <mat-form-field appearance="outline">
+        <mat-label>Check-in time</mat-label>
+        <input matInput formControlName="checkInTime" placeholder="14:00" />
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>Check-out time</mat-label>
+        <input matInput formControlName="checkOutTime" placeholder="12:00" />
+      </mat-form-field>
+
+      <h2>Notices</h2>
+      <p class="hint">Short announcements. Important notices also pop up once per visitor session.</p>
+      <div formArrayName="notices" class="list">
+        @for (notice of notices.controls; track notice.controls.id.value) {
+          <div class="card" [formGroupName]="$index">
+            <mat-form-field appearance="outline" class="full">
+              <mat-label>Title</mat-label>
+              <input matInput formControlName="title" maxlength="120" />
+              <mat-error>Title is required</mat-error>
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="full">
+              <mat-label>Body</mat-label>
+              <textarea matInput formControlName="body" rows="2" maxlength="1000"></textarea>
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="full">
+              <mat-label>Title (Bahasa Malaysia, optional)</mat-label>
+              <input matInput formControlName="titleMs" maxlength="120" />
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="full">
+              <mat-label>Body (Bahasa Malaysia, optional)</mat-label>
+              <textarea matInput formControlName="bodyMs" rows="2" maxlength="1000"></textarea>
+            </mat-form-field>
+            <div class="checks">
+              <mat-checkbox formControlName="important">Important (also show as a pop-up)</mat-checkbox>
+              <mat-checkbox formControlName="active">Show on site</mat-checkbox>
+            </div>
+            <div>
+              <button mat-button type="button" color="warn" (click)="removeNotice($index)">
+                <mat-icon>close</mat-icon>
+                Remove notice
+              </button>
+            </div>
+          </div>
+        }
+      </div>
+      <div>
+        <button mat-button type="button" [disabled]="notices.length >= maxNotices" (click)="addNotice()">
+          <mat-icon>add</mat-icon>
+          Add notice
+        </button>
+      </div>
+
+      <h2>Facilities</h2>
+      <div formArrayName="facilities" class="list">
+        @for (facility of facilities.controls; track facility) {
+          <div class="card" [formGroupName]="$index">
+            <div class="icon-row">
+              <mat-form-field appearance="outline">
+                <mat-label>Icon</mat-label>
+                <mat-select
+                  formControlName="iconChoice"
+                  (selectionChange)="onIconChoice(facility, $event.value)"
+                >
+                  @for (name of icons; track name) {
+                    <mat-option [value]="name">
+                      <mat-icon>{{ name }}</mat-icon>
+                      {{ name }}
+                    </mat-option>
+                  }
+                  <mat-option [value]="otherIcon">Other…</mat-option>
+                </mat-select>
+              </mat-form-field>
+              @if (facility.controls.iconChoice.value === otherIcon) {
+                <mat-form-field appearance="outline">
+                  <mat-label>Material icon name</mat-label>
+                  <input matInput formControlName="icon" placeholder="hot_tub" />
+                  <mat-hint>Lowercase letters, digits and underscores</mat-hint>
+                  <mat-error>Use lowercase letters, digits and underscores only</mat-error>
+                </mat-form-field>
+              } @else {
+                <mat-icon class="icon-preview">{{ facility.controls.icon.value }}</mat-icon>
+              }
+            </div>
+            <mat-form-field appearance="outline" class="full">
+              <mat-label>Label</mat-label>
+              <input matInput formControlName="label" maxlength="60" />
+              <mat-error>Label is required</mat-error>
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="full">
+              <mat-label>Description</mat-label>
+              <input matInput formControlName="description" maxlength="300" />
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="full">
+              <mat-label>Label (Bahasa Malaysia)</mat-label>
+              <input matInput formControlName="labelMs" maxlength="60" />
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="full">
+              <mat-label>Description (Bahasa Malaysia)</mat-label>
+              <input matInput formControlName="descriptionMs" maxlength="300" />
+            </mat-form-field>
+            <div>
+              <button mat-button type="button" color="warn" (click)="removeFacility($index)">
+                <mat-icon>close</mat-icon>
+                Remove facility
+              </button>
+            </div>
+          </div>
+        }
+      </div>
+      <div>
+        <button mat-button type="button" [disabled]="facilities.length >= maxFacilities" (click)="addFacility()">
+          <mat-icon>add</mat-icon>
+          Add facility
+        </button>
+      </div>
+    } @else {
+      <ng-container
+        [ngTemplateOutlet]="fields"
+        [ngTemplateOutletContext]="{ group: form.controls.ms, ms: true }"
+      />
+    }
 
     <div class="save-bar">
-      <button mat-flat-button color="primary" type="submit" [disabled]="form.invalid">Save changes</button>
+      <button mat-flat-button color="primary" type="submit">Save changes</button>
     </div>
   </form>
 }

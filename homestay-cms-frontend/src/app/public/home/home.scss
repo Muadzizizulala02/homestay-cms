@@ -1,98 +1,269 @@
-.hero {
-  background-size: cover;
-  background-position: center;
-  background-color: #3f2e22;
-  color: #fff;
-  padding: 5rem 1.25rem;
-  text-align: center;
+:host {
+  display: block;
 }
 
-.hero-content {
-  max-width: 640px;
+// Hero: the homestay's own photo when the admin has set one; otherwise a flat ink surface with a
+// quiet mosaic of squares (a nod to the patterned floor tiles of Malaysian shophouses).
+.hero {
+  position: relative;
+  color: var(--paper);
+  background-color: var(--ink);
+  background-image:
+    linear-gradient(45deg, rgba(255, 255, 255, 0.05) 25%, transparent 25%, transparent 75%, rgba(255, 255, 255, 0.05) 75%),
+    linear-gradient(45deg, rgba(255, 255, 255, 0.05) 25%, transparent 25%, transparent 75%, rgba(255, 255, 255, 0.05) 75%);
+  background-size: 56px 56px;
+  background-position: 0 0, 28px 28px;
+
+  &.has-photo {
+    background-size: cover;
+    background-position: center;
+
+    // Flat scrim, not a gradient: keeps the headline legible on any photo.
+    &::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: rgba(20, 52, 58, 0.55);
+    }
+  }
+}
+
+.hero-inner {
+  position: relative;
+  max-width: var(--page-max);
   margin: 0 auto;
+  padding: clamp(3.5rem, 12vw, 8rem) var(--gutter) clamp(5.5rem, 12vw, 8.5rem);
 
   h1 {
-    font-size: 2.5rem;
-    margin: 0 0 0.75rem;
+    margin: 0;
+    max-width: 14ch;
+    font-size: clamp(2.6rem, 8vw, 5.5rem);
+    line-height: 1.02;
   }
 
   .lead {
-    font-size: 1.15rem;
-    margin: 0 0 1.5rem;
+    max-width: 44ch;
+    margin: 1.25rem 0 0;
+    font-size: clamp(1.05rem, 2.2vw, 1.3rem);
+    line-height: 1.5;
   }
 }
 
-.cta {
-  display: inline-block;
-  background: var(--mat-sys-primary, #b45309);
-  color: var(--mat-sys-on-primary, #fff);
-  padding: 0.75rem 1.5rem;
-  border-radius: 4px;
-  text-decoration: none;
-  font-weight: 600;
+// The booking bar overlaps the hero's lower edge.
+.bar-wrap {
+  position: relative;
+  z-index: 2;
+  max-width: var(--page-max);
+  margin: -3.25rem auto 0;
+  padding: 0 var(--gutter);
 }
 
 .section {
-  max-width: 1100px;
+  max-width: var(--page-max);
   margin: 0 auto;
-  padding: 3rem 1.25rem;
+  padding: clamp(2.5rem, 7vw, 5rem) var(--gutter) 0;
 
-  h2 {
-    margin-top: 0;
+  > h2,
+  .section-head h2 {
+    margin: 0 0 1.5rem;
+    font-size: clamp(1.7rem, 4vw, 2.5rem);
   }
 }
 
-.grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 1.5rem;
-  margin: 1.5rem 0;
+.section-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
 }
 
-.unit-card {
-  display: block;
+.text-link {
+  font-weight: 600;
+  text-underline-offset: 4px;
+}
+
+// ---- Rooms: the first room leads; the others are quieter and share a row ----
+.room-list {
+  display: grid;
+  gap: 1.5rem;
+
+  @media (min-width: 760px) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.room {
+  display: grid;
+  gap: 0.9rem;
   text-decoration: none;
   color: inherit;
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  border-radius: 6px;
-  overflow: hidden;
 
-  img {
+  img,
+  .room-photo-empty {
     width: 100%;
-    height: 160px;
+    aspect-ratio: 4 / 3;
     object-fit: cover;
-    display: block;
+    background: var(--mist);
+    border-radius: var(--radius-s);
   }
 
-  .unit-body {
-    padding: 1rem;
+  h3 {
+    margin: 0 0 0.3rem;
+    font-size: 1.35rem;
+  }
+
+  p {
+    margin: 0 0 0.25rem;
+  }
+
+  &:hover h3 {
+    text-decoration: underline;
+    text-decoration-color: var(--kunyit);
+    text-decoration-thickness: 3px;
+    text-underline-offset: 4px;
+  }
+}
+
+.room-lead {
+  @media (min-width: 760px) {
+    grid-column: 1 / -1;
+    grid-template-columns: 1.5fr 1fr;
+    gap: 2rem;
+    align-items: end;
+
+    img,
+    .room-photo-empty {
+      aspect-ratio: 16 / 10;
+    }
 
     h3 {
-      margin: 0 0 0.25rem;
-      font-size: 1.05rem;
-    }
-
-    p {
-      margin: 0.15rem 0;
-      font-size: 0.9rem;
-      color: rgba(0, 0, 0, 0.65);
-    }
-
-    .price {
-      font-weight: 600;
-      color: inherit;
+      font-size: 2rem;
     }
   }
 }
 
-.see-all {
-  display: inline-block;
-  margin-top: 0.5rem;
-  text-decoration: none;
-  font-weight: 500;
+.room-desc {
+  max-width: 48ch;
+  margin-bottom: 0.75rem;
+  line-height: 1.6;
+  color: var(--ink-soft);
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
-.about-teaser p {
-  max-width: 65ch;
+.room-meta {
+  color: var(--ink-soft);
+}
+
+.room-price strong {
+  font: 700 1.25rem var(--font-display);
+}
+
+// ---- Facilities: a ruled list, not a grid of cards ----
+.facility-list {
+  display: grid;
+  gap: 0 2.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  @media (min-width: 640px) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  @media (min-width: 960px) {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  li {
+    display: flex;
+    gap: 0.9rem;
+    padding: 1.1rem 0;
+    border-top: 2px solid var(--ink);
+  }
+
+  mat-icon {
+    flex: none;
+    color: var(--moss);
+  }
+
+  h3 {
+    margin: 0 0 0.2rem;
+    font-size: 1.05rem;
+  }
+
+  p {
+    margin: 0;
+    line-height: 1.5;
+    color: var(--ink-soft);
+  }
+}
+
+// ---- Steps: a real sequence, so numbers are information here ----
+.step-list {
+  display: grid;
+  gap: 1.5rem 2rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  @media (min-width: 720px) {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  li {
+    padding-top: 1rem;
+    border-top: 5px solid var(--kunyit);
+  }
+
+  h3 {
+    margin: 0.4rem 0 0.3rem;
+    font-size: 1.15rem;
+  }
+
+  p {
+    margin: 0;
+    line-height: 1.5;
+    color: var(--ink-soft);
+  }
+}
+
+.step-number {
+  font: 700 2.75rem/1 var(--font-display);
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+}
+
+// ---- House rules: plain two-column list ----
+.rule-list {
+  margin: 0;
+  padding-left: 1.2rem;
+  max-width: 62rem;
   line-height: 1.6;
+
+  @media (min-width: 760px) {
+    columns: 2;
+    column-gap: 3rem;
+  }
+
+  li {
+    margin-bottom: 0.6rem;
+    break-inside: avoid;
+  }
+
+  li::marker {
+    color: var(--moss);
+  }
+}
+
+.check-times {
+  margin: 1.25rem 0 0;
+  font-weight: 600;
+}
+
+.about .prose {
+  margin: 0 0 1rem;
 }

@@ -6,12 +6,47 @@ const faqItemSchema = z.object({
   order: z.number().int(),
 });
 
+// http(s) only: z.string().url() alone also accepts javascript: and data: URLs.
+const httpUrl = z
+  .string()
+  .url()
+  .refine((value) => /^https?:\/\//i.test(value), 'Expected an http(s) URL');
+
 const socialLinkSchema = z.object({
   platform: z.string().min(1),
-  url: z.string().url(),
+  url: httpUrl,
 });
 
-const urlOrEmpty = z.union([z.string().url(), z.literal('')]);
+const noticeSchema = z.object({
+  id: z.string().min(1).max(64),
+  title: z.string().min(1).max(120),
+  body: z.string().max(1000),
+  titleMs: z.string().max(120).optional(),
+  bodyMs: z.string().max(1000).optional(),
+  important: z.boolean(),
+  active: z.boolean(),
+});
+
+const facilitySchema = z.object({
+  // A Material icon name: lowercase letters, digits, underscores only.
+  icon: z.string().regex(/^[a-z0-9_]{1,40}$/, 'Expected a Material icon name, e.g. "wifi"'),
+  label: z.string().min(1).max(60),
+  description: z.string().max(300),
+  labelMs: z.string().max(60).optional(),
+  descriptionMs: z.string().max(300).optional(),
+});
+
+const malayContentSchema = z.object({
+  heroHeadline: z.string().optional(),
+  heroSubheadline: z.string().optional(),
+  aboutContent: z.string().optional(),
+  hostIntro: z.string().optional(),
+  cancellationPolicy: z.string().optional(),
+  houseRules: z.array(z.string()).optional(),
+  faqs: z.array(faqItemSchema).optional(),
+});
+
+const urlOrEmpty = z.union([httpUrl, z.literal('')]);
 const emailOrEmpty = z.union([z.string().email(), z.literal('')]);
 
 export const updateSiteSettingsSchema = z.object({
@@ -30,6 +65,9 @@ export const updateSiteSettingsSchema = z.object({
   houseRules: z.array(z.string()).optional(),
   faqs: z.array(faqItemSchema).optional(),
   cancellationPolicy: z.string().optional(),
+  notices: z.array(noticeSchema).max(20).optional(),
+  facilities: z.array(facilitySchema).max(30).optional(),
+  translations: z.object({ ms: malayContentSchema }).optional(),
   seoDefaults: z
     .object({ title: z.string(), description: z.string(), shareImageUrl: z.string() })
     .optional(),

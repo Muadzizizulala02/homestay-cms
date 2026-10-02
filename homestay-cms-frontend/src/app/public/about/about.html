@@ -1,27 +1,57 @@
-@if (settings(); as s) {
-  <section class="section">
-    <h1>About us</h1>
-    @if (s.aboutContent) {
-      <p class="body">{{ s.aboutContent }}</p>
+@if (content(); as c) {
+  <article class="page about">
+    <h1 class="page-title">{{ i18n.t('about.title') }}</h1>
+
+    @if (c.hostIntro) {
+      <p class="lead">{{ c.hostIntro }}</p>
     }
 
-    @if (s.hostIntro) {
-      <h2>Meet your host</h2>
-      <p class="body">{{ s.hostIntro }}</p>
-    }
+    <div class="columns">
+      <div class="story">
+        @if (c.aboutContent) {
+          <div class="prose">
+            <p class="pre">{{ c.aboutContent }}</p>
+          </div>
+        }
+        @if (!c.aboutContent && !c.hostIntro) {
+          <p>{{ i18n.t('about.empty') }}</p>
+        }
 
-    @if (s.address) {
-      <h2>Location</h2>
-      <p>{{ s.address }}</p>
-      @if (mapUrl()) {
-        <iframe
-          class="map"
-          [src]="mapUrl()"
-          title="Map"
-          loading="lazy"
-          referrerpolicy="no-referrer-when-downgrade"
-        ></iframe>
-      }
+        @if (c.cancellationPolicy) {
+          <h2>{{ i18n.t('about.cancellation') }}</h2>
+          <p class="pre measure">{{ c.cancellationPolicy }}</p>
+        }
+      </div>
+
+      <aside class="facts" [attr.aria-label]="i18n.t('about.stayFacts')">
+        <h2>{{ i18n.t('about.stayFacts') }}</h2>
+        <dl>
+          <div>
+            <dt>{{ i18n.t('about.checkIn') }}</dt>
+            <dd class="time">{{ c.checkInTime }}</dd>
+          </div>
+          <div>
+            <dt>{{ i18n.t('about.checkOut') }}</dt>
+            <dd class="time">{{ c.checkOutTime }}</dd>
+          </div>
+          @if (c.address) {
+            <div>
+              <dt>{{ i18n.t('about.location') }}</dt>
+              <dd>{{ c.address }}</dd>
+            </div>
+          }
+        </dl>
+      </aside>
+    </div>
+
+    @if (mapUrl(); as map) {
+      <iframe
+        class="map"
+        [src]="map"
+        [title]="i18n.t('about.map')"
+        loading="lazy"
+        referrerpolicy="no-referrer-when-downgrade"
+      ></iframe>
     }
-  </section>
+  </article>
 }

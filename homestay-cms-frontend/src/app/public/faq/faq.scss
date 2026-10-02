@@ -1,35 +1,75 @@
-.section {
-  max-width: 700px;
-  margin: 0 auto;
-  padding: 2.5rem 1.25rem;
+h2 {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  margin: 0 0 0.75rem;
 }
 
 .times {
   display: flex;
-  gap: 2rem;
-  margin: 1rem 0 1.5rem;
+  flex-wrap: wrap;
+  gap: 1rem 3rem;
+  margin: 0 0 clamp(2rem, 5vw, 3rem);
 
-  div {
-    display: flex;
-    flex-direction: column;
+  dt {
+    color: var(--ink-soft);
+    font-size: 0.9rem;
   }
 
-  span {
-    font-size: 1.1rem;
+  dd {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: 1.75rem;
   }
 }
 
-.faq-item {
-  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
-  padding: 0.75rem 0;
+.layout {
+  display: grid;
+  gap: 2.5rem;
+
+  @media (min-width: 56rem) {
+    grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+    gap: 4rem;
+  }
+}
+
+.item {
+  border-top: 1px solid var(--mist);
+
+  &:last-of-type {
+    border-bottom: 1px solid var(--mist);
+  }
 
   summary {
     cursor: pointer;
-    font-weight: 500;
+    font-weight: 600;
+    padding: 1rem 0;
+    min-height: 2.75rem;
   }
 
   p {
-    margin: 0.5rem 0 0;
-    line-height: 1.5;
+    margin: 0 0 1rem;
+    max-width: 62ch;
+    white-space: pre-line;
   }
+}
+
+.rules ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  @media (min-width: 36rem) and (max-width: 55.99rem) {
+    columns: 2;
+    column-gap: 2rem;
+  }
+
+  li {
+    break-inside: avoid;
+    padding: 0.625rem 0;
+    border-top: 1px solid var(--mist);
+  }
+}
+
+.empty {
+  color: var(--ink-soft);
 }

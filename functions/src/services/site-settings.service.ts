@@ -20,6 +20,9 @@ const DEFAULT_SITE_SETTINGS: Omit<SiteSettings, 'updatedAt'> = {
   houseRules: [],
   faqs: [],
   cancellationPolicy: '',
+  notices: [],
+  facilities: [],
+  translations: { ms: {} },
   seoDefaults: { title: 'Homestay', description: '', shareImageUrl: '' },
 };
 
@@ -29,7 +32,8 @@ export async function getSiteSettings(): Promise<SiteSettings> {
   if (!doc.exists) {
     return { ...DEFAULT_SITE_SETTINGS, updatedAt: Timestamp.now() };
   }
-  return doc.data() as SiteSettings;
+  // Defaults underneath, so a document saved before newer fields existed still has them.
+  return { ...DEFAULT_SITE_SETTINGS, ...(doc.data() as Partial<SiteSettings>) } as SiteSettings;
 }
 
 export type UpdateSiteSettingsInput = Partial<Omit<SiteSettings, 'updatedAt'>>;
@@ -39,4 +43,13 @@ export async function updateSiteSettings(input: UpdateSiteSettingsInput): Promis
   const merged: SiteSettings = { ...existing, ...input, updatedAt: Timestamp.now() };
   await db.doc(DOC_PATH).set(merged);
   return merged;
+}
+
+/**
+ * What the public site is allowed to see: the same settings, minus notices the admin has
+ * switched off. Drafts and retired announcements must not reach a visitor's network tab.
+ */
+export async function getPublicSiteSettings(): Promise<SiteSettings> {
+  const settings = await getSiteSettings();
+  return { ...settings, notices: settings.notices.filter((notice) => notice.active) };
 }

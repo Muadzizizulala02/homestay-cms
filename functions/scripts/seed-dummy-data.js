@@ -73,6 +73,53 @@ const SITE_SETTINGS = {
   cancellationPolicy:
     'Free cancellation up to 3 days before check-in. Cancellations within 3 days of check-in are non-refundable. ' +
     'Contact us directly for date changes — we\'ll try to accommodate where possible.',
+  notices: [
+    {
+      id: 'seed-rate',
+      title: 'New rates from 1 January.',
+      body: 'Updated nightly rates are shown when you pick your dates.',
+      titleMs: 'Kadar baharu mulai 1 Januari.',
+      bodyMs: 'Kadar semalam terkini dipaparkan apabila anda memilih tarikh.',
+      important: false,
+      active: true,
+    },
+    {
+      id: 'seed-garden',
+      title: 'Garden closed for repairs',
+      body: 'The back garden is closed from 10 to 14 November. The rooms and front terrace are open as usual.',
+      titleMs: 'Taman ditutup untuk pembaikan',
+      bodyMs: 'Taman belakang ditutup dari 10 hingga 14 November. Bilik dan teres hadapan dibuka seperti biasa.',
+      important: true,
+      active: true,
+    },
+  ],
+  facilities: [
+    { icon: 'local_parking', label: 'Free parking', description: 'Space for up to 3 cars right outside.', labelMs: 'Parkir percuma', descriptionMs: 'Ruang untuk 3 kereta di hadapan rumah.' },
+    { icon: 'wifi', label: 'Wi-Fi', description: 'Fast fibre throughout the house.', labelMs: 'Wi-Fi', descriptionMs: 'Gentian optik laju di seluruh rumah.' },
+    { icon: 'ac_unit', label: 'Air-conditioning', description: 'In every bedroom.', labelMs: 'Penyaman udara', descriptionMs: 'Di setiap bilik tidur.' },
+    { icon: 'kitchen', label: 'Kitchenette', description: 'Kettle, fridge and tea or coffee in each room.', labelMs: 'Dapur kecil', descriptionMs: 'Cerek, peti sejuk serta teh atau kopi di setiap bilik.' },
+    { icon: 'local_laundry_service', label: 'Laundry', description: 'Washing machine available on request.', labelMs: 'Dobi', descriptionMs: 'Mesin basuh tersedia atas permintaan.' },
+    { icon: 'security', label: 'Safe and quiet', description: 'The host family lives next door.', labelMs: 'Selamat dan tenang', descriptionMs: 'Keluarga tuan rumah tinggal bersebelahan.' },
+  ],
+  translations: {
+    ms: {
+      heroHeadline: 'Persada Hills Homestay',
+      heroSubheadline: 'Tempat berehat di lereng bukit yang tenang, sesuai untuk percutian anda yang seterusnya.',
+      aboutContent:
+        'Persada Hills Homestay ialah rumah penginapan keluarga di tanah tinggi, lima minit dari pusat bandar. ' +
+        'Kami bina tempat ini supaya terasa seperti rumah kedua anda.',
+      houseRules: [
+        'Dilarang merokok di dalam rumah',
+        'Haiwan peliharaan tidak dibenarkan',
+        'Waktu senyap dari 11 malam hingga 7 pagi',
+        'Sila tanggalkan kasut sebelum masuk',
+      ],
+      faqs: [
+        { order: 0, question: 'Adakah tempat letak kereta disediakan?', answer: 'Ya, parkir percuma untuk 3 kereta di hadapan rumah.' },
+        { order: 1, question: 'Adakah Wi-Fi disediakan?', answer: 'Ya, Wi-Fi percuma di seluruh rumah.' },
+      ],
+    },
+  },
   seoDefaults: {
     title: 'Persada Hills Homestay — Cameron Highlands',
     description: 'A quiet hillside homestay in Cameron Highlands. Book your stay directly — no account needed.',

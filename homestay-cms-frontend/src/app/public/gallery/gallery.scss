@@ -1,19 +1,96 @@
-.section {
-  max-width: 1100px;
-  margin: 0 auto;
-  padding: 2.5rem 1.25rem;
+.grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.5rem;
+
+  @media (min-width: 48rem) {
+    grid-template-columns: repeat(6, 1fr);
+    gap: 0.75rem;
+  }
+
+  li {
+    min-width: 0;
+
+    @media (min-width: 48rem) {
+      grid-column: span 2;
+    }
+
+    // One large feature photo every five, for rhythm.
+    &:nth-child(5n + 1) {
+      grid-column: 1 / -1;
+
+      @media (min-width: 48rem) {
+        grid-column: span 4;
+        grid-row: span 2;
+      }
+    }
+  }
 }
 
-.grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 0.75rem;
-  margin-top: 1.5rem;
+.thumb {
+  display: block;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  background: var(--mist);
+  cursor: zoom-in;
+  border-radius: var(--radius-s);
+  overflow: hidden;
 
   img {
+    display: block;
     width: 100%;
-    height: 180px;
+    height: 100%;
+    aspect-ratio: 4 / 3;
     object-fit: cover;
-    border-radius: 4px;
   }
+}
+
+.viewer {
+  width: min(96vw, 70rem);
+  max-height: 96vh;
+  margin: auto;
+  padding: 1rem;
+  border: 0;
+  border-radius: var(--radius-s);
+  background: var(--paper);
+  color: var(--ink);
+
+  &::backdrop {
+    background: rgb(20 52 58 / 85%);
+  }
+
+  figure {
+    margin: 0;
+  }
+
+  img {
+    display: block;
+    max-width: 100%;
+    max-height: 68vh;
+    margin: 0 auto;
+    object-fit: contain;
+  }
+
+  figcaption {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.75rem 0;
+  }
+
+  .count {
+    color: var(--ink-soft);
+    white-space: nowrap;
+  }
+}
+
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
 }

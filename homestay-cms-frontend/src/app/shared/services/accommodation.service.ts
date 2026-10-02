@@ -21,6 +21,8 @@ export interface Accommodation {
   slug: string;
   name: string;
   description: string;
+  /** Optional Bahasa Malaysia description; empty falls back to `description`. */
+  descriptionMs?: string;
   photos: string[];
   capacity: number;
   beds: number;
