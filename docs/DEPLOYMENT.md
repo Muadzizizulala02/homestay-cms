@@ -38,3 +38,18 @@ None of these are committed; only `.env.example` placeholder files are tracked.
 ## Admin: managing bookings while payment is manual
 
 `/admin/bookings` lists every booking. **Mark paid & confirm** records money you received outside the gateway; **Cancel & release dates** frees the dates; **Record refund** is for bookings paid through ToyyibPay (it does not send money — refund through ToyyibPay first).
+
+## Starter content for a new site
+
+A brand-new site has no content, so the public pages look unfinished. `functions/scripts/seed-starter-content.js` puts neutral English + Bahasa Malaysia starter text on the site settings (headline, about, four common facilities, house rules, FAQs). It invents **no** address, phone, email, prices, photos, refund terms or rooms — enter those in the admin. Review every line before launch: the facilities and house rules are generic and may not match your property.
+
+```
+cd functions
+npm run build
+# real project (needs GOOGLE_APPLICATION_CREDENTIALS pointing at a service-account key; delete the key afterwards)
+node scripts/seed-starter-content.js --project=homestay-cms
+# local emulators
+node scripts/seed-starter-content.js --emulator
+```
+
+It refuses to run without `--project` or `--emulator`, and it will not overwrite settings that already exist unless you add `--force`. The content lives in `functions/src/seed/starter-content.ts` and is validated by the same schema as the admin editor (`npm test`). The older `seed-dummy-data.js` is a local-only demo (fake business, stock photos) and refuses to run against a real project.

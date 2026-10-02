@@ -54,15 +54,17 @@
         <p>{{ content()?.address }}</p>
       }
     </div>
-    <div>
-      <h2>{{ i18n.t('footer.contact') }}</h2>
-      @if (content()?.contactEmail) {
-        <p><a [href]="'mailto:' + content()?.contactEmail">{{ content()?.contactEmail }}</a></p>
-      }
-      @if (content()?.contactPhone) {
-        <p><a [href]="'tel:' + content()?.contactPhone">{{ content()?.contactPhone }}</a></p>
-      }
-    </div>
+    @if (content()?.contactEmail || content()?.contactPhone) {
+      <div>
+        <h2>{{ i18n.t('footer.contact') }}</h2>
+        @if (content()?.contactEmail) {
+          <p><a [href]="'mailto:' + content()?.contactEmail">{{ content()?.contactEmail }}</a></p>
+        }
+        @if (content()?.contactPhone) {
+          <p><a [href]="'tel:' + content()?.contactPhone">{{ content()?.contactPhone }}</a></p>
+        }
+      </div>
+    }
     <div>
       <h2>{{ i18n.t('footer.explore') }}</h2>
       <p><a routerLink="/faq">{{ i18n.t('footer.faqRules') }}</a></p>

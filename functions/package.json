@@ -8,6 +8,7 @@
     "start": "npm run shell",
     "test": "firebase emulators:exec --only firestore,auth --project demo-test \"vitest run\"",
     "create-admin": "node scripts/create-admin.js",
+    "seed-starter": "node scripts/seed-starter-content.js",
     "deploy": "firebase deploy --only functions",
     "logs": "firebase functions:log"
   },
