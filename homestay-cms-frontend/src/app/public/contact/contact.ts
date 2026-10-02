@@ -1,3 +1,4 @@
+import { Skeleton } from '../../shared/ui/skeleton/skeleton';
 import { Component, OnInit, effect, inject } from '@angular/core';
 import { SeoService } from '../../core/seo.service';
 import { I18nService } from '../../shared/i18n/i18n.service';
@@ -6,7 +7,7 @@ import { LoadError } from '../../shared/ui/load-error/load-error';
 
 @Component({
   selector: 'app-contact',
-  imports: [LoadError],
+  imports: [LoadError, Skeleton],
   templateUrl: './contact.html',
   styleUrl: './contact.scss',
 })
@@ -15,6 +16,7 @@ export class ContactPage implements OnInit {
   private readonly seo = inject(SeoService);
   protected readonly i18n = inject(I18nService);
 
+  protected readonly blocks = [0, 1];
   readonly content = this.siteContent.content;
   readonly failed = this.siteContent.failed;
   readonly settings = this.siteContent.settings;

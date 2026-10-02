@@ -7,12 +7,13 @@ import { localizeDescription } from '../../shared/i18n/localize';
 import { AccommodationService, type Accommodation } from '../../shared/services/accommodation.service';
 import { SiteContentService } from '../../shared/services/site-content.service';
 import { BookingBar } from '../../shared/ui/booking-bar/booking-bar';
+import { Skeleton } from '../../shared/ui/skeleton/skeleton';
 
 const ROOMS_ON_HOME = 3;
 
 @Component({
   selector: 'app-home',
-  imports: [RouterLink, MatIconModule, BookingBar],
+  imports: [RouterLink, MatIconModule, BookingBar, Skeleton],
   templateUrl: './home.html',
   styleUrl: './home.scss',
 })
@@ -23,7 +24,12 @@ export class Home implements OnInit {
   private readonly seo = inject(SeoService);
 
   readonly content = this.siteContent.content;
+  readonly failed = this.siteContent.failed;
   readonly featured = signal<Accommodation[]>([]);
+  /** False until the rooms request finishes (success or error), so we show a skeleton, not nothing. */
+  readonly roomsLoaded = signal(false);
+  readonly skeletonRooms = [0, 1, 2];
+  readonly skeletonFacilities = [0, 1, 2];
   readonly stepNumbers = [1, 2, 3, 4];
 
   constructor() {
@@ -39,7 +45,13 @@ export class Home implements OnInit {
 
   ngOnInit(): void {
     this.siteContent.ensureLoaded();
-    this.accommodationService.listPublic().subscribe((list) => this.featured.set(list.slice(0, ROOMS_ON_HOME)));
+    this.accommodationService.listPublic().subscribe({
+      next: (list) => {
+        this.featured.set(list.slice(0, ROOMS_ON_HOME));
+        this.roomsLoaded.set(true);
+      },
+      error: () => this.roomsLoaded.set(true),
+    });
   }
 
   description(unit: Accommodation): string {

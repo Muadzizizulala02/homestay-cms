@@ -7,6 +7,15 @@
     <p>{{ i18n.t('gallery.empty') }}</p>
   }
 
+  @if (!loaded() && !failed()) {
+    <ul class="grid" aria-busy="true">
+      <li class="visually-hidden" role="status">{{ i18n.t('common.loading') }}</li>
+      @for (n of tiles; track n) {
+        <li><app-skeleton ratio="4 / 3" /></li>
+      }
+    </ul>
+  }
+
   <ul class="grid">
     @for (item of items(); track item.id; let i = $index) {
       <li>

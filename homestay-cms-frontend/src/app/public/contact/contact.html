@@ -53,4 +53,12 @@
   <section class="page">
     <app-load-error (retry)="retry()" />
   </section>
+} @else {
+  <section class="page" aria-busy="true">
+    <span class="visually-hidden" role="status">{{ i18n.t('common.loading') }}</span>
+    <h1 class="page-title">{{ i18n.t('contact.title') }}</h1>
+    @for (n of blocks; track n) {
+      <app-skeleton height="5rem" />
+    }
+  </section>
 }

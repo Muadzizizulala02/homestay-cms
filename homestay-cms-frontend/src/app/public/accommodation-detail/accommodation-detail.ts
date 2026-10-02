@@ -1,3 +1,4 @@
+import { Skeleton } from '../../shared/ui/skeleton/skeleton';
 import { Component, OnInit, computed, effect, inject, signal } from '@angular/core';
 import { RouterLink, ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -14,7 +15,7 @@ interface FormError {
 
 @Component({
   selector: 'app-accommodation-detail',
-  imports: [RouterLink, FormsModule],
+  imports: [RouterLink, FormsModule, Skeleton],
   templateUrl: './accommodation-detail.html',
   styleUrl: './accommodation-detail.scss',
 })
@@ -25,6 +26,7 @@ export class AccommodationDetailPage implements OnInit {
   private readonly seo = inject(SeoService);
   readonly i18n = inject(I18nService);
 
+  protected readonly thumbs = [0, 1, 2, 3];
   readonly unit = signal<Accommodation | null>(null);
   readonly notFound = signal(false);
 

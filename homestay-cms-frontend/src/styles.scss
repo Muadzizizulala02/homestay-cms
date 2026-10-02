@@ -169,6 +169,50 @@ h3 {
   }
 }
 
+// ---- Loading placeholders (see shared/ui/skeleton) ----
+.skeleton {
+  display: block;
+  position: relative;
+  overflow: hidden;
+  background: var(--skeleton-bg, var(--mist));
+  border-radius: var(--radius-s);
+
+  // A soft highlight sweeping across; switched off by the reduced-motion rule above.
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, transparent, var(--skeleton-sheen, rgba(255, 255, 255, 0.55)), transparent);
+    transform: translateX(-100%);
+    animation: skeleton-sheen 1.4s ease-in-out infinite;
+  }
+}
+
+@keyframes skeleton-sheen {
+  to {
+    transform: translateX(100%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton::after {
+    display: none;
+  }
+}
+
+// Text for screen readers only (e.g. the "Loading…" status that accompanies skeletons).
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 a {
   color: inherit;
 }

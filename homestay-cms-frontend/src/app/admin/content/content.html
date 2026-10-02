@@ -300,4 +300,20 @@
       <button mat-flat-button color="primary" type="submit">Save changes</button>
     </div>
   </form>
+} @else if (loadFailed()) {
+  <div class="content" role="alert">
+    <p class="load-error">Could not load the site content. Check your connection and try again.</p>
+    <button mat-flat-button type="button" (click)="loadSettings()">Try again</button>
+  </div>
+} @else {
+  <div class="content" aria-busy="true">
+    <span class="visually-hidden" role="status">Loading…</span>
+    <div class="skeleton-toggle"><app-skeleton width="16rem" height="2.5rem" /></div>
+    @for (section of skeletonSections; track section) {
+      <div class="skeleton-heading"><app-skeleton width="9rem" height="1.2rem" /></div>
+      <app-skeleton height="3.5rem" />
+    }
+    <div class="skeleton-heading"><app-skeleton width="9rem" height="1.2rem" /></div>
+    <app-skeleton height="6.5rem" />
+  </div>
 }

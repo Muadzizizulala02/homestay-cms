@@ -6,6 +6,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTableModule } from '@angular/material/table';
 import { MatToolbarModule } from '@angular/material/toolbar';
+import { Skeleton } from '../../shared/ui/skeleton/skeleton';
 import {
   AccommodationService,
   type Accommodation,
@@ -17,7 +18,7 @@ import {
 
 @Component({
   selector: 'app-admin-accommodation',
-  imports: [RouterLink, MatButtonModule, MatIconModule, MatTableModule, MatToolbarModule],
+  imports: [RouterLink, MatButtonModule, MatIconModule, MatTableModule, MatToolbarModule, Skeleton],
   templateUrl: './accommodation.html',
   styleUrl: './accommodation.scss',
 })
@@ -27,6 +28,8 @@ export class AccommodationPage implements OnInit {
   private readonly snackBar = inject(MatSnackBar);
 
   readonly accommodations = signal<Accommodation[]>([]);
+  readonly loaded = signal(false);
+  readonly skeletonRows = [1, 2, 3, 4];
   readonly columns = ['name', 'capacity', 'basePrice', 'active', 'actions'];
 
   ngOnInit(): void {
@@ -34,7 +37,13 @@ export class AccommodationPage implements OnInit {
   }
 
   private refresh(): void {
-    this.accommodationService.list().subscribe((list) => this.accommodations.set(list));
+    this.accommodationService.list().subscribe({
+      next: (list) => {
+        this.accommodations.set(list);
+        this.loaded.set(true);
+      },
+      error: () => this.loaded.set(true),
+    });
   }
 
   openCreateDialog(): void {

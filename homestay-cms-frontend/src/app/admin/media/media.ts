@@ -8,6 +8,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { FormsModule } from '@angular/forms';
+import { Skeleton } from '../../shared/ui/skeleton/skeleton';
 import { MediaService, type MediaItem } from '../../shared/services/media.service';
 
 @Component({
@@ -21,6 +22,7 @@ import { MediaService, type MediaItem } from '../../shared/services/media.servic
     MatInputModule,
     MatProgressSpinnerModule,
     MatToolbarModule,
+    Skeleton,
   ],
   templateUrl: './media.html',
   styleUrl: './media.scss',
@@ -30,6 +32,8 @@ export class MediaPage implements OnInit {
   private readonly snackBar = inject(MatSnackBar);
 
   readonly items = signal<MediaItem[]>([]);
+  readonly loaded = signal(false);
+  readonly skeletonTiles = [1, 2, 3, 4, 5, 6];
   readonly uploading = signal(false);
   readonly pendingAltText = signal('');
 
@@ -38,7 +42,13 @@ export class MediaPage implements OnInit {
   }
 
   private refresh(): void {
-    this.mediaService.list().subscribe((items) => this.items.set(items));
+    this.mediaService.list().subscribe({
+      next: (items) => {
+        this.items.set(items);
+        this.loaded.set(true);
+      },
+      error: () => this.loaded.set(true),
+    });
   }
 
   async onFileSelected(event: Event): Promise<void> {

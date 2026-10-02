@@ -210,4 +210,15 @@
       </div>
     }
   </section>
+} @else {
+  <section class="page narrow" aria-busy="true">
+    <span class="visually-hidden" role="status">{{ i18n.t('common.loading') }}</span>
+    <app-skeleton height="2.5rem" width="70%" />
+    <app-skeleton height="2.5rem" />
+    <div class="step-panel">
+      @for (n of fields; track n) {
+        <app-skeleton height="3rem" />
+      }
+    </div>
+  </section>
 }

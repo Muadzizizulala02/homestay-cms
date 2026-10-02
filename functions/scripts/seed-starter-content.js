@@ -4,7 +4,7 @@
  * pages are not empty before the owner has written their own:
  *   - site settings, with a hero / social-share image;
  *   - a gallery;
- *   - two PLACEHOLDER rooms with photos and made-up sample prices.
+ *   - three PLACEHOLDER rooms with photos and made-up sample prices.
  * No address, phone, email or refund terms are invented. ALL PHOTOS ARE STOCK IMAGES, NOT YOUR
  * PROPERTY, and the room prices are samples — replace them in the admin before real guests book.
  * Source of truth: src/seed/starter-content.ts (compiled to lib/ by `npm run build`).

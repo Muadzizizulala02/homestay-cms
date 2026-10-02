@@ -182,3 +182,17 @@ main {
   border-top: 1px solid rgba(255, 255, 255, 0.2);
   color: var(--mist);
 }
+
+.brand {
+  // Keep the header height steady while the name loads.
+  min-width: 9rem;
+  min-height: 1.4rem;
+}
+
+.footer-skeleton {
+  display: grid;
+  gap: 0.75rem;
+  // On the dark footer the skeleton must be a faint light-on-dark, not the page's pale grey.
+  --skeleton-bg: rgba(255, 255, 255, 0.14);
+  --skeleton-sheen: rgba(255, 255, 255, 0.18);
+}

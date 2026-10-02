@@ -58,4 +58,14 @@
   <section class="page">
     <app-load-error (retry)="retry()" />
   </section>
+} @else {
+  <article class="page about" aria-busy="true">
+    <span class="visually-hidden" role="status">{{ i18n.t('common.loading') }}</span>
+    <h1 class="page-title">{{ i18n.t('about.title') }}</h1>
+    <app-skeleton [lines]="2" height="1.4rem" />
+    <div class="columns">
+      <app-skeleton [lines]="6" />
+      <app-skeleton height="9rem" />
+    </div>
+  </article>
 }

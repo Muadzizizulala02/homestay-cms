@@ -3,12 +3,13 @@ import { Router, RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatToolbarModule } from '@angular/material/toolbar';
+import { Skeleton } from '../../shared/ui/skeleton/skeleton';
 import { ApiService } from '../../shared/services/api.service';
 import { AuthService } from '../../shared/services/auth.service';
 
 @Component({
   selector: 'app-admin-dashboard',
-  imports: [RouterLink, MatButtonModule, MatCardModule, MatToolbarModule],
+  imports: [RouterLink, MatButtonModule, MatCardModule, MatToolbarModule, Skeleton],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.scss',
 })

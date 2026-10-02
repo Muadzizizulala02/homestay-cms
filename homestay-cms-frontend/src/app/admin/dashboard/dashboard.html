@@ -14,7 +14,10 @@
 
       @switch (backendCheck()) {
         @case ('pending') {
-          <p>Checking connection to the API…</p>
+          <div aria-busy="true" class="checking">
+            <span class="visually-hidden" role="status">Loading…</span>
+            <app-skeleton width="14rem" height="1rem" />
+          </div>
         }
         @case ('ok') {
           <p>&check; Backend session verified.</p>

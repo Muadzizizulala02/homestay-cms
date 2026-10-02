@@ -1,3 +1,4 @@
+import { Skeleton } from '../../shared/ui/skeleton/skeleton';
 import { Component, OnInit, computed, effect, inject } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
 import { SeoService } from '../../core/seo.service';
@@ -7,7 +8,7 @@ import { LoadError } from '../../shared/ui/load-error/load-error';
 
 @Component({
   selector: 'app-about',
-  imports: [LoadError],
+  imports: [LoadError, Skeleton],
   templateUrl: './about.html',
   styleUrl: './about.scss',
 })

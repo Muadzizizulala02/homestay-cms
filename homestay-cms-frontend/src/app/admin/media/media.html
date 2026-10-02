@@ -19,7 +19,18 @@
     }
   </div>
 
-  @if (items().length === 0) {
+  @if (!loaded()) {
+    <div class="grid" aria-busy="true">
+      <span class="visually-hidden" role="status">Loading…</span>
+      @for (tile of skeletonTiles; track tile) {
+        <div class="card">
+          <app-skeleton height="140px" />
+          <app-skeleton height="3.5rem" />
+          <app-skeleton width="5rem" height="2rem" />
+        </div>
+      }
+    </div>
+  } @else if (items().length === 0) {
     <p class="empty">No media yet. Upload the first photo above.</p>
   } @else {
     <div class="grid">

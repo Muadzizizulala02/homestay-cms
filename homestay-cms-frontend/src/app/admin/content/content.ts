@@ -12,6 +12,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatToolbarModule } from '@angular/material/toolbar';
+import { Skeleton } from '../../shared/ui/skeleton/skeleton';
 import { MediaService, type MediaItem } from '../../shared/services/media.service';
 import {
   SiteSettingsService,
@@ -52,6 +53,7 @@ type Language = 'en' | 'ms';
     MatInputModule,
     MatSelectModule,
     MatToolbarModule,
+    Skeleton,
   ],
   templateUrl: './content.html',
   styleUrl: './content.scss',
@@ -63,6 +65,8 @@ export class ContentPage implements OnInit {
   private readonly snackBar = inject(MatSnackBar);
 
   readonly loaded = signal(false);
+  readonly loadFailed = signal(false);
+  readonly skeletonSections = [1, 2];
   /** Gallery photos offered as one-click hero choices. */
   readonly galleryPhotos = signal<MediaItem[]>([]);
   /** The settings as last loaded/saved: the baseline for keeping the share image in step with the hero. */
@@ -100,9 +104,18 @@ export class ContentPage implements OnInit {
       next: (items) => this.galleryPhotos.set(items.filter((item) => item.association.type === 'gallery')),
       error: () => this.galleryPhotos.set([]), // the picker is optional; the URL field still works
     });
-    this.siteSettingsService.getForAdmin().subscribe((settings) => {
-      this.patchForm(settings);
-      this.loaded.set(true);
+    this.loadSettings();
+  }
+
+  /** Loads the settings into the form; on failure shows a retry message instead of a skeleton forever. */
+  loadSettings(): void {
+    this.loadFailed.set(false);
+    this.siteSettingsService.getForAdmin().subscribe({
+      next: (settings) => {
+        this.patchForm(settings);
+        this.loaded.set(true);
+      },
+      error: () => this.loadFailed.set(true),
     });
   }
 

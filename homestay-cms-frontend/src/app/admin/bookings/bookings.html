@@ -33,7 +33,21 @@
   </div>
 
   @if (loading()) {
-    <p class="empty">Loading bookings…</p>
+    <div aria-busy="true">
+      <span class="visually-hidden" role="status">Loading…</span>
+      <ul class="booking-list">
+        @for (row of skeletonRows; track row) {
+          <li class="booking">
+            <div class="head">
+              <app-skeleton width="9rem" height="1.1rem" />
+              <app-skeleton width="6rem" height="1.4rem" />
+            </div>
+            <div class="skeleton-text"><app-skeleton [lines]="2" /></div>
+            <div class="actions"><app-skeleton width="11rem" height="2.25rem" /></div>
+          </li>
+        }
+      </ul>
+    </div>
   } @else if (loadFailed()) {
     <p class="error">Could not load bookings. <button type="button" (click)="refresh()">Try again</button></p>
   } @else if (visibleBookings().length === 0) {

@@ -2,7 +2,14 @@
 
 <header class="site-header">
   <div class="bar">
-    <a routerLink="/" class="brand" (click)="closeMenu()">{{ content()?.heroHeadline || 'Homestay' }}</a>
+    <a routerLink="/" class="brand" (click)="closeMenu()">
+      @if (content() || failed()) {
+        {{ content()?.heroHeadline || 'Homestay' }}
+      } @else {
+        <span class="visually-hidden" role="status">{{ i18n.t('common.loading') }}</span>
+        <app-skeleton width="9rem" height="1.4rem" />
+      }
+    </a>
 
     <button
       class="menu-toggle"
@@ -49,9 +56,16 @@
 <footer class="site-footer">
   <div class="footer-grid">
     <div>
-      <p class="footer-brand">{{ content()?.heroHeadline || 'Homestay' }}</p>
-      @if (content()?.address) {
-        <p>{{ content()?.address }}</p>
+      @if (content() || failed()) {
+        <p class="footer-brand">{{ content()?.heroHeadline || 'Homestay' }}</p>
+        @if (content()?.address) {
+          <p>{{ content()?.address }}</p>
+        }
+      } @else {
+        <div class="footer-skeleton">
+          <app-skeleton width="11rem" height="1.4rem" />
+          <app-skeleton [lines]="2" height="0.9rem" width="min(100%, 20rem)" />
+        </div>
       }
     </div>
     @if (content()?.contactEmail || content()?.contactPhone) {
@@ -71,5 +85,5 @@
       <p><a routerLink="/contact">{{ i18n.t('footer.contactUs') }}</a></p>
     </div>
   </div>
-  <p class="copyright">&copy; {{ currentYear }} {{ content()?.heroHeadline || 'Homestay' }}. {{ i18n.t('footer.rights') }}</p>
+  <p class="copyright">&copy; {{ currentYear }}@if (content() || failed()) { {{ content()?.heroHeadline || 'Homestay' }}}. {{ i18n.t('footer.rights') }}</p>
 </footer>

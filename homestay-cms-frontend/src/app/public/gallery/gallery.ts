@@ -1,3 +1,4 @@
+import { Skeleton } from '../../shared/ui/skeleton/skeleton';
 import { Component, ElementRef, OnInit, computed, effect, inject, signal, viewChild } from '@angular/core';
 import { SeoService } from '../../core/seo.service';
 import { LoadError } from '../../shared/ui/load-error/load-error';
@@ -6,7 +7,7 @@ import { MediaService, type MediaItem } from '../../shared/services/media.servic
 
 @Component({
   selector: 'app-gallery',
-  imports: [LoadError],
+  imports: [LoadError, Skeleton],
   templateUrl: './gallery.html',
   styleUrl: './gallery.scss',
 })
@@ -17,6 +18,7 @@ export class GalleryPage implements OnInit {
 
   private readonly dialog = viewChild<ElementRef<HTMLDialogElement>>('viewer');
 
+  protected readonly tiles = Array.from({ length: 6 }, (_, i) => i);
   readonly items = signal<MediaItem[]>([]);
   readonly loaded = signal(false);
   readonly failed = signal(false);

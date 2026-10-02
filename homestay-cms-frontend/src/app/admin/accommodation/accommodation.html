@@ -11,7 +11,19 @@
 </mat-toolbar>
 
 <div class="content">
-  @if (accommodations().length === 0) {
+  @if (!loaded()) {
+    <div aria-busy="true" class="skeleton-table mat-elevation-z1">
+      <span class="visually-hidden" role="status">Loading…</span>
+      @for (row of skeletonRows; track row) {
+        <div class="skeleton-row">
+          <app-skeleton width="70%" height="1rem" />
+          <app-skeleton width="60%" height="1rem" />
+          <app-skeleton width="50%" height="1rem" />
+          <app-skeleton width="50%" height="1rem" />
+        </div>
+      }
+    </div>
+  } @else if (accommodations().length === 0) {
     <p class="empty">No accommodation yet. Add the first room or unit type.</p>
   } @else {
     <table mat-table [dataSource]="accommodations()" class="mat-elevation-z1">

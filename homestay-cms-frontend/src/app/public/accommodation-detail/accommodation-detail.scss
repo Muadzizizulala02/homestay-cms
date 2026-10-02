@@ -177,3 +177,15 @@
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+// Loading placeholders sized like the real photo and thumbnails, so the page does not shift.
+.gallery-main-skeleton {
+  max-height: 70vh;
+  overflow: hidden;
+  border-radius: var(--radius-l);
+}
+
+.thumb-skeleton {
+  flex: none;
+  width: 4.5rem;
+}

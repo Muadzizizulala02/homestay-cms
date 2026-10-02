@@ -12,6 +12,20 @@ table {
   width: 100%;
 }
 
+.skeleton-table {
+  background: #fff;
+  border-radius: 4px;
+}
+
+.skeleton-row {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr 6rem;
+  gap: 1rem;
+  align-items: center;
+  padding: 1.1rem 1rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+}
+
 .empty {
   color: rgba(0, 0, 0, 0.6);
 }

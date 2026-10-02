@@ -7,6 +7,7 @@ import { AccommodationService, type Accommodation } from '../../shared/services/
 import { BookingService, type Booking } from '../../shared/services/booking.service';
 import { I18nService } from '../../shared/i18n/i18n.service';
 import { formatStayDate, nightsBetween } from './stay-dates';
+import { Skeleton } from '../../shared/ui/skeleton/skeleton';
 
 type Step = 'dates' | 'guest' | 'review' | 'confirmation';
 
@@ -18,7 +19,7 @@ interface FormError {
 
 @Component({
   selector: 'app-booking',
-  imports: [FormsModule, RouterLink],
+  imports: [FormsModule, RouterLink, Skeleton],
   templateUrl: './booking.html',
   styleUrl: './booking.scss',
 })
@@ -29,6 +30,7 @@ export class BookingPage implements OnInit {
   private readonly seo = inject(SeoService);
   readonly i18n = inject(I18nService);
 
+  protected readonly fields = [0, 1, 2];
   readonly unit = signal<Accommodation | null>(null);
   readonly notFound = signal(false);
   readonly step = signal<Step>('dates');

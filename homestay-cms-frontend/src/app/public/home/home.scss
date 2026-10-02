@@ -267,3 +267,11 @@
 .about .prose {
   margin: 0 0 1rem;
 }
+
+// Skeleton on the dark hero: faint light-on-dark instead of the page's pale grey.
+.hero-skeleton {
+  display: grid;
+  gap: 1.25rem;
+  --skeleton-bg: rgba(255, 255, 255, 0.16);
+  --skeleton-sheen: rgba(255, 255, 255, 0.2);
+}

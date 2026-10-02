@@ -1,3 +1,4 @@
+import { Skeleton } from '../../shared/ui/skeleton/skeleton';
 import { Component, OnInit, computed, effect, inject, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { SeoService } from '../../core/seo.service';
@@ -13,7 +14,7 @@ interface StayParams {
 
 @Component({
   selector: 'app-accommodation-list',
-  imports: [RouterLink],
+  imports: [RouterLink, Skeleton],
   templateUrl: './accommodation-list.html',
   styleUrl: './accommodation-list.scss',
 })
@@ -23,6 +24,7 @@ export class AccommodationListPage implements OnInit {
   private readonly seo = inject(SeoService);
   readonly i18n = inject(I18nService);
 
+  protected readonly placeholders = [0, 1];
   readonly units = signal<Accommodation[]>([]);
   readonly loaded = signal(false);
 

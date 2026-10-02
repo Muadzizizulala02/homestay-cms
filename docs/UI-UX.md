@@ -33,6 +33,16 @@ Admins manage notices in **Admin → Site content**. Ordinary active notices sho
 - **Admin-written content** is translated in the content: `siteSettings.translations.ms` holds Malay versions of the headline, subheadline, about, host intro, cancellation policy, house rules and FAQs; notices and facilities carry optional `titleMs`/`bodyMs`/`labelMs`/`descriptionMs`; rooms carry optional `descriptionMs`. Anything left blank falls back to English (`shared/i18n/localize.ts`, unit-tested in `localize.spec.ts`). Room names, prices and amenities are not translated.
 - Page `<title>`/description follow the active language. There are no per-language URLs yet, so search engines see one canonical (English-first) page.
 
+## Loading states
+
+Every page that fetches data shows **skeletons** (grey placeholders shaped like the real content) instead of a blank page, so nothing jumps when data arrives. The shared piece is `shared/ui/skeleton` (`<app-skeleton [lines] width height ratio>`), styled by `.skeleton` in `styles.scss`: a soft shimmer that the global `prefers-reduced-motion` rule switches off. Skeleton colours can be overridden per context with `--skeleton-bg` / `--skeleton-sheen` (used on the dark hero and footer).
+
+Conventions, applied to the home, rooms, room detail, booking, gallery, About, FAQ and Contact pages and to the admin dashboard, bookings, accommodation, media and content screens:
+- The skeleton mirrors the page's real layout (same image ratios and block sizes).
+- Each loading region has `aria-busy="true"` and one visually-hidden `role="status"` "Loading…" line (translated on the public site); the skeleton itself is `aria-hidden`.
+- An **empty-state message appears only after loading has finished** (no "No rooms yet" flash); a failed load shows a retry message instead of a skeleton forever.
+- The header and footer show a skeleton for the homestay name until site settings arrive.
+
 ## Material usage
 
 Public pages are hand-built semantic HTML/SCSS using the tokens above. Angular Material is used only for the admin area (forms, dialogs, toolbars, tables) and for the icon font (`<mat-icon>`) in the facilities list. `mat.theme()` in `styles.scss` still styles the admin.

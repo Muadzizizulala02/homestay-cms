@@ -8,7 +8,23 @@
     </p>
   }
 
-  @if (loaded() && units().length === 0) {
+  @if (!loaded()) {
+    <div aria-busy="true">
+      <span class="visually-hidden" role="status">{{ i18n.t('common.loading') }}</span>
+      <div class="room room-featured">
+        <app-skeleton ratio="3 / 2" />
+        <div class="room-body"><app-skeleton height="2rem" width="70%" /><app-skeleton [lines]="2" /></div>
+      </div>
+      <div class="room-list">
+        @for (n of placeholders; track n) {
+          <div class="room">
+            <app-skeleton ratio="4 / 3" />
+            <div class="room-body"><app-skeleton height="1.4rem" width="60%" /><app-skeleton [lines]="2" /></div>
+          </div>
+        }
+      </div>
+    </div>
+  } @else if (units().length === 0) {
     <div class="empty">
       <h2>{{ i18n.t('rooms.emptyTitle') }}</h2>
       <p>{{ i18n.t('rooms.emptyBody') }}</p>

@@ -49,6 +49,12 @@ describe('STARTER_ROOMS', () => {
     }
   });
 
+  it('offers three rooms, from the smallest to the largest, with prices that rise with capacity', () => {
+    expect(STARTER_ROOMS).toHaveLength(3);
+    const byCapacity = [...STARTER_ROOMS].sort((a, b) => a.capacity - b.capacity);
+    expect(byCapacity.map((r) => r.basePrice)).toEqual([...byCapacity.map((r) => r.basePrice)].sort((a, b) => a - b));
+  });
+
   it('gives every room stable, unique ids and slugs so a re-run can skip what exists', () => {
     expect(new Set(STARTER_ROOMS.map((r) => r.id)).size).toBe(STARTER_ROOMS.length);
     expect(new Set(STARTER_ROOMS.map((r) => r.slug)).size).toBe(STARTER_ROOMS.length);

@@ -28,6 +28,14 @@ h2 {
   color: rgba(0, 0, 0, 0.6);
 }
 
+.skeleton-toggle {
+  margin-bottom: 0.5rem;
+}
+
+.skeleton-heading {
+  margin: 1.5rem 0 0.75rem;
+}
+
 .lang-toggle {
   align-self: flex-start;
   max-width: 100%;
@@ -113,4 +121,9 @@ h2 {
   &.selected {
     border-color: #1b5e50;
   }
+}
+
+.load-error {
+  margin: 0 0 1rem;
+  color: #b3261e;
 }

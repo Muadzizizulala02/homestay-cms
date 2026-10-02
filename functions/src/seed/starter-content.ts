@@ -183,6 +183,23 @@ export const STARTER_ROOMS: ReadonlyArray<Omit<Accommodation, 'createdAt' | 'upd
     active: true,
   },
   {
+    id: 'starter-deluxe-room',
+    slug: 'deluxe-room',
+    name: 'Deluxe Room',
+    description:
+      'A roomier choice for up to three guests, with a seating area to relax in as well as a comfortable bed.',
+    descriptionMs:
+      'Pilihan yang lebih luas untuk sehingga tiga tetamu, dengan ruang duduk untuk berehat selain katil yang selesa.',
+    photos: [photoUrl('sofa-lounge'), photoUrl('bed-detail')],
+    capacity: 3,
+    beds: 2,
+    amenities: ['Wi-Fi', 'Air-conditioning', 'Fresh linen and towels'],
+    basePrice: 200,
+    minStay: 1,
+    maxStay: 14,
+    active: true,
+  },
+  {
     id: 'starter-family-room',
     slug: 'family-room',
     name: 'Family Room',

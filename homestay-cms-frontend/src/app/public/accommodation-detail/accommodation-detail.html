@@ -125,4 +125,26 @@
       </form>
     </div>
   </section>
+} @else {
+  <section class="page detail" aria-busy="true">
+    <span class="visually-hidden" role="status">{{ i18n.t('common.loading') }}</span>
+    <div class="gallery">
+      <div class="gallery-main-skeleton">
+        <app-skeleton ratio="16 / 10" />
+      </div>
+      <div class="gallery-strip">
+        @for (n of thumbs; track n) {
+          <span class="thumb-skeleton"><app-skeleton height="3.5rem" /></span>
+        }
+      </div>
+    </div>
+    <div class="layout">
+      <div class="info">
+        <app-skeleton height="2.5rem" width="60%" />
+        <app-skeleton height="1.9rem" width="35%" />
+        <app-skeleton [lines]="4" />
+      </div>
+      <app-skeleton height="18rem" />
+    </div>
+  </section>
 }

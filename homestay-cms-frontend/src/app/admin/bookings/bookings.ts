@@ -4,6 +4,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatToolbarModule } from '@angular/material/toolbar';
+import { Skeleton } from '../../shared/ui/skeleton/skeleton';
 import { AccommodationService } from '../../shared/services/accommodation.service';
 import { AdminBookingsService, type AdminBooking } from '../../shared/services/admin-bookings.service';
 
@@ -19,7 +20,7 @@ type StatusFilter = 'all' | 'pending_payment' | 'confirmed';
 
 @Component({
   selector: 'app-admin-bookings',
-  imports: [RouterLink, MatButtonModule, MatIconModule, MatToolbarModule],
+  imports: [RouterLink, MatButtonModule, MatIconModule, MatToolbarModule, Skeleton],
   templateUrl: './bookings.html',
   styleUrl: './bookings.scss',
 })
@@ -28,6 +29,7 @@ export class BookingsPage implements OnInit {
   private readonly accommodationService = inject(AccommodationService);
   private readonly snackBar = inject(MatSnackBar);
 
+  readonly skeletonRows = [1, 2, 3];
   readonly bookings = signal<AdminBooking[]>([]);
   readonly accommodationNames = signal<Record<string, string>>({});
   readonly filter = signal<StatusFilter>('all');

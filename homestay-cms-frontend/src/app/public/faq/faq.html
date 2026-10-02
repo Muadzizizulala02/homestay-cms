@@ -53,4 +53,17 @@
   <section class="page">
     <app-load-error (retry)="retry()" />
   </section>
+} @else {
+  <section class="page" aria-busy="true">
+    <span class="visually-hidden" role="status">{{ i18n.t('common.loading') }}</span>
+    <h1 class="page-title">{{ i18n.t('faq.title') }}</h1>
+    <div class="layout">
+      <div class="questions">
+        @for (n of bars; track n) {
+          <app-skeleton height="3rem" />
+        }
+      </div>
+      <app-skeleton [lines]="4" />
+    </div>
+  </section>
 }
