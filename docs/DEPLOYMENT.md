@@ -41,7 +41,12 @@ None of these are committed; only `.env.example` placeholder files are tracked.
 
 ## Starter content for a new site
 
-A brand-new site has no content, so the public pages look unfinished. `functions/scripts/seed-starter-content.js` puts neutral English + Bahasa Malaysia starter text on the site settings (headline, about, four common facilities, house rules, FAQs). It invents **no** address, phone, email, prices, photos, refund terms or rooms — enter those in the admin. Review every line before launch: the facilities and house rules are generic and may not match your property.
+A brand-new site has no content, so the public pages look unfinished. `functions/scripts/seed-starter-content.js` seeds two things, in English and Bahasa Malaysia:
+
+1. **Site settings** (headline, about, four common facilities, house rules, FAQs). It invents **no** address, phone, email, photos or refund terms.
+2. **Two placeholder rooms** (Standard Room, Family Room) so something is bookable on day one. **Their photos are stock images (Unsplash) and their prices (RM 150 / RM 250) are made-up samples — not your property.** Replace the photos, names, descriptions and prices in Admin > Accommodation before real guests book. Pass `--no-rooms` to skip them.
+
+Review every line before launch: the facilities and house rules are generic and may not match your property.
 
 ```
 cd functions
@@ -52,4 +57,4 @@ node scripts/seed-starter-content.js --project=homestay-cms
 node scripts/seed-starter-content.js --emulator
 ```
 
-It refuses to run without `--project` or `--emulator`, and it will not overwrite settings that already exist unless you add `--force`. The content lives in `functions/src/seed/starter-content.ts` and is validated by the same schema as the admin editor (`npm test`). The older `seed-dummy-data.js` is a local-only demo (fake business, stock photos) and refuses to run against a real project.
+It refuses to run without `--project` or `--emulator`. Settings and each room are checked independently and are **left unchanged if they already exist** (add `--force` to replace them). A room whose URL slug is already used by a different room is skipped, so it never clashes with one made by hand. The content lives in `functions/src/seed/starter-content.ts` and is validated by the same schemas as the admin forms (`npm test`). The older `seed-dummy-data.js` is a local-only demo (fake business) and refuses to run against a real project.

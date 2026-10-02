@@ -1,9 +1,11 @@
+import type { Accommodation } from '../types/accommodation.types';
 import type { SiteSettings } from '../types/site-settings.types';
 
 /**
  * Neutral first-day content for a brand-new site, so the public pages are not empty before the
  * owner has written their own. Deliberately says nothing the owner has not told us: no address,
  * phone, email, prices, photos, refund terms or notices. Those must be entered in the admin.
+ * (Rooms are separate: see STARTER_ROOMS below, which are clearly-labelled placeholders.)
  *
  * Wording is written to be true of almost any homestay, and every line is editable under
  * Admin > Site content. The owner should still read it all before launch.
@@ -94,3 +96,50 @@ export const STARTER_CONTENT: Omit<SiteSettings, 'updatedAt'> = {
   },
   seoDefaults: { title: 'Homestay', description: '', shareImageUrl: '' },
 };
+
+/** The photo host for the placeholder images below (Unsplash CDN; the Unsplash licence allows this use). */
+const STOCK = 'https://images.unsplash.com/photo-';
+
+/**
+ * PLACEHOLDER rooms so a new site can show something bookable on day one. The photos are stock
+ * images, NOT this property, and the prices are made-up sample figures: both must be replaced in
+ * Admin > Accommodation before real guests book. Ids are fixed so re-running the seed skips
+ * rooms that already exist instead of duplicating them.
+ */
+export const STARTER_ROOMS: ReadonlyArray<Omit<Accommodation, 'createdAt' | 'updatedAt'>> = [
+  {
+    id: 'starter-standard-room',
+    slug: 'standard-room',
+    name: 'Standard Room',
+    description: 'A comfortable room for one or two guests, with a bed, a bedside lamp and a window with natural light.',
+    descriptionMs:
+      'Bilik yang selesa untuk seorang atau dua tetamu, dengan katil, lampu tepi katil dan tingkap yang membawa cahaya semula jadi.',
+    photos: [`${STOCK}1595526114035-0d45ed16cfbf?w=1200&q=80`, `${STOCK}1522771739844-6a9f6d5f14af?w=1200&q=80`],
+    capacity: 2,
+    beds: 1,
+    amenities: ['Wi-Fi', 'Air-conditioning', 'Fresh linen and towels'],
+    basePrice: 150,
+    minStay: 1,
+    maxStay: 14,
+    active: true,
+  },
+  {
+    id: 'starter-family-room',
+    slug: 'family-room',
+    name: 'Family Room',
+    description: 'A larger space for families and small groups, with room to sit together and a small kitchen area.',
+    descriptionMs: 'Ruang yang lebih luas untuk keluarga dan kumpulan kecil, dengan tempat untuk duduk bersama dan ruang dapur kecil.',
+    photos: [
+      `${STOCK}1522708323590-d24dbb6b0267?w=1200&q=80`,
+      `${STOCK}1560448204-e02f11c3d0e2?w=1200&q=80`,
+      `${STOCK}1505691938895-1758d7feb511?w=1200&q=80`,
+    ],
+    capacity: 4,
+    beds: 2,
+    amenities: ['Wi-Fi', 'Air-conditioning', 'Fresh linen and towels'],
+    basePrice: 250,
+    minStay: 1,
+    maxStay: 14,
+    active: true,
+  },
+];

@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
+import { createAccommodationSchema } from '../../validation/accommodation.schema';
 import { updateSiteSettingsSchema } from '../../validation/site-settings.schema';
-import { STARTER_CONTENT } from '../starter-content';
+import { STARTER_CONTENT, STARTER_ROOMS } from '../starter-content';
 
 describe('STARTER_CONTENT', () => {
   it('passes the same validation the admin editor is held to', () => {
@@ -37,5 +38,47 @@ describe('STARTER_CONTENT', () => {
     expect(STARTER_CONTENT.translations.ms.faqs?.map((f) => f.order)).toEqual(
       STARTER_CONTENT.translations.ms.faqs?.map((_, i) => i)
     );
+  });
+});
+
+describe('STARTER_ROOMS', () => {
+  it('has rooms that pass the same validation as the admin accommodation form', () => {
+    expect(STARTER_ROOMS.length).toBeGreaterThan(0);
+    for (const { id, ...room } of STARTER_ROOMS) {
+      const parsed = createAccommodationSchema.safeParse(room);
+      expect(parsed.success, `${id}: ${JSON.stringify(parsed.error?.issues)}`).toBe(true);
+    }
+  });
+
+  it('gives every room stable, unique ids and slugs so a re-run can skip what exists', () => {
+    expect(new Set(STARTER_ROOMS.map((r) => r.id)).size).toBe(STARTER_ROOMS.length);
+    expect(new Set(STARTER_ROOMS.map((r) => r.slug)).size).toBe(STARTER_ROOMS.length);
+  });
+
+  it('gives every room at least one https photo and a Malay description', () => {
+    for (const room of STARTER_ROOMS) {
+      expect(room.photos.length).toBeGreaterThan(0);
+      for (const photo of room.photos) {
+        expect(photo).toMatch(/^https:\/\//);
+      }
+      expect(room.descriptionMs).toBeTruthy();
+    }
+  });
+
+  it('only lists amenities that the starter facilities already claim', () => {
+    const claimed = new Set(STARTER_CONTENT.facilities.map((f) => f.label));
+    for (const room of STARTER_ROOMS) {
+      for (const amenity of room.amenities) {
+        expect(claimed.has(amenity), `${room.slug}: ${amenity}`).toBe(true);
+      }
+    }
+  });
+
+  it('keeps stay limits and capacity sensible', () => {
+    for (const room of STARTER_ROOMS) {
+      expect(room.minStay).toBeLessThanOrEqual(room.maxStay);
+      expect(room.capacity).toBeGreaterThanOrEqual(room.beds);
+      expect(room.active).toBe(true);
+    }
   });
 });
