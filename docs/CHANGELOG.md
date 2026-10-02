@@ -1,5 +1,98 @@
 # Changelog
 
+## 2026-10-02 — Home page: optional background photo per section; gaps removed
+
+- **Admin > Site content > Home page backgrounds** (new `app-background-field`): for *What you can count on*, *How booking works*, *House rules* and *About the stay* the owner can upload a photo (straight to Cloudinary, folder `homestay/backgrounds`), pick one from the gallery, or paste an https address; Remove returns the section to its default design. Stored as `siteSettings.sectionBackgrounds` (`facilities` / `steps` / `rules` / `about`, https URL or empty), validated by `updateSiteSettingsSchema` (unknown keys dropped), defaulted to `{}` for older documents.
+- Public: with a photo a section gets a dark scrim and light text (step nodes turn pale; tiles and the host card stay white); without one it is unchanged. *House rules* keeps the first hero photo as its default. `shared/ui/css-url.ts` escapes the address so a stray quote cannot inject CSS (unit-tested, and checked in a browser).
+- The full-bleed sections (facilities band, booking steps, house rules, About) now sit **flush against each other**; the gaps between them are gone (`PolicyShowcase` gained a `flush` input; the steps band lost its top margin; About became a band with its own padding).
+- Fixed a bug found while testing: the background address field's validation message never appeared (Material only shows `mat-error` for a control in an error state).
+- Tests: backend 128, frontend 88. Browser-verified (35 checks incl. a real Cloudinary upload, cleaned up afterwards, plus all earlier suites).
+- **Needs a backend deploy** (`firebase deploy --only functions,firestore`) before the admin can save backgrounds, then a push for the frontend. Not yet deployed or pushed at the time of writing.
+
+## 2026-10-02 — Home page: a distinct design for each section
+
+`public/home/sections/`, each its own component with its own background so the page reads as a sequence of different spaces:
+
+- **What you can count on** (`home-facilities`): light mist band; heading, a small tile-mosaic motif and an intro on the left; the facilities as white icon tiles that flip to dark ink with a gold icon on hover.
+- **How booking works** (`home-steps`): white band; four numbered nodes joined by a gold line that draws itself as the section scrolls into view (a vertical timeline on phones), the last node gold, and a "Start with your dates" button.
+- **About the stay** (`home-about`): editorial layout; a large lead behind a gold rule (`about-text.ts` splits the first paragraph/sentence from the rest, unit-tested), the host's note as a speech card, a framed photo (second hero photo) with an offset gold block; simplifies when there is no photo, host note or body text.
+- New translated lines (EN + BM) for the subtitles, the button and the host note. Tests: frontend 77; browser-verified (33 section checks, reduced motion, phone layouts).
+
+## 2026-10-02 — Policy pages restyled as card sections; typing caret removed
+
+- New `shared/ui/policy-showcase`: a full-width dark photo section (hero photo under an ink scrim) with a small tracked label ("Our policy" / "House rules"), title, subtitle, italic quote, then rounded cream **cards** of items, each with a gold-ringed icon, a heading and a description. Two side-by-side cards (left takes an odd item), anything past eight in a full-width card beneath; cards stack on phones.
+- `policy-parse.ts` turns the admin's plain text into items (blank-line blocks; a short first line without a closing full stop becomes the heading), picks icons by keyword in English and Malay (long-standing Material icon names only), and renders free-form text without headings as readable cards. House rules become heading-only items. Unit-tested (15 tests).
+- Used for `/privacy`, `/terms` (the whole page, flush under the header), the home page rules and the FAQ page's house rules. An unpublished policy shows a short message instead.
+- Footer: five columns now fit on one row; the footer closes up to a page that ends in a policy section.
+- The hero typing no longer shows a blinking caret (also removed from the typing logic and its tests).
+
+## 2026-10-02 — Looping typewriter hero text; richer rooms page motion; favicon
+
+- Hero headline and intro line **type, hold (~5 s), erase and repeat**. The timeline is a pure, unit-tested function of time (`shared/ui/hero-typing/typing-logic.ts`); untyped text stays in the same flow (invisible) so lines never re-wrap or shift the layout; the full text is always present for screen readers and crawlers (the animated copy is `aria-hidden`); it pauses in a hidden tab, restarts on a language change, and shows plain text under reduced motion.
+- Rooms page: the title draws a gold rule, the dates summary slides in, each room fades up on scroll, photos ease in once loaded (`appImgFade`) and settle from a slight zoom, and on hover the photo zooms, the text nudges and the name's underline thickens.
+- Favicon set added to `public/` (ico, 16/32 px PNGs, apple-touch-icon, Android icons, `site.webmanifest` with name "Homestay" and the brand colours) and linked in `index.html` with a `theme-color`.
+
+## 2026-10-02 — Motion across the site; slideshow controls hidden; safe placeholder content
+
+- Motion vocabulary in `styles.scss`: things rise ~20 px and fade in over ~0.6 s; hover/focus changes 0.15-0.3 s; everything off under `prefers-reduced-motion`. Pieces: `appReveal` scroll-reveal directive with staggering; hero entrance; page cross-fade via the router's View Transitions with a stable header; mobile menu slide/fade (`visibility`, so closed links are not focusable); notice pop-up fade (`@starting-style`); FAQ answers ease open (`::details-content`, Chromium 131+); booking steps ease in; hover zoom/underline/lift; photos drift slowly closer while cross-fading.
+- The visible slideshow pause/dots pill was removed from the photo. One Pause/Play button remains for keyboard and screen-reader users (invisible until focused), because moving content must be pausable.
+- Seed: host intro, contact email/phone, social links and cancellation wording as **clearly-fake placeholders** (an `@example.com` email, an invalid phone number, platform homepages, no street address, wording with no amounts or deadlines). Only empty fields are filled; an owner's real details are never overwritten. Raised the component-style budget warning to 6 kB.
+- Tests: backend 123, frontend 42; browser-verified (34 motion checks, 5 seed scenarios).
+
+## 2026-10-02 — Hero slideshow with admin upload and interval; footer navigation, policies, social links
+
+- **Hero slideshow** (`shared/ui/hero-slideshow`): cross-fades through up to 10 photos for a configurable **seconds per photo** (2-30, default 5); pauses when the tab is hidden; no autoplay under reduced motion; next image preloaded. Admin: upload several photos at once (Cloudinary `homestay/hero`), pick from the gallery, add by address, reorder, remove, set the interval. `heroImageUrl` stays the first slide and the social-share image.
+- **Header** now Home / Rooms / Gallery; **About, FAQ and Contact moved to the footer**, which also has *Policies* (Privacy, Terms, Cancellation) and *Follow us* (social links). New CMS-managed `/privacy` and `/terms` pages (EN + BM) and a social-links editor (Facebook, Instagram, TikTok, WhatsApp, YouTube, X, Other; https only, up to 8).
+- Backend: `heroImages`, `heroIntervalSeconds`, `privacyPolicy`, `termsAndConditions` (+ Malay) with validation and defaults for older documents.
+- Seed: a 4-photo slideshow (only if the owner's hero is not their own photo), the interval, and starter Privacy/Terms text in both languages (plain-language, describing only what the site does, **not legal advice**). Social links are never invented.
+- **Deployed to production** (`firebase deploy --only functions,firestore`) and the production site seeded on this date. Tests: backend 122, frontend 42; browser-verified including real Cloudinary uploads (cleaned up).
+
+## 2026-10-02 — Skeleton loading; third starter room
+
+- Shared `Skeleton` component (shimmer; switched off under reduced motion; colours overridable per context). Skeletons mirror each page's real layout on the home, rooms, room detail, booking, gallery, About, FAQ, Contact pages, the header/footer name, and the admin dashboard, bookings, accommodation, media and content screens. Each loading region has `aria-busy` and a visually-hidden status; **empty-state messages only appear after loading finishes**; a failed load shows a retry message instead of a skeleton forever (including the admin content page).
+- Starter seed: a third placeholder room, **Deluxe Room** (3 guests, sample price), added to the live site.
+- Browser-verified with a deliberately slow API: 13/13 pages show a skeleton while loading and none remain after. Tests: backend 112, frontend 19.
+
+## 2026-10-02 — Starter seed: neutral bilingual content, placeholder rooms, hero/gallery photos in the owner's Cloudinary
+
+- `functions/scripts/seed-starter-content.js` (+ `src/seed/starter-content.ts`, validated by the same schemas as the admin forms): bilingual headline/about/facilities/house rules/FAQs, two then three **placeholder rooms**, a 5-photo gallery with accurate alt text, and a hero/share image. Photos are free stock images **uploaded into the owner's Cloudinary** (`homestay/starter`, fixed ids so re-running refreshes rather than duplicates); falls back to the original stock URLs without Cloudinary credentials.
+- Safe by design: needs `--project` or `--emulator`; never overwrites existing settings, rooms (or a room whose URL slug is taken) or a non-empty gallery without `--force`; fills only what is empty; emulator runs never upload to Cloudinary unless `--upload`.
+- `media.service`: deleting an `external/` (non-Cloudinary) media item no longer calls Cloudinary.
+- Admin: a **Hero image** control (preview, gallery picker, https address, remove); the share image follows the hero only when it mirrored it before. A failed Save now returns to the tab that has the problem.
+- **All seeded photos are stock images and the room prices are samples**: they must be replaced before real guests book.
+
+## 2026-10-02 — Fixes after code review; language-aware titles; Malay FAQ validation; retry state; email check
+
+- Page `<title>`/description follow the language switch on every public page; the room detail uses the localized description.
+- A half-filled Malay FAQ row is a validation error (it used to be dropped silently); Save is never silently disabled.
+- Inactive (draft) notices are no longer served to the public API; social/hero URLs are restricted to http(s); a failed settings request shows a retry message; the booking form checks the email's shape before submitting.
+- Made a flaky cross-file test deterministic (parallel files share one emulator database).
+
+## 2026-10-02 — Public site redesign ("town stay" design system); English / Bahasa Malaysia; notices and facilities
+
+- Design tokens (ink teal, cool plaster, one turmeric action colour; Bricolage Grotesque + Public Sans), a hero booking bar (check-in, check-out, guests, live night count), notices strip + once-per-visit pop-up, and the home, rooms, room detail, booking, gallery, About, FAQ, Contact and 404 pages rebuilt on the system. Inspired by the structure of resort-booking sites; no third-party branding or content.
+- **Language toggle**: UI labels in `shared/i18n/translations/*.ts`; admin-written content translated in the content (`siteSettings.translations.ms`, notices/facilities with inline `*Ms` fields, rooms with `descriptionMs`), Malay falling back to English per field (`localize.ts`, unit-tested). Remembered in `localStorage`; defaults to the browser language.
+- Admin Site content editor extended with a Bahasa Malaysia tab, notices and facilities.
+- Backend: `notices`, `facilities`, `translations.ms` on the site settings with defaults for older documents.
+
+## 2026-10-02 — Pre-launch hardening: admin bookings, scheduled expiry, CORS, rate limit, payment/availability race fixes
+
+- **Admin Bookings** (`/admin/bookings`): list, *Mark paid & confirm* (money received outside the gateway), *Cancel & release dates*, *Record refund* (bookings paid through ToyyibPay); backend `GET/POST /admin/bookings…` with a `paidOnline` flag.
+- **Scheduled expiry** (`expireStaleBookings`, every 10 min) frees the dates of unpaid pending bookings; its transaction now re-reads each booking, so a booking confirmed after selection is never expired; one failing booking no longer stops the sweep.
+- **Payment/availability races fixed** (found in review): a late payment after expiry/cancel records the money but never revives the booking (the admin sees "paid" on a lapsed booking and refunds it); a failed callback can never downgrade a paid payment; night release/confirm only touch nights the booking still owns, so refund/cancel can never free dates now owned by another guest; refunding also frees the booking's dates; a booking with a paid online payment must be refunded, not cancelled.
+- **CORS** restricted to `ALLOWED_ORIGINS` (default `FRONTEND_BASE_URL`); per-IP **rate limit** (30 / 15 min) on the public booking endpoints; ToyyibPay bills expire after one day.
+- CI workflow (`.github/workflows/ci.yml`: build + emulator tests + frontend build).
+- Tests: backend 88 at the time; browser-verified.
+
+## 2026-10-02 — `PAYMENT_ENABLED` switch: launch before ToyyibPay approval
+
+With `PAYMENT_ENABLED` unset/`false`, `POST /bookings/:id/payment` returns `503 PAYMENT_NOT_CONFIGURED` without calling ToyyibPay, bookings hold their dates for 48 hours (not 20 minutes) while the owner follows up by hand, and the booking page says payment is being set up. Set it to `true` (with production ToyyibPay keys) once the account is approved.
+
+## 2026-10-02 — Go-live setup
+
+- Production Firebase web config set in `environment.ts`; `vercel.json` (build command, output directory, SPA rewrite); `.gitignore` hardened (`.env.*`, service-account keys, `.runtimeconfig.json`).
+- Backend deployed to Firebase (Blaze) and the frontend to Vercel; admin account created with the `create-admin` script.
+
 ## 2026-09-19 — Fix: `FIREBASE_PROJECT_ID` in `.env` crashed the entire Functions emulator
 
 Reported by the user: the site loaded (nav, footer, layout) but showed no content at all — no hero text, no rooms, nothing. Diagnosed by checking `firebase-debug.log` directly rather than guessing: `Failed to load function definition from source: FirebaseError: Failed to load environment variables from .env.` — the whole `api` function failed to register, so *every* route 404'd with "Function us-central1-api does not exist," not a partial failure.
