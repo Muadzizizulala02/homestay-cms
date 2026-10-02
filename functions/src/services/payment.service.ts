@@ -62,6 +62,10 @@ async function createToyyibPayBill(input: CreateToyyibPayBillInput): Promise<{ b
  * call inside a Firestore transaction risks creating duplicate bills if the transaction retries.
  */
 export async function createPaymentForBooking(bookingId: string): Promise<{ redirectUrl: string }> {
+  if (!env.paymentEnabled) {
+    throw new AppError(503, 'Online payment is being configured', 'PAYMENT_NOT_CONFIGURED');
+  }
+
   const bookingDoc = await db.collection('bookings').doc(bookingId).get();
   if (!bookingDoc.exists) {
     throw new AppError(404, 'Booking not found', 'BOOKING_NOT_FOUND');

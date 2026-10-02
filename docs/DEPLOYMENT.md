@@ -21,6 +21,8 @@ cd homestay-cms-frontend && vercel --prod
 
 **Backend** (`functions/.env.example`): `FIREBASE_PROJECT_ID`, `SENDGRID_API_KEY`; `CLOUDINARY_CLOUD_NAME`/`CLOUDINARY_API_KEY`/`CLOUDINARY_API_SECRET` (media uploads); `TOYYIBPAY_SECRET_KEY`/`TOYYIBPAY_CATEGORY_CODE`/`TOYYIBPAY_BASE_URL` (payments — use sandbox values and `https://dev.toyyibpay.com` while testing, switch to production values + `https://toyyibpay.com` to go live; sandbox and production are separate accounts); `FRONTEND_BASE_URL`/`API_BASE_URL` (the public origins ToyyibPay redirects to / calls back — **cannot be `localhost`**, since ToyyibPay can't reach your machine directly; local webhook testing needs a tunnel, e.g. `ngrok http 5001`, with `API_BASE_URL` pointed at the tunnel). `functions/src/config/env.ts` throws a clear error naming the missing variable if any of these is read before being set, rather than failing silently.
 
+**Launching before ToyyibPay is approved:** leave `PAYMENT_ENABLED` unset/`false`. `POST /bookings/:id/payment` then returns `503 PAYMENT_NOT_CONFIGURED` without contacting ToyyibPay, the booking page shows a "payment is being set up, we'll contact you" notice, and bookings hold their dates for 48 hours (not 20 minutes) while you follow up manually. When ToyyibPay approves you, set `PAYMENT_ENABLED=true` with the production keys and redeploy functions.
+
 None of these are committed; only `.env.example` placeholder files are tracked.
 
 ## Known gaps to close before a real deploy

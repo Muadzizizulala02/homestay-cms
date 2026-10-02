@@ -14,6 +14,7 @@ import type { Accommodation } from '../../types/accommodation.types';
 import type { GuestDetails } from '../../types/booking.types';
 
 const REQUIRED_ENV = {
+  PAYMENT_ENABLED: 'true',
   TOYYIBPAY_SECRET_KEY: 'test-secret-key',
   TOYYIBPAY_CATEGORY_CODE: 'test-category',
   TOYYIBPAY_BASE_URL: 'https://dev.toyyibpay.com',
@@ -125,6 +126,17 @@ describe('createPaymentForBooking', () => {
     expect(paymentSnap.docs[0].data()['gatewayBillId']).toBe(billCode);
     expect(paymentSnap.docs[0].data()['status']).toBe('pending');
     expect(paymentSnap.docs[0].data()['gateway']).toBe('toyyibpay');
+  });
+
+  it('refuses with PAYMENT_NOT_CONFIGURED, without calling ToyyibPay, when online payment is switched off', async () => {
+    process.env['PAYMENT_ENABLED'] = 'false';
+    const booking = await seedPendingBooking();
+
+    await expect(createPaymentForBooking(booking.id)).rejects.toMatchObject({
+      statusCode: 503,
+      code: 'PAYMENT_NOT_CONFIGURED',
+    });
+    expect(fetch).not.toHaveBeenCalled();
   });
 
   it('reuses the existing pending payment instead of creating a duplicate bill', async () => {

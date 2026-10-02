@@ -35,6 +35,8 @@ export class BookingPage implements OnInit {
   readonly guestNotes = signal('');
 
   readonly submitting = signal(false);
+  /** True once the payment call has failed or payment is switched off — shows the 'being set up' notice. */
+  readonly paymentUnavailable = signal(false);
   readonly submitError = signal<string | null>(null);
   readonly confirmedBooking = signal<Booking | null>(null);
 
@@ -162,6 +164,7 @@ export class BookingPage implements OnInit {
             },
             error: () => {
               this.submitting.set(false);
+              this.paymentUnavailable.set(true);
             },
           });
         },

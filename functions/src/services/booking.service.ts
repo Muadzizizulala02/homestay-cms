@@ -1,11 +1,14 @@
 import { Timestamp } from 'firebase-admin/firestore';
 import { db } from '../config/firebase';
+import { env } from '../config/env';
 import { AppError } from '../utils/app-error';
 import { calculatePrice, enumerateNightsForRange } from './pricing.service';
 import type { Accommodation, AvailabilityStatus } from '../types/accommodation.types';
 import type { Booking, BookingStatus, GuestDetails } from '../types/booking.types';
 
-const HOLD_DURATION_MS = 20 * 60 * 1000; // 20 minutes
+const HOLD_DURATION_MS = 20 * 60 * 1000; // 20 minutes — the guest is paying right now
+// With online payment off the owner follows up by hand, which takes far longer than a checkout.
+const MANUAL_PAYMENT_HOLD_DURATION_MS = 48 * 60 * 60 * 1000;
 const REFERENCE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ0123456789'; // no ambiguous I/O/0/1 mix-ups
 
 export interface CreateBookingInput {
@@ -72,7 +75,9 @@ export async function createBooking(input: CreateBookingInput): Promise<Booking>
         price,
         status: 'pending_payment',
         paymentStatus: 'pending',
-        holdExpiresAt: Timestamp.fromMillis(Date.now() + HOLD_DURATION_MS),
+        holdExpiresAt: Timestamp.fromMillis(
+          Date.now() + (env.paymentEnabled ? HOLD_DURATION_MS : MANUAL_PAYMENT_HOLD_DURATION_MS)
+        ),
         createdAt: now,
         updatedAt: now,
       };

@@ -19,6 +19,14 @@ export const env = {
   get cloudinaryApiSecret(): string {
     return requireEnv('CLOUDINARY_API_SECRET');
   },
+  /**
+   * Master switch for online payment. Off unless explicitly `true`, so a site can go live
+   * (taking booking requests the owner follows up manually) before the ToyyibPay account is
+   * approved. Flip to `true` and redeploy once live credentials are in place.
+   */
+  get paymentEnabled(): boolean {
+    return process.env['PAYMENT_ENABLED'] === 'true';
+  },
   /** Also used to compute/verify the callback hash — ToyyibPay has no separate signing key. */
   get toyyibpaySecretKey(): string {
     return requireEnv('TOYYIBPAY_SECRET_KEY');

@@ -106,10 +106,14 @@
         <p>Your reference: <strong>{{ booking.reference }}</strong></p>
         <p>{{ booking.checkInDate }} &rarr; {{ booking.checkOutDate }} ({{ booking.price.nights }} night(s))</p>
         <p class="total">Total: RM {{ booking.price.total }}</p>
-        <p class="note">
-          Online payment isn't live yet — we'll contact you at {{ booking.guest.email }} to arrange payment.
-          Please keep your reference number for your records.
-        </p>
+        @if (paymentUnavailable()) {
+          <p class="note">
+            Your dates are reserved. Online payment is currently being set up — we'll contact you at
+            {{ booking.guest.email }} to complete payment. Please keep your reference number for your records.
+          </p>
+        } @else {
+          <p class="note">Taking you to the secure payment page…</p>
+        }
         <a routerLink="/">Back to home</a>
       </div>
     }
