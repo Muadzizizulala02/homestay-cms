@@ -133,3 +133,22 @@
     }
   }
 }
+
+// Rows rise in one after another when the list appears.
+.room-list > .room,
+.room-list > li {
+  animation: rise-in 0.5s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+@for $i from 1 through 8 {
+  .room-list > :nth-child(#{$i}) {
+    animation-delay: #{0.1 + $i * 0.08}s;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .room-list > .room,
+  .room-list > li {
+    animation: none;
+  }
+}

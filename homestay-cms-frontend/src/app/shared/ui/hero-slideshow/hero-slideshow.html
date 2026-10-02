@@ -14,6 +14,10 @@
   </div>
 
   @if (multiple()) {
+    <!--
+      Nothing is shown over the photo. The one control is kept for keyboard and screen-reader
+      users (moving content must be pausable): it is invisible until it receives focus.
+    -->
     <div class="controls" role="group" [attr.aria-label]="i18n.t('slideshow.controls')">
       <button
         type="button"
@@ -23,17 +27,6 @@
       >
         <mat-icon aria-hidden="true">{{ paused() ? 'play_arrow' : 'pause' }}</mat-icon>
       </button>
-      <div class="dots">
-        @for (src of slides(); track $index; let i = $index) {
-          <button
-            type="button"
-            class="dot"
-            [attr.aria-label]="i18n.t('slideshow.show', { n: i + 1, total: count() })"
-            [attr.aria-current]="i === current() ? 'true' : null"
-            (click)="show(i)"
-          ></button>
-        }
-      </div>
     </div>
   }
 }

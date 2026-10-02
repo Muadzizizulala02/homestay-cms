@@ -68,8 +68,4 @@ export class HeroSlideshow {
   protected togglePause(): void {
     this.userPaused.update((paused) => !paused);
   }
-
-  protected show(index: number): void {
-    this.requestedIndex.set(index);
-  }
 }

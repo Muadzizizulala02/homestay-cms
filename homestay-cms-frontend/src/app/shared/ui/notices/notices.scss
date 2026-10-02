@@ -59,8 +59,41 @@
   border-radius: var(--radius-s);
   font-family: var(--font-body);
 
+  // Fades and rises in, and fades out on close (progressive: browsers without @starting-style
+  // simply show it instantly).
+  opacity: 0;
+  transform: translateY(12px) scale(0.98);
+  transition:
+    opacity 0.25s ease,
+    transform 0.25s ease,
+    overlay 0.25s allow-discrete,
+    display 0.25s allow-discrete;
+
+  &[open] {
+    opacity: 1;
+    transform: none;
+
+    @starting-style {
+      opacity: 0;
+      transform: translateY(12px) scale(0.98);
+    }
+  }
+
   &::backdrop {
     background: rgba(20, 52, 58, 0.65);
+    opacity: 0;
+    transition:
+      opacity 0.25s ease,
+      overlay 0.25s allow-discrete,
+      display 0.25s allow-discrete;
+  }
+
+  &[open]::backdrop {
+    opacity: 1;
+
+    @starting-style {
+      opacity: 0;
+    }
   }
 
   h2 {

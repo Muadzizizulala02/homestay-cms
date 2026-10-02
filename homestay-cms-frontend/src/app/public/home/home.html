@@ -6,7 +6,11 @@
   }
   <div class="hero-inner">
     @if (content(); as c) {
-      <h1>{{ c.heroHeadline }}</h1>
+      <h1 class="headline">
+        @for (word of headlineWords(); track $index) {
+          <span class="word" [style.--i]="$index">{{ word }}</span>{{ ' ' }}
+        }
+      </h1>
       @if (c.heroSubheadline) {
         <p class="lead">{{ c.heroSubheadline }}</p>
       }
@@ -43,20 +47,22 @@
     </div>
   </section>
 } @else if (featured().length > 0) {
-  <section class="section rooms">
+  <section class="section rooms" appReveal>
     <div class="section-head">
       <h2>{{ i18n.t('home.rooms.title') }}</h2>
       <a routerLink="/accommodation" class="text-link">{{ i18n.t('home.rooms.all') }}</a>
     </div>
 
     <div class="room-list">
-      @for (unit of featured(); track unit.id; let first = $first) {
-        <a class="room" [class.room-lead]="first" [routerLink]="['/accommodation', unit.slug]">
-          @if (unit.photos[0]) {
-            <img [src]="unit.photos[0]" [alt]="unit.name" loading="lazy" />
-          } @else {
-            <div class="room-photo-empty" aria-hidden="true"></div>
-          }
+      @for (unit of featured(); track unit.id; let first = $first; let i = $index) {
+        <a class="room" [class.room-lead]="first" [routerLink]="['/accommodation', unit.slug]" [appReveal]="i * 120">
+          <div class="room-media">
+            @if (unit.photos[0]) {
+              <img [src]="unit.photos[0]" [alt]="unit.name" loading="lazy" />
+            } @else {
+              <div class="room-photo-empty" aria-hidden="true"></div>
+            }
+          </div>
           <div class="room-body">
             <h3>{{ unit.name }}</h3>
             @if (first && description(unit)) {
@@ -83,11 +89,11 @@
     </ul>
   </section>
 } @else if (content()?.facilities?.length) {
-  <section class="section facilities">
+  <section class="section facilities" appReveal>
     <h2>{{ i18n.t('home.facilities.title') }}</h2>
     <ul class="facility-list">
-      @for (facility of content()?.facilities; track $index) {
-        <li>
+      @for (facility of content()?.facilities; track $index; let i = $index) {
+        <li [appReveal]="i * 90">
           <mat-icon aria-hidden="true">{{ facility.icon }}</mat-icon>
           <div>
             <h3>{{ facility.label }}</h3>
@@ -101,11 +107,11 @@
   </section>
 }
 
-<section class="section steps">
+<section class="section steps" appReveal>
   <h2>{{ i18n.t('home.steps.title') }}</h2>
   <ol class="step-list">
     @for (n of stepNumbers; track n) {
-      <li>
+      <li [appReveal]="n * 110">
         <span class="step-number" aria-hidden="true">{{ n }}</span>
         <h3>{{ i18n.t('home.steps.' + n + '.title') }}</h3>
         <p>{{ i18n.t('home.steps.' + n + '.body') }}</p>
@@ -115,7 +121,7 @@
 </section>
 
 @if (content()?.houseRules?.length) {
-  <section class="section rules">
+  <section class="section rules" appReveal>
     <h2>{{ i18n.t('home.rules.title') }}</h2>
     <ul class="rule-list">
       @for (rule of content()?.houseRules; track $index) {
@@ -131,7 +137,7 @@
 }
 
 @if (content()?.aboutContent) {
-  <section class="section about">
+  <section class="section about" appReveal>
     <h2>{{ i18n.t('home.about.title') }}</h2>
     <p class="prose">{{ content()?.aboutContent }}</p>
     <a routerLink="/about" class="text-link">{{ i18n.t('home.about.more') }}</a>

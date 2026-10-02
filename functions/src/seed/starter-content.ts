@@ -66,6 +66,39 @@ export const STARTER_GALLERY: ReadonlyArray<{ id: string; photoId: string; altTe
 }));
 
 /**
+ * PLACEHOLDER contact details. They are deliberately impossible to mistake for real ones, so a
+ * guest can never be sent to a stranger: the email uses the reserved example.com domain, the
+ * phone number is an obviously fake pattern, there is no street address, and the social links
+ * go to each platform's front page rather than to any account. The owner replaces all of them in
+ * Admin > Site content.
+ */
+const PLACEHOLDER_EMAIL = 'hello@example.com';
+const PLACEHOLDER_PHONE = '+60 12-000 0000';
+const PLACEHOLDER_SOCIAL_LINKS: SiteSettings['socialLinks'] = [
+  { platform: 'Facebook', url: 'https://www.facebook.com/' },
+  { platform: 'Instagram', url: 'https://www.instagram.com/' },
+  { platform: 'TikTok', url: 'https://www.tiktok.com/' },
+];
+
+const HOST_INTRO_EN =
+  'Hello, and welcome. We look after our guests ourselves, so if you need anything during your stay, ' +
+  'just ask and we will do our best to help.';
+const HOST_INTRO_MS =
+  'Selamat datang. Kami sendiri menjaga tetamu kami, jadi jika anda memerlukan apa-apa semasa menginap, ' +
+  'beritahu sahaja dan kami akan cuba membantu.';
+
+/**
+ * PLACEHOLDER cancellation wording. It promises no amounts, percentages or deadlines (those are
+ * the owner's decision to write). Replace it with your real policy in Admin > Site content.
+ */
+const CANCELLATION_EN =
+  'If you need to change or cancel your booking, please contact us as early as you can and quote your booking ' +
+  'reference. What applies depends on how close the dates are, and we will tell you when you get in touch.';
+const CANCELLATION_MS =
+  'Jika anda perlu menukar atau membatalkan tempahan, sila hubungi kami secepat mungkin dan nyatakan nombor ' +
+  'rujukan tempahan anda. Apa yang terpakai bergantung pada kedekatan tarikh, dan kami akan maklumkan apabila anda menghubungi kami.';
+
+/**
  * Plain-language STARTER policies. They describe only what this website really does (what a
  * booking collects, where it is kept, what the browser remembers) and say nothing about refunds,
  * fees or liability, which are the owner's decisions. They are a starting point, not legal advice:
@@ -146,9 +179,10 @@ const TERMS_MS = [
 ].join('\n');
 
 /**
- * Neutral first-day content for a brand-new site, so the public pages are not empty before the
- * owner has written their own. Deliberately says nothing the owner has not told us: no address,
- * phone, email, prices, refund terms or notices. Those must be entered in the admin. The only
+ * First-day content for a brand-new site, so the public pages are not empty before the owner has
+ * written their own. Anything that is a fact about the business (contact details, social accounts,
+ * cancellation terms) is a clearly-fake PLACEHOLDER, defined above; there is no street address,
+ * no prices and no notices. Those must be entered in the admin. The only
  * images are the clearly-labelled stock PLACEHOLDERS above (hero, gallery, rooms).
  * (Rooms are separate: see STARTER_ROOMS below, which are clearly-labelled placeholders.)
  *
@@ -164,12 +198,12 @@ export const STARTER_CONTENT: Omit<SiteSettings, 'updatedAt'> = {
   aboutContent:
     'We offer comfortable rooms for short and longer stays. Choose your dates to see which rooms are ' +
     'available, then book in a few steps.',
-  hostIntro: '',
+  hostIntro: HOST_INTRO_EN,
   address: '',
   geo: { lat: 0, lng: 0 },
-  contactEmail: '',
-  contactPhone: '',
-  socialLinks: [],
+  contactEmail: PLACEHOLDER_EMAIL,
+  contactPhone: PLACEHOLDER_PHONE,
+  socialLinks: PLACEHOLDER_SOCIAL_LINKS,
   checkInTime: '14:00',
   checkOutTime: '12:00',
   houseRules: [
@@ -197,7 +231,7 @@ export const STARTER_CONTENT: Omit<SiteSettings, 'updatedAt'> = {
       answer: 'Please contact us with your booking reference and we will help.',
     },
   ],
-  cancellationPolicy: '',
+  cancellationPolicy: CANCELLATION_EN,
   privacyPolicy: PRIVACY_EN,
   termsAndConditions: TERMS_EN,
   notices: [],
@@ -211,6 +245,8 @@ export const STARTER_CONTENT: Omit<SiteSettings, 'updatedAt'> = {
     ms: {
       privacyPolicy: PRIVACY_MS,
       termsAndConditions: TERMS_MS,
+      cancellationPolicy: CANCELLATION_MS,
+      hostIntro: HOST_INTRO_MS,
       heroHeadline: 'Homestay Kami',
       heroSubheadline: 'Tempat penginapan yang selesa. Pilih tarikh anda untuk melihat bilik yang masih kosong.',
       aboutContent:

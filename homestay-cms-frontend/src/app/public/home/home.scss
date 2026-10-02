@@ -277,3 +277,85 @@
   --skeleton-bg: rgba(255, 255, 255, 0.16);
   --skeleton-sheen: rgba(255, 255, 255, 0.2);
 }
+
+// ---- Motion ----
+// One orchestrated moment on load: the headline words rise in one after another, then the
+// intro line, then the booking bar. (Reduced motion: all shown immediately.)
+.hero .headline .word {
+  display: inline-block;
+  opacity: 0;
+  animation: rise-in 0.7s cubic-bezier(0.2, 0.7, 0.2, 1) forwards;
+  animation-delay: calc(0.15s + var(--i, 0) * 0.09s);
+}
+
+.hero .lead {
+  opacity: 0;
+  animation: rise-in 0.7s cubic-bezier(0.2, 0.7, 0.2, 1) forwards;
+  animation-delay: 0.65s;
+}
+
+.bar-wrap {
+  opacity: 0;
+  animation: rise-in 0.7s cubic-bezier(0.2, 0.7, 0.2, 1) forwards;
+  animation-delay: 0.85s;
+}
+
+// The photo zooms slowly inside a clipping frame when its card is hovered or focused.
+.room-media {
+  overflow: hidden;
+  border-radius: var(--radius-s);
+
+  img {
+    display: block;
+    transition: transform 0.6s cubic-bezier(0.2, 0.7, 0.2, 1);
+  }
+}
+
+.room:hover .room-media img,
+.room:focus-visible .room-media img {
+  transform: scale(1.05);
+}
+
+.text-link {
+  transition: text-underline-offset 0.2s ease;
+
+  &:hover {
+    text-underline-offset: 8px;
+  }
+}
+
+.step-number {
+  display: inline-block;
+  transition: transform 0.3s ease;
+}
+
+.step-list li:hover .step-number {
+  transform: translateY(-3px);
+}
+
+.facility-list li mat-icon {
+  transition: transform 0.3s ease;
+}
+
+.facility-list li:hover mat-icon {
+  transform: scale(1.15);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero .headline .word,
+  .hero .lead,
+  .bar-wrap {
+    opacity: 1;
+    animation: none;
+  }
+
+  .room-media img,
+  .room:hover .room-media img,
+  .step-number,
+  .step-list li:hover .step-number,
+  .facility-list li mat-icon,
+  .facility-list li:hover mat-icon {
+    transform: none;
+    transition: none;
+  }
+}

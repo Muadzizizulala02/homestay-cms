@@ -13,6 +13,8 @@
   overflow: hidden;
 }
 
+// Each photo fades in over the previous one while drifting slowly closer (a gentle zoom). When it
+// fades out it snaps back to normal size only after it is invisible, so there is no visible jump.
 .slide {
   position: absolute;
   inset: 0;
@@ -20,36 +22,51 @@
   height: 100%;
   object-fit: cover;
   opacity: 0;
-  transition: opacity 800ms ease;
+  transform: scale(1);
+  transition:
+    opacity 800ms ease,
+    transform 0s linear 800ms;
 
   &.active {
     opacity: 1;
+    transform: scale(1.07);
+    transition:
+      opacity 800ms ease,
+      transform 12s linear;
   }
 
   &.instant {
     transition: none;
+    transform: none;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .slide {
+  .slide,
+  .slide.active {
     transition: none;
+    transform: none;
   }
 }
 
-// Bottom-right of the visible hero, clear of the booking bar that overlaps the lower edge.
+// Invisible until it has keyboard focus, then shown where the old controls were (bottom-right of
+// the visible hero, clear of the booking bar overlapping the lower edge).
 .controls {
   position: absolute;
   z-index: 3;
   right: var(--gutter);
   bottom: 4.75rem;
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-  padding: 0.25rem 0.5rem 0.25rem 0.25rem;
+  padding: 0.25rem;
   background: rgba(20, 52, 58, 0.82);
   border-radius: 999px;
-  pointer-events: auto;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+
+  &:focus-within {
+    opacity: 1;
+    pointer-events: auto;
+  }
 }
 
 button {
@@ -67,27 +84,5 @@ button {
   &:focus-visible {
     outline: 3px solid var(--kunyit);
     outline-offset: 1px;
-  }
-}
-
-.dots {
-  display: flex;
-}
-
-.dot {
-  min-width: 1.5rem;
-
-  &::before {
-    content: '';
-    width: 0.6rem;
-    height: 0.6rem;
-    border: 2px solid var(--paper);
-    border-radius: 50%;
-    box-sizing: border-box;
-  }
-
-  &[aria-current='true']::before {
-    background: var(--kunyit);
-    border-color: var(--kunyit);
   }
 }

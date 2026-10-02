@@ -116,10 +116,15 @@ h3 {
   border-radius: var(--radius-s);
   text-decoration: none;
   cursor: pointer;
-  transition: background-color 0.15s;
+  transition: background-color 0.15s, transform 0.15s ease;
 
   &:hover {
     background: var(--kunyit-deep);
+    transform: translateY(-1px);
+  }
+
+  &:active {
+    transform: none;
   }
 
   &:disabled {
@@ -166,6 +171,70 @@ h3 {
   .error {
     font-weight: 500;
     color: var(--danger);
+  }
+}
+
+// ---- Motion ----
+// One shared vocabulary: things rise ~20px and fade in over ~0.6s on an ease-out curve, and
+// hover/focus changes take ~0.15-0.3s. Everything is switched off under reduced motion.
+:root {
+  // Lets height/size transitions run to `auto` (used by the FAQ accordion; progressive enhancement).
+  interpolate-size: allow-keywords;
+}
+
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+// appReveal (shared/ui/reveal): hidden until scrolled into view, then settles into place.
+.reveal {
+  opacity: 0;
+  transform: translateY(20px);
+  transition:
+    opacity 0.6s cubic-bezier(0.2, 0.7, 0.2, 1),
+    transform 0.6s cubic-bezier(0.2, 0.7, 0.2, 1);
+  transition-delay: var(--reveal-delay, 0ms);
+
+  &.is-visible {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+// Every public page settles in when it appears (also after its skeleton is swapped for content).
+.page:not([aria-busy='true']) {
+  animation: rise-in 0.5s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+// Page changes: only the content area cross-fades (the header keeps its own transition name).
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 0.22s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+
+  .page:not([aria-busy='true']) {
+    animation: none;
+  }
+
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
   }
 }
 

@@ -19,7 +19,9 @@
  *   - settings that exist are left alone, except anything still EMPTY is filled in: the hero
  *     slideshow (only if the current hero is not your own photo), the share image, the interval,
  *     and the privacy / terms text in each language;
- *   - social links are never seeded: they are your accounts, so add them in the admin;
+ *   - the host intro, contact email / phone, social links and cancellation wording, when empty,
+ *     get clearly-fake PLACEHOLDERS (example.com email, a fake phone number, platform homepages,
+ *     no street address, no amounts): replace them in the admin;
  *   - rooms that exist (or whose URL slug is taken) are skipped;
  *   - the gallery is only seeded when it has no photos yet.
  *
@@ -188,6 +190,28 @@ async function seedSettings(db, content, photos, heroIds, resolve, target, force
     }
   }
 
+  // Placeholders for the owner's own facts: only where the field is still empty.
+  for (const [field, label] of [['hostIntro', 'host intro'], ['cancellationPolicy', 'cancellation wording']]) {
+    if (!data[field]) {
+      update[field] = content[field];
+      filled.push(`${label} placeholder`);
+    }
+    if (!ms[field] && content.translations.ms[field]) {
+      update[`translations.ms.${field}`] = content.translations.ms[field];
+      filled.push(`${label} placeholder (Malay)`);
+    }
+  }
+  for (const [field, label] of [['contactEmail', 'contact email'], ['contactPhone', 'contact phone']]) {
+    if (!data[field]) {
+      update[field] = content[field];
+      filled.push(`${label} placeholder`);
+    }
+  }
+  if (!Array.isArray(data.socialLinks) || data.socialLinks.length === 0) {
+    update.socialLinks = content.socialLinks;
+    filled.push('social link placeholders');
+  }
+
   if (filled.length === 0) {
     console.log(`Site settings already exist on ${target}. Left unchanged.`);
     return;
@@ -288,7 +312,8 @@ async function main() {
   console.log('!! All seeded photos are STOCK IMAGES and the room prices are SAMPLES. They are not your property.');
   console.log('!! Replace them in Admin > Accommodation, Admin > Gallery and Admin > Site content before real guests book.');
   console.log('The privacy policy and terms are generic starter text, not legal advice: read and adjust them in Admin > Site content.');
-  console.log('Social media links are not seeded (they are your own accounts): add them in Admin > Site content > Social media.');
+  console.log('Contact email/phone and social links are PLACEHOLDERS (example.com, a fake number, platform homepages): replace them in Admin > Site content.');
+  console.log('The cancellation wording is a placeholder with no amounts or deadlines: write your real policy in Admin > Site content.');
   console.log('Next: open Admin > Site content and enter your real name, address, phone and email.');
 }
 

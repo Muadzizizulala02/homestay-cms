@@ -73,3 +73,31 @@ h2 {
 .empty {
   color: var(--ink-soft);
 }
+
+// Answers ease open and closed (Chromium 131+; elsewhere they simply open instantly).
+.item::details-content {
+  block-size: 0;
+  overflow: clip;
+  transition:
+    block-size 0.3s ease,
+    content-visibility 0.3s ease allow-discrete;
+}
+
+.item[open]::details-content {
+  block-size: auto;
+}
+
+.item summary {
+  transition: color 0.2s ease, padding-left 0.2s ease;
+
+  &:hover {
+    padding-left: 0.35rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .item::details-content,
+  .item summary {
+    transition: none;
+  }
+}

@@ -16,15 +16,35 @@ describe('STARTER_CONTENT', () => {
     expect(parsed.success).toBe(true);
   });
 
-  it('does not invent facts about the business', () => {
-    // These are the owner's to enter; a public site must never show made-up ones.
+  it('only uses placeholder contact details that cannot belong to a real person', () => {
+    // No street address is invented; the email uses the reserved example.com domain; the phone
+    // number is obviously fake; social links are bare platform homepages, not anyone's account.
     expect(STARTER_CONTENT.address).toBe('');
-    expect(STARTER_CONTENT.contactEmail).toBe('');
-    expect(STARTER_CONTENT.contactPhone).toBe('');
-    expect(STARTER_CONTENT.socialLinks).toEqual([]);
-    expect(STARTER_CONTENT.cancellationPolicy).toBe('');
+    expect(STARTER_CONTENT.contactEmail).toMatch(/@example\.com$/);
+    expect(STARTER_CONTENT.contactPhone).toMatch(/^\+60 ?12-?000 ?0000$/);
+    expect(STARTER_CONTENT.socialLinks.length).toBeGreaterThan(0);
+    for (const link of STARTER_CONTENT.socialLinks) {
+      const url = new URL(link.url);
+      expect(url.protocol).toBe('https:');
+      expect(url.pathname).toBe('/'); // the platform's front page, never a specific account
+      expect(url.search).toBe('');
+    }
     expect(STARTER_CONTENT.notices).toEqual([]);
-    expect(JSON.stringify(STARTER_CONTENT)).not.toMatch(/RM\s?\d|\d+\s?%|refund/i);
+  });
+
+  it('promises nothing about money: no amounts, percentages or deadlines', () => {
+    const text = JSON.stringify(STARTER_CONTENT);
+    expect(text).not.toMatch(/RM\s?\d|\d+\s?%/);
+    // The cancellation wording in particular must contain no digits at all (no "3 days", "50%").
+    for (const policy of [STARTER_CONTENT.cancellationPolicy, STARTER_CONTENT.translations.ms.cancellationPolicy ?? '']) {
+      expect(policy.length).toBeGreaterThan(40);
+      expect(policy).not.toMatch(/\d/);
+    }
+  });
+
+  it('has a host introduction in both languages', () => {
+    expect(STARTER_CONTENT.hostIntro.length).toBeGreaterThan(40);
+    expect(STARTER_CONTENT.translations.ms.hostIntro?.length).toBeGreaterThan(40);
   });
 
   it('has a Malay version for every English list, so the language toggle never shows a half-translated page', () => {
@@ -145,10 +165,5 @@ describe('starter hero slideshow and policies', () => {
     expect(STARTER_CONTENT.termsAndConditions.length).toBeGreaterThan(100);
     expect(STARTER_CONTENT.translations.ms.privacyPolicy?.length).toBeGreaterThan(100);
     expect(STARTER_CONTENT.translations.ms.termsAndConditions?.length).toBeGreaterThan(100);
-  });
-
-  it('does not seed social links or a cancellation policy (those are the owner\'s own facts)', () => {
-    expect(STARTER_CONTENT.socialLinks).toEqual([]);
-    expect(STARTER_CONTENT.cancellationPolicy).toBe('');
   });
 });

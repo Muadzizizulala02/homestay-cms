@@ -27,13 +27,23 @@ The one memorable element is the **hero booking bar** (`shared/ui/booking-bar`):
 
 The home hero cross-fades through the photos listed in **Admin > Site content > Hero slideshow** (up to 10), showing each for the configured **seconds per photo** (2-30, default 5). Admins upload several photos at once (straight to Cloudinary, folder `homestay/hero`), add from the gallery or by https address, reorder with Move up/down, and remove. The first photo doubles as the social-share image unless that was set separately.
 
-Behaviour (`shared/ui/hero-slideshow`): a single photo is shown still with no controls; with two or more there is a **Pause/Play** button and one indicator per photo (auto-moving content must be pausable); it pauses while the tab is hidden; with `prefers-reduced-motion` it does not autoplay and does not fade. The next image is preloaded so the fade never shows a blank. If no slideshow is set it falls back to the single `heroImageUrl`, then to the plain tile background.
+Behaviour (`shared/ui/hero-slideshow`): a single photo is shown still with no controls; with two or more, **nothing is drawn over the photo**. Moving content must still be pausable, so one Pause/Play button exists for keyboard and screen-reader users: it is invisible until it receives focus, then appears bottom-right. It pauses while the tab is hidden; with `prefers-reduced-motion` it does not autoplay, does not fade and does not zoom. Each photo cross-fades (800 ms) while drifting slowly closer (a gentle zoom that resets only after the photo has faded out). The next image is preloaded so the fade never shows a blank. If no slideshow is set it falls back to the single `heroImageUrl`, then to the plain tile background.
 
 ## Header and footer
 
 The header carries only the main journey: Home, Rooms, Gallery, the language toggle and "Book a stay". **About, FAQ & house rules and Contact live in the footer** under *Information*, with *Policies* (Privacy policy, Terms and conditions; Cancellation policy appears only when written) and *Follow us* (the social links). Any footer column with nothing to show is hidden.
 
 Privacy and Terms are CMS-managed pages (`/privacy`, `/terms`), written in English and Bahasa Malaysia in **Admin > Site content > Policies**; an empty policy hides its footer link. The starter text describes only what this website really does and is not legal advice: review it before launch. Social links are edited under **Social media** (Facebook, Instagram, TikTok, WhatsApp, YouTube, X, Other; https only, up to 8).
+
+## Motion
+
+One vocabulary, defined in `styles.scss`: things **rise ~20 px and fade in over ~0.6 s** on an ease-out curve (`@keyframes rise-in`, `.reveal`); hover/focus changes take 0.15-0.3 s. All of it is switched off under `prefers-reduced-motion` (content is simply shown).
+
+- **Home hero (one orchestrated moment on load):** the headline words rise in one after another, then the intro line, then the booking bar.
+- **Scroll reveal:** `appReveal` (`shared/ui/reveal`) fades sections into place the first time they scroll into view; list items stagger with `[appReveal]="index * 90"`. It never leaves anything hidden: no IntersectionObserver or reduced motion = shown immediately. Used on the home page sections, facilities, steps, rooms.
+- **Pages:** every `.page` settles in when it appears; route changes cross-fade the content area with the router's View Transitions (`withViewTransitions()`; the header has its own `view-transition-name` so it stays put). Rooms list rows and gallery tiles rise in one after another; booking steps ease in.
+- **Hover / focus:** room and gallery photos zoom slowly inside their frame; nav links get a sliding underline; buttons lift 1 px; footer and "see all" links ease their underline; step numbers and facility icons nudge.
+- **Overlays:** the mobile menu fades/slides open (`visibility`, so closed links are not focusable); the important-notice popup and its backdrop fade and rise in (`@starting-style`); FAQ answers ease open (`::details-content`, Chromium 131+, instant elsewhere).
 
 ## Notices
 

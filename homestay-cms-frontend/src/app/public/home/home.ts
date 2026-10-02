@@ -1,4 +1,4 @@
-import { Component, OnInit, effect, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, effect, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { SeoService } from '../../core/seo.service';
@@ -8,13 +8,14 @@ import { AccommodationService, type Accommodation } from '../../shared/services/
 import { SiteContentService } from '../../shared/services/site-content.service';
 import { BookingBar } from '../../shared/ui/booking-bar/booking-bar';
 import { HeroSlideshow } from '../../shared/ui/hero-slideshow/hero-slideshow';
+import { Reveal } from '../../shared/ui/reveal/reveal';
 import { Skeleton } from '../../shared/ui/skeleton/skeleton';
 
 const ROOMS_ON_HOME = 3;
 
 @Component({
   selector: 'app-home',
-  imports: [RouterLink, MatIconModule, BookingBar, HeroSlideshow, Skeleton],
+  imports: [RouterLink, MatIconModule, BookingBar, HeroSlideshow, Skeleton, Reveal],
   templateUrl: './home.html',
   styleUrl: './home.scss',
 })
@@ -26,6 +27,8 @@ export class Home implements OnInit {
 
   readonly content = this.siteContent.content;
   readonly failed = this.siteContent.failed;
+  /** The headline split into words so each can rise in one after another. */
+  readonly headlineWords = computed(() => (this.content()?.heroHeadline ?? '').split(/\s+/).filter(Boolean));
   readonly featured = signal<Accommodation[]>([]);
   /** False until the rooms request finishes (success or error), so we show a skeleton, not nothing. */
   readonly roomsLoaded = signal(false);
