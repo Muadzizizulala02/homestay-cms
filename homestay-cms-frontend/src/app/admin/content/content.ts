@@ -182,10 +182,11 @@ export class ContentPage implements OnInit {
 
   save(): void {
     if (this.form.invalid) {
-      // The required fields live on the English tab; show them rather than leaving Save inert.
-      this.setLanguage('en');
+      // Show the tab that has the problem rather than leaving Save inert.
+      const englishInvalid = this.form.controls.en.invalid || this.notices.invalid || this.facilities.invalid;
+      this.setLanguage(englishInvalid ? 'en' : 'ms');
       this.form.markAllAsTouched();
-      this.snackBar.open('Fix the highlighted fields on the English tab', 'Dismiss', { duration: 5000 });
+      this.snackBar.open('Fix the highlighted fields', 'Dismiss', { duration: 5000 });
       return;
     }
 

@@ -34,6 +34,8 @@ export const COMMON: TranslationSet = {
     'common.from': 'From',
     'common.guests': 'guests',
     'common.loading': 'Loading…',
+    'common.loadError': 'We could not load this page. Check your connection and try again.',
+    'common.retry': 'Try again',
   },
   ms: {
     'nav.home': 'Utama',
@@ -68,5 +70,7 @@ export const COMMON: TranslationSet = {
     'common.from': 'Mulai',
     'common.guests': 'tetamu',
     'common.loading': 'Memuatkan…',
+    'common.loadError': 'Halaman ini tidak dapat dimuatkan. Semak sambungan anda dan cuba lagi.',
+    'common.retry': 'Cuba lagi',
   },
 };

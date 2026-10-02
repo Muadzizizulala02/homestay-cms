@@ -54,4 +54,8 @@
       ></iframe>
     }
   </article>
+} @else if (failed()) {
+  <section class="page">
+    <app-load-error (retry)="retry()" />
+  </section>
 }

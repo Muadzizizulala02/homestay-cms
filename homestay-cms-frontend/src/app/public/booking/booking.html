@@ -112,6 +112,8 @@
           />
           @if (guestAttempted() && !guestEmail().trim()) {
             <span class="error" role="alert">{{ i18n.t('booking.err.email') }}</span>
+          } @else if (guestAttempted() && !guestEmailValid()) {
+            <span class="error" role="alert">{{ i18n.t('booking.err.emailFormat') }}</span>
           }
         </div>
         <div class="field">

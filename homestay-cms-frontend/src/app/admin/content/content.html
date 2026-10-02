@@ -86,6 +86,9 @@
             <mat-label>Answer</mat-label>
             <textarea matInput formControlName="answer" rows="2"></textarea>
           </mat-form-field>
+          @if (faq.errors?.['incompleteFaq'] && faq.touched) {
+            <p class="row-error" role="alert">Add both a question and an answer, or remove this row.</p>
+          }
           <div>
             <button mat-button type="button" color="warn" (click)="removeFaq(g, $index)">
               <mat-icon>close</mat-icon>

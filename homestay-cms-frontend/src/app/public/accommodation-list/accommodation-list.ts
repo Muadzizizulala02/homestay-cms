@@ -1,4 +1,4 @@
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, effect, inject, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { SeoService } from '../../core/seo.service';
 import { I18nService } from '../../shared/i18n/i18n.service';
@@ -60,8 +60,13 @@ export class AccommodationListPage implements OnInit {
     return stay.guests ? text : text.replace(/,\s*[^,]*$/, '');
   });
 
+  constructor() {
+    effect(() => {
+      this.seo.setPage(this.i18n.t('rooms.seoTitle'), this.i18n.t('rooms.seoDescription'));
+    });
+  }
+
   ngOnInit(): void {
-    this.seo.setPage(this.i18n.t('rooms.seoTitle'), this.i18n.t('rooms.seoDescription'));
     this.readStay();
     this.accommodationService.listPublic().subscribe({
       next: (list) => {

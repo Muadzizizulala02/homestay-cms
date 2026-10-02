@@ -1,7 +1,8 @@
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, effect, inject, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { SeoService } from '../../core/seo.service';
+import { isPlausibleEmail } from './guest-validation';
 import { AccommodationService, type Accommodation } from '../../shared/services/accommodation.service';
 import { BookingService, type Booking } from '../../shared/services/booking.service';
 import { I18nService } from '../../shared/i18n/i18n.service';
@@ -74,12 +75,19 @@ export class BookingPage implements OnInit {
     return `${formatStayDate(booking.checkInDate, lang, true)} – ${formatStayDate(booking.checkOutDate, lang, true)}`;
   });
 
+  readonly guestEmailValid = computed(() => isPlausibleEmail(this.guestEmail()));
+
   readonly guestDetailsValid = computed(
-    () => this.guestName().trim().length > 0 && this.guestEmail().trim().length > 0 && this.guestPhone().trim().length > 0
+    () => this.guestName().trim().length > 0 && this.guestEmailValid() && this.guestPhone().trim().length > 0
   );
 
+  constructor() {
+    effect(() => {
+      this.seo.setPage(this.i18n.t('booking.seoTitle'), this.i18n.t('booking.seoDescription'));
+    });
+  }
+
   ngOnInit(): void {
-    this.seo.setPage(this.i18n.t('booking.seoTitle'), this.i18n.t('booking.seoDescription'));
     this.seo.setNoIndex();
 
     const slug = this.route.snapshot.queryParamMap.get('unit');

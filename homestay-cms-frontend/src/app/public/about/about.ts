@@ -1,11 +1,13 @@
-import { Component, OnInit, computed, inject } from '@angular/core';
+import { Component, OnInit, computed, effect, inject } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
 import { SeoService } from '../../core/seo.service';
 import { I18nService } from '../../shared/i18n/i18n.service';
 import { SiteContentService } from '../../shared/services/site-content.service';
+import { LoadError } from '../../shared/ui/load-error/load-error';
 
 @Component({
   selector: 'app-about',
+  imports: [LoadError],
   templateUrl: './about.html',
   styleUrl: './about.scss',
 })
@@ -16,6 +18,7 @@ export class AboutPage implements OnInit {
   protected readonly i18n = inject(I18nService);
 
   readonly content = this.siteContent.content;
+  readonly failed = this.siteContent.failed;
   readonly mapUrl = computed(() => {
     const address = this.content()?.address;
     if (!address) {
@@ -26,8 +29,17 @@ export class AboutPage implements OnInit {
     return this.sanitizer.bypassSecurityTrustResourceUrl(url);
   });
 
+  constructor() {
+    effect(() => {
+      this.seo.setPage(this.i18n.t('nav.about'), this.i18n.t('about.seoDescription'));
+    });
+  }
+
+  retry(): void {
+    this.siteContent.ensureLoaded();
+  }
+
   ngOnInit(): void {
-    this.seo.setPage(this.i18n.t('nav.about'), this.i18n.t('about.seoDescription'));
     this.siteContent.ensureLoaded();
   }
 }

@@ -1,4 +1,12 @@
-import { FormArray, FormControl, FormGroup, NonNullableFormBuilder, Validators } from '@angular/forms';
+import {
+  AbstractControl,
+  FormArray,
+  FormControl,
+  FormGroup,
+  NonNullableFormBuilder,
+  ValidationErrors,
+  Validators,
+} from '@angular/forms';
 import type { Facility, MalayContent, Notice } from '../../shared/services/site-settings.service';
 
 export const ICON_PATTERN = /^[a-z0-9_]{1,40}$/;
@@ -37,12 +45,25 @@ export function newId(): string {
     : Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
 }
 
+/**
+ * Optional (Malay) FAQ rows may be left empty, but a half-filled row would be dropped without a
+ * word when saved, so it is an error: fill both fields or clear the row.
+ */
+function questionAndAnswerTogether(group: AbstractControl): ValidationErrors | null {
+  const question = String(group.get('question')?.value ?? '').trim();
+  const answer = String(group.get('answer')?.value ?? '').trim();
+  return (question === '') !== (answer === '') ? { incompleteFaq: true } : null;
+}
+
 export function createFaqGroup(fb: NonNullableFormBuilder, required: boolean, question = '', answer = ''): FaqGroup {
   const validators = required ? [Validators.required] : [];
-  return fb.group({
-    question: [question, validators],
-    answer: [answer, validators],
-  });
+  return fb.group(
+    {
+      question: [question, validators],
+      answer: [answer, validators],
+    },
+    required ? {} : { validators: [questionAndAnswerTogether] },
+  );
 }
 
 export function createRuleControl(fb: NonNullableFormBuilder, required: boolean, value = ''): FormControl<string> {

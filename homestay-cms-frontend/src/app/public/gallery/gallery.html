@@ -1,7 +1,9 @@
 <section class="page">
   <h1 class="page-title">{{ i18n.t('gallery.title') }}</h1>
 
-  @if (loaded() && items().length === 0) {
+  @if (failed()) {
+    <app-load-error (retry)="load()" />
+  } @else if (loaded() && items().length === 0) {
     <p>{{ i18n.t('gallery.empty') }}</p>
   }
 

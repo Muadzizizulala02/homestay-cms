@@ -49,4 +49,8 @@
       <p>{{ i18n.t('contact.empty') }}</p>
     }
   </section>
+} @else if (failed()) {
+  <section class="page">
+    <app-load-error (retry)="retry()" />
+  </section>
 }

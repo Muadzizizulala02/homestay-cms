@@ -51,6 +51,7 @@ export const BOOKING: TranslationSet = {
     'booking.err.availability': 'Could not check availability. Please try again.',
     'booking.err.name': 'Please enter your full name.',
     'booking.err.email': 'Please enter your email address.',
+    'booking.err.emailFormat': 'Enter a valid email address, like name@example.com.',
     'booking.err.phone': 'Please enter your phone number.',
     'booking.err.unavailable':
       'Those dates were just booked by someone else. Please go back and choose different dates.',
@@ -105,6 +106,7 @@ export const BOOKING: TranslationSet = {
     'booking.err.availability': 'Ketersediaan tidak dapat disemak. Sila cuba lagi.',
     'booking.err.name': 'Sila isi nama penuh anda.',
     'booking.err.email': 'Sila isi alamat e-mel anda.',
+    'booking.err.emailFormat': 'Masukkan alamat e-mel yang sah, contohnya nama@contoh.com.',
     'booking.err.phone': 'Sila isi nombor telefon anda.',
     'booking.err.unavailable':
       'Tarikh tersebut baru sahaja ditempah orang lain. Sila kembali dan pilih tarikh lain.',

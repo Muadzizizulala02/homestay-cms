@@ -1,10 +1,12 @@
-import { Component, ElementRef, OnInit, computed, inject, signal, viewChild } from '@angular/core';
+import { Component, ElementRef, OnInit, computed, effect, inject, signal, viewChild } from '@angular/core';
 import { SeoService } from '../../core/seo.service';
+import { LoadError } from '../../shared/ui/load-error/load-error';
 import { I18nService } from '../../shared/i18n/i18n.service';
 import { MediaService, type MediaItem } from '../../shared/services/media.service';
 
 @Component({
   selector: 'app-gallery',
+  imports: [LoadError],
   templateUrl: './gallery.html',
   styleUrl: './gallery.scss',
 })
@@ -17,14 +19,28 @@ export class GalleryPage implements OnInit {
 
   readonly items = signal<MediaItem[]>([]);
   readonly loaded = signal(false);
+  readonly failed = signal(false);
   readonly activeIndex = signal(0);
   readonly active = computed(() => this.items()[this.activeIndex()] ?? null);
 
+  constructor() {
+    effect(() => {
+      this.seo.setPage(this.i18n.t('nav.gallery'), this.i18n.t('gallery.seoDescription'));
+    });
+  }
+
   ngOnInit(): void {
-    this.seo.setPage(this.i18n.t('nav.gallery'), this.i18n.t('gallery.seoDescription'));
-    this.mediaService.listPublicGallery().subscribe((items) => {
-      this.items.set(items);
-      this.loaded.set(true);
+    this.load();
+  }
+
+  load(): void {
+    this.failed.set(false);
+    this.mediaService.listPublicGallery().subscribe({
+      next: (items) => {
+        this.items.set(items);
+        this.loaded.set(true);
+      },
+      error: () => this.failed.set(true),
     });
   }
 

@@ -15,6 +15,9 @@ export class SiteContentService {
   private readonly raw = signal<SiteSettings | null>(null);
   private requested = false;
 
+  /** True after a failed load, until a retry succeeds. Pages show a retry message while it is set. */
+  readonly failed = signal(false);
+
   /** The untranslated settings, for fields that are not language-specific (geo, social links, SEO). */
   readonly settings = this.raw.asReadonly();
   /** Settings in the active language; null until loaded. */
@@ -29,10 +32,12 @@ export class SiteContentService {
       return;
     }
     this.requested = true;
+    this.failed.set(false);
     this.api.getPublic().subscribe({
       next: (settings) => this.raw.set(settings),
       error: () => {
-        this.requested = false; // allow a retry on the next page that asks
+        this.requested = false; // allow a retry
+        this.failed.set(true);
       },
     });
   }

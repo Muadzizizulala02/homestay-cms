@@ -1,4 +1,4 @@
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, effect, inject, signal } from '@angular/core';
 import { RouterLink, ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { SeoService } from '../../core/seo.service';
@@ -40,6 +40,15 @@ export class AccommodationDetailPage implements OnInit {
     return unit ? localizeDescription(unit, this.i18n.lang()) : '';
   });
 
+  constructor() {
+    effect(() => {
+      const unit = this.unit();
+      if (unit) {
+        this.seo.setPage(unit.name, this.description().slice(0, 160));
+      }
+    });
+  }
+
   ngOnInit(): void {
     const slug = this.route.snapshot.paramMap.get('slug');
     if (!slug) {
@@ -53,7 +62,6 @@ export class AccommodationDetailPage implements OnInit {
       next: (unit) => {
         this.unit.set(unit);
         this.guestCount.set(Math.min(this.guestCount(), unit.capacity));
-        this.seo.setPage(unit.name, unit.description.slice(0, 160));
       },
       error: () => this.notFound.set(true),
     });
