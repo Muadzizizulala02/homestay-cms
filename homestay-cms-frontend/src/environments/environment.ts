@@ -1,12 +1,12 @@
 export const environment = {
   production: true,
-  apiUrl: 'https://your-functions-url.cloudfunctions.net/api/v1',
+  apiUrl: 'https://us-central1-homestay-cms.cloudfunctions.net/api/v1',
   firebase: {
-    apiKey: 'YOUR_API_KEY',
-    authDomain: 'your-project.firebaseapp.com',
-    projectId: 'your-project',
-    storageBucket: 'your-project.appspot.com',
-    messagingSenderId: 'YOUR_SENDER_ID',
-    appId: 'YOUR_APP_ID',
+    apiKey: 'AIzaSyBfpUcVnfF8BY3Pp7Z2HaEdFPJ459Qkwk8',
+    authDomain: 'homestay-cms.firebaseapp.com',
+    projectId: 'homestay-cms',
+    storageBucket: 'homestay-cms.firebasestorage.app',
+    messagingSenderId: '216016641524',
+    appId: '1:216016641524:web:dfc67584eab234622f6da1',
   },
 };
