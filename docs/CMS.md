@@ -8,7 +8,7 @@ Deliberately small in scope — this serves one owner-operator, not a multi-tena
 
 ✅ **Implemented**: `/admin/content` (`functions/src/services/site-settings.service.ts`, `functions/src/routes/admin/content.routes.ts`, singleton doc at `siteSettings/main`) — hero headline/subheadline, about copy, host intro, address, contact email/phone, check-in/out times, house rules (add/remove list), FAQ (add/remove question+answer pairs), cancellation/refund policy. `getSiteSettings()` returns sensible built-in defaults if the doc has never been saved, so the public site never shows broken/empty content before the admin's first edit.
 
-Not yet built: hero image / social-share image upload from within this form (the field exists on the type; there's no UI control for it yet — an admin can't currently set `heroImageUrl` without a direct API call), social links list editing, geo-coordinates editing, legal pages (privacy/terms — pending confirmation, see `PROJECT-OVERVIEW.md`), SEO defaults editing.
+Not yet built: uploading a new hero photo directly from this form (the **Hero image** section lets you pick any gallery photo or paste an https address, and keeps the social-share image in step with it unless you set that separately via the API), social links list editing, geo-coordinates editing, legal pages (privacy/terms — pending confirmation, see `PROJECT-OVERVIEW.md`), SEO defaults editing.
 
 ## Media
 

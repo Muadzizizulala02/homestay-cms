@@ -125,6 +125,41 @@
         [ngTemplateOutletContext]="{ group: form.controls.en, ms: false }"
       />
 
+      <h2>Hero image</h2>
+      <p class="hint">The large photo at the top of the home page, also used when the site is shared. Pick one of your gallery photos, or paste an image address (https). Leave empty for a plain background.</p>
+      @if (form.controls.heroImageUrl.value) {
+        <img class="hero-preview" [src]="form.controls.heroImageUrl.value" alt="Current hero image" />
+      }
+      @if (galleryPhotos().length > 0) {
+        <div class="hero-picker" role="group" aria-label="Choose a gallery photo as the hero image">
+          @for (photo of galleryPhotos(); track photo.id) {
+            <button
+              type="button"
+              class="hero-choice"
+              [class.selected]="photo.url === form.controls.heroImageUrl.value"
+              [attr.aria-pressed]="photo.url === form.controls.heroImageUrl.value"
+              [attr.aria-label]="'Use as hero image: ' + photo.altText"
+              (click)="chooseHero(photo.url)"
+            >
+              <img [src]="photo.url" alt="" />
+            </button>
+          }
+        </div>
+      }
+      <mat-form-field appearance="outline" class="full">
+        <mat-label>Hero image address</mat-label>
+        <input matInput formControlName="heroImageUrl" placeholder="https://" />
+        @if (form.controls.heroImageUrl.invalid) {
+          <mat-error>Enter an address starting with http:// or https://</mat-error>
+        }
+      </mat-form-field>
+      <div>
+        <button mat-button type="button" [disabled]="!form.controls.heroImageUrl.value" (click)="clearHero()">
+          <mat-icon>close</mat-icon>
+          Remove hero image
+        </button>
+      </div>
+
       <h2>Location &amp; contact</h2>
       <mat-form-field appearance="outline" class="full">
         <mat-label>Address</mat-label>

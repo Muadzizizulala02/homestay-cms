@@ -92,6 +92,9 @@ export async function updateMediaItem(id: string, input: UpdateMediaInput): Prom
   return updated;
 }
 
+/** Marks a media record whose image is not a Cloudinary asset (e.g. seeded stock photos). */
+export const EXTERNAL_PUBLIC_ID_PREFIX = 'external/';
+
 /** Removes the asset from Cloudinary as well as its Firestore record — never just the reference. */
 export async function deleteMediaItem(id: string): Promise<void> {
   const ref = db.collection(COLLECTION).doc(id);
@@ -101,7 +104,11 @@ export async function deleteMediaItem(id: string): Promise<void> {
   }
 
   const { cloudinaryPublicId } = doc.data() as MediaItem;
-  configureCloudinary();
-  await cloudinary.uploader.destroy(cloudinaryPublicId);
+  // Placeholder photos from the starter seed are hosted elsewhere, so there is nothing in
+  // Cloudinary to remove (and no Cloudinary account may be configured yet).
+  if (!cloudinaryPublicId.startsWith(EXTERNAL_PUBLIC_ID_PREFIX)) {
+    configureCloudinary();
+    await cloudinary.uploader.destroy(cloudinaryPublicId);
+  }
   await ref.delete();
 }

@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { createAccommodationSchema } from '../../validation/accommodation.schema';
 import { updateSiteSettingsSchema } from '../../validation/site-settings.schema';
-import { STARTER_CONTENT, STARTER_ROOMS } from '../starter-content';
+import { STARTER_CONTENT, STARTER_GALLERY, STARTER_HERO_PHOTO_ID, STARTER_PHOTOS, STARTER_ROOMS } from '../starter-content';
 
 describe('STARTER_CONTENT', () => {
   it('passes the same validation the admin editor is held to', () => {
@@ -15,7 +15,6 @@ describe('STARTER_CONTENT', () => {
     expect(STARTER_CONTENT.contactEmail).toBe('');
     expect(STARTER_CONTENT.contactPhone).toBe('');
     expect(STARTER_CONTENT.socialLinks).toEqual([]);
-    expect(STARTER_CONTENT.heroImageUrl).toBe('');
     expect(STARTER_CONTENT.cancellationPolicy).toBe('');
     expect(STARTER_CONTENT.notices).toEqual([]);
     expect(JSON.stringify(STARTER_CONTENT)).not.toMatch(/RM\s?\d|\d+\s?%|refund/i);
@@ -79,6 +78,38 @@ describe('STARTER_ROOMS', () => {
       expect(room.minStay).toBeLessThanOrEqual(room.maxStay);
       expect(room.capacity).toBeGreaterThanOrEqual(room.beds);
       expect(room.active).toBe(true);
+    }
+  });
+});
+
+describe('STARTER_PHOTOS and gallery', () => {
+  it('gives every stock photo a unique id, an https source and real alt text', () => {
+    expect(new Set(STARTER_PHOTOS.map((p) => p.id)).size).toBe(STARTER_PHOTOS.length);
+    for (const photo of STARTER_PHOTOS) {
+      expect(photo.sourceUrl).toMatch(/^https:\/\//);
+      expect(photo.altText.length).toBeGreaterThan(15); // a description, not "image"
+    }
+  });
+
+  it('uses one of the stock photos as the hero and as the social-share image', () => {
+    const hero = STARTER_PHOTOS.find((p) => p.id === STARTER_HERO_PHOTO_ID);
+    expect(hero).toBeDefined();
+    expect(STARTER_CONTENT.heroImageUrl).toBe(hero?.sourceUrl);
+    expect(STARTER_CONTENT.seoDefaults.shareImageUrl).toBe(hero?.sourceUrl);
+  });
+
+  it('builds a gallery from the stock photos, in order, with alt text', () => {
+    expect(STARTER_GALLERY.map((g) => g.photoId)).toEqual(STARTER_PHOTOS.map((p) => p.id));
+    expect(STARTER_GALLERY.length).toBeGreaterThanOrEqual(4);
+    expect(new Set(STARTER_GALLERY.map((g) => g.id)).size).toBe(STARTER_GALLERY.length);
+  });
+
+  it('only uses stock photos that are declared, so the seed script can upload every one of them', () => {
+    const declared = new Set(STARTER_PHOTOS.map((p) => p.sourceUrl));
+    for (const room of STARTER_ROOMS) {
+      for (const photo of room.photos) {
+        expect(declared.has(photo), `${room.slug}: ${photo}`).toBe(true);
+      }
     }
   });
 });

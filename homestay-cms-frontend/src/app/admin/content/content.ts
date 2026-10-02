@@ -1,7 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { NgTemplateOutlet } from '@angular/common';
 import { Component, OnInit, inject, signal } from '@angular/core';
-import { FormArray, FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { AbstractControl, FormArray, FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
@@ -12,6 +12,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatToolbarModule } from '@angular/material/toolbar';
+import { MediaService, type MediaItem } from '../../shared/services/media.service';
 import {
   SiteSettingsService,
   type MalayContent,
@@ -25,6 +26,8 @@ import {
   createNoticeGroup,
   createRuleControl,
   createTranslatableGroup,
+  isHttpUrlOrEmpty,
+  nextShareImage,
   toFacilities,
   toMalayContent,
   toNotices,
@@ -56,9 +59,14 @@ type Language = 'en' | 'ms';
 export class ContentPage implements OnInit {
   private readonly fb = inject(FormBuilder).nonNullable;
   private readonly siteSettingsService = inject(SiteSettingsService);
+  private readonly mediaService = inject(MediaService);
   private readonly snackBar = inject(MatSnackBar);
 
   readonly loaded = signal(false);
+  /** Gallery photos offered as one-click hero choices. */
+  readonly galleryPhotos = signal<MediaItem[]>([]);
+  /** The settings as last loaded/saved: the baseline for keeping the share image in step with the hero. */
+  private baseline: SiteSettings | null = null;
   readonly language = signal<Language>('en');
   // Mirrors the backend limits (site-settings.schema.ts); beyond them the API answers 400.
   readonly maxNotices = 20;
@@ -69,6 +77,7 @@ export class ContentPage implements OnInit {
   readonly form = this.fb.group({
     en: createTranslatableGroup(this.fb, true),
     ms: createTranslatableGroup(this.fb, false),
+    heroImageUrl: ['', (control: AbstractControl) => (isHttpUrlOrEmpty(String(control.value ?? '')) ? null : { url: true })],
     address: [''],
     contactEmail: ['', Validators.email],
     contactPhone: [''],
@@ -87,6 +96,10 @@ export class ContentPage implements OnInit {
   }
 
   ngOnInit(): void {
+    this.mediaService.list().subscribe({
+      next: (items) => this.galleryPhotos.set(items.filter((item) => item.association.type === 'gallery')),
+      error: () => this.galleryPhotos.set([]), // the picker is optional; the URL field still works
+    });
     this.siteSettingsService.getForAdmin().subscribe((settings) => {
       this.patchForm(settings);
       this.loaded.set(true);
@@ -118,7 +131,9 @@ export class ContentPage implements OnInit {
   private patchForm(settings: SiteSettings): void {
     this.fillTranslatable(this.form.controls.en, settings, true);
     this.fillTranslatable(this.form.controls.ms, settings.translations?.ms ?? {}, false);
+    this.baseline = settings;
     this.form.patchValue({
+      heroImageUrl: settings.heroImageUrl ?? '',
       address: settings.address,
       contactEmail: settings.contactEmail,
       contactPhone: settings.contactPhone,
@@ -134,6 +149,15 @@ export class ContentPage implements OnInit {
     for (const facility of settings.facilities ?? []) {
       this.facilities.push(createFacilityGroup(this.fb, facility));
     }
+  }
+
+  chooseHero(url: string): void {
+    this.form.controls.heroImageUrl.setValue(url);
+    this.form.controls.heroImageUrl.markAsDirty();
+  }
+
+  clearHero(): void {
+    this.chooseHero('');
   }
 
   setLanguage(language: Language): void {
@@ -183,8 +207,10 @@ export class ContentPage implements OnInit {
   save(): void {
     if (this.form.invalid) {
       // Show the tab that has the problem rather than leaving Save inert.
-      const englishInvalid = this.form.controls.en.invalid || this.notices.invalid || this.facilities.invalid;
-      this.setLanguage(englishInvalid ? 'en' : 'ms');
+      // Everything except the Malay group (including the hero address, contacts, notices and
+      // facilities) is on the English view; go to Malay only when Malay is the sole problem.
+      const englishViewInvalid = Object.entries(this.form.controls).some(([key, control]) => key !== 'ms' && control.invalid);
+      this.setLanguage(englishViewInvalid ? 'en' : 'ms');
       this.form.markAllAsTouched();
       this.snackBar.open('Fix the highlighted fields', 'Dismiss', { duration: 5000 });
       return;
@@ -192,6 +218,9 @@ export class ContentPage implements OnInit {
 
     const raw = this.form.getRawValue();
     const en = raw.en;
+    const hero = raw.heroImageUrl.trim();
+    const baseHero = this.baseline?.heroImageUrl ?? '';
+    const baseSeo = this.baseline?.seoDefaults ?? { title: '', description: '', shareImageUrl: '' };
     this.siteSettingsService
       .update({
         heroHeadline: en.heroHeadline,
@@ -201,6 +230,8 @@ export class ContentPage implements OnInit {
         cancellationPolicy: en.cancellationPolicy,
         houseRules: en.houseRules,
         faqs: en.faqs.map((faq, index) => ({ ...faq, order: index })),
+        heroImageUrl: hero,
+        seoDefaults: { ...baseSeo, shareImageUrl: nextShareImage(baseHero, baseSeo.shareImageUrl, hero) },
         address: raw.address,
         contactEmail: raw.contactEmail,
         contactPhone: raw.contactPhone,
@@ -211,7 +242,10 @@ export class ContentPage implements OnInit {
         translations: { ms: toMalayContent(this.form.controls.ms) },
       })
       .subscribe({
-        next: () => this.snackBar.open('Site content saved', 'Dismiss', { duration: 3000 }),
+        next: (saved) => {
+          this.baseline = saved;
+          this.snackBar.open('Site content saved', 'Dismiss', { duration: 3000 });
+        },
         error: (error: unknown) => {
           const invalid = error instanceof HttpErrorResponse && error.status === 400;
           this.snackBar.open(

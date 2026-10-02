@@ -70,6 +70,21 @@ describe('media.service', () => {
     await expect(updateMediaItem(recorded.id, { altText: 'gone' })).rejects.toThrow(AppError);
   });
 
+  it('deletes an external stock-photo item without calling Cloudinary', async () => {
+    // Seeded placeholder photos are hosted elsewhere; there is nothing in Cloudinary to destroy.
+    const recorded = await recordMediaItem({
+      cloudinaryPublicId: `external/stock-${Date.now()}`,
+      url: 'https://images.unsplash.com/photo-1?w=1200',
+      altText: 'A stock placeholder photo',
+      association: { type: 'gallery' },
+    });
+
+    await deleteMediaItem(recorded.id);
+
+    expect(cloudinary.uploader.destroy).not.toHaveBeenCalled();
+    expect((await listMedia()).some((item) => item.id === recorded.id)).toBe(false);
+  });
+
   it('404s when deleting an unknown media item', async () => {
     await expect(deleteMediaItem('does-not-exist')).rejects.toThrow(AppError);
   });

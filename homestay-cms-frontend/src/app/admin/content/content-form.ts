@@ -159,3 +159,19 @@ export function toMalayContent(group: TranslatableGroup): MalayContent {
       .map((f, order) => ({ question: f.question.trim(), answer: f.answer.trim(), order })),
   };
 }
+
+/** http(s) addresses only, or empty for "no hero image" (matches the API's schema). */
+export function isHttpUrlOrEmpty(value: string): boolean {
+  const trimmed = value.trim();
+  return trimmed === '' || /^https?:\/\/\S+$/i.test(trimmed);
+}
+
+/**
+ * The social-share image normally mirrors the hero. Keep them in step only when they matched
+ * before (or the share image was empty), so a share image the owner set on purpose is never
+ * overwritten by changing the hero.
+ */
+export function nextShareImage(previousHero: string, previousShare: string, newHero: string): string {
+  const followedHero = previousShare === '' || previousShare === previousHero;
+  return followedHero ? newHero : previousShare;
+}

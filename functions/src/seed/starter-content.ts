@@ -1,10 +1,72 @@
 import type { Accommodation } from '../types/accommodation.types';
 import type { SiteSettings } from '../types/site-settings.types';
 
+/** Where the placeholder photos come from (Unsplash; its licence allows free use). */
+const UNSPLASH = 'https://images.unsplash.com/photo-';
+
+export interface StockPhoto {
+  id: string;
+  /** Original image URL. The seed script uploads it to the owner's Cloudinary and uses that copy. */
+  sourceUrl: string;
+  /** Accurate description, used as the gallery alt text. */
+  altText: string;
+}
+
+/**
+ * PLACEHOLDER photos (stock images, NOT this property). Each is described accurately so the alt
+ * text is true even though the picture is not the owner's. Replace them in the admin.
+ */
+export const STARTER_PHOTOS: readonly StockPhoto[] = [
+  {
+    id: 'living-room',
+    sourceUrl: `${UNSPLASH}1560448204-e02f11c3d0e2?w=1600&q=80`,
+    altText: 'A bright open living room with large windows, a sofa and armchair, and a dining table',
+  },
+  {
+    id: 'lounge-kitchen',
+    sourceUrl: `${UNSPLASH}1522708323590-d24dbb6b0267?w=1600&q=80`,
+    altText: 'A lounge with a red armchair and a sofa beside a small kitchen and dining table',
+  },
+  {
+    id: 'bedroom',
+    sourceUrl: `${UNSPLASH}1595526114035-0d45ed16cfbf?w=1600&q=80`,
+    altText: 'A tidy white bedroom with a double bed, a window and a bedside table',
+  },
+  {
+    id: 'bed-detail',
+    sourceUrl: `${UNSPLASH}1522771739844-6a9f6d5f14af?w=1600&q=80`,
+    altText: 'A bed with patterned cushions beside a wooden bedside table and a reading lamp',
+  },
+  {
+    id: 'sofa-lounge',
+    sourceUrl: `${UNSPLASH}1505691938895-1758d7feb511?w=1600&q=80`,
+    altText: 'A cream sofa with blue cushions between two lamps, under a framed painting',
+  },
+];
+
+/** Which stock photo is the hero (and the social-share image). */
+export const STARTER_HERO_PHOTO_ID = 'living-room';
+
+function photoUrl(id: string): string {
+  const photo = STARTER_PHOTOS.find((p) => p.id === id);
+  if (!photo) {
+    throw new Error(`Unknown starter photo: ${id}`);
+  }
+  return photo.sourceUrl;
+}
+
+/** Gallery records to seed, one per stock photo, in display order. */
+export const STARTER_GALLERY: ReadonlyArray<{ id: string; photoId: string; altText: string }> = STARTER_PHOTOS.map((photo) => ({
+  id: `starter-gallery-${photo.id}`,
+  photoId: photo.id,
+  altText: photo.altText,
+}));
+
 /**
  * Neutral first-day content for a brand-new site, so the public pages are not empty before the
  * owner has written their own. Deliberately says nothing the owner has not told us: no address,
- * phone, email, prices, photos, refund terms or notices. Those must be entered in the admin.
+ * phone, email, prices, refund terms or notices. Those must be entered in the admin. The only
+ * images are the clearly-labelled stock PLACEHOLDERS above (hero, gallery, rooms).
  * (Rooms are separate: see STARTER_ROOMS below, which are clearly-labelled placeholders.)
  *
  * Wording is written to be true of almost any homestay, and every line is editable under
@@ -13,7 +75,7 @@ import type { SiteSettings } from '../types/site-settings.types';
 export const STARTER_CONTENT: Omit<SiteSettings, 'updatedAt'> = {
   heroHeadline: 'Our Homestay',
   heroSubheadline: 'A comfortable place to stay. Choose your dates to see which rooms are free.',
-  heroImageUrl: '',
+  heroImageUrl: photoUrl(STARTER_HERO_PHOTO_ID),
   aboutContent:
     'We offer comfortable rooms for short and longer stays. Choose your dates to see which rooms are ' +
     'available, then book in a few steps.',
@@ -94,11 +156,8 @@ export const STARTER_CONTENT: Omit<SiteSettings, 'updatedAt'> = {
       ],
     },
   },
-  seoDefaults: { title: 'Homestay', description: '', shareImageUrl: '' },
+  seoDefaults: { title: 'Homestay', description: '', shareImageUrl: photoUrl(STARTER_HERO_PHOTO_ID) },
 };
-
-/** The photo host for the placeholder images below (Unsplash CDN; the Unsplash licence allows this use). */
-const STOCK = 'https://images.unsplash.com/photo-';
 
 /**
  * PLACEHOLDER rooms so a new site can show something bookable on day one. The photos are stock
@@ -114,7 +173,7 @@ export const STARTER_ROOMS: ReadonlyArray<Omit<Accommodation, 'createdAt' | 'upd
     description: 'A comfortable room for one or two guests, with a bed, a bedside lamp and a window with natural light.',
     descriptionMs:
       'Bilik yang selesa untuk seorang atau dua tetamu, dengan katil, lampu tepi katil dan tingkap yang membawa cahaya semula jadi.',
-    photos: [`${STOCK}1595526114035-0d45ed16cfbf?w=1200&q=80`, `${STOCK}1522771739844-6a9f6d5f14af?w=1200&q=80`],
+    photos: [photoUrl('bedroom'), photoUrl('bed-detail')],
     capacity: 2,
     beds: 1,
     amenities: ['Wi-Fi', 'Air-conditioning', 'Fresh linen and towels'],
@@ -129,11 +188,7 @@ export const STARTER_ROOMS: ReadonlyArray<Omit<Accommodation, 'createdAt' | 'upd
     name: 'Family Room',
     description: 'A larger space for families and small groups, with room to sit together and a small kitchen area.',
     descriptionMs: 'Ruang yang lebih luas untuk keluarga dan kumpulan kecil, dengan tempat untuk duduk bersama dan ruang dapur kecil.',
-    photos: [
-      `${STOCK}1522708323590-d24dbb6b0267?w=1200&q=80`,
-      `${STOCK}1560448204-e02f11c3d0e2?w=1200&q=80`,
-      `${STOCK}1505691938895-1758d7feb511?w=1200&q=80`,
-    ],
+    photos: [photoUrl('lounge-kitchen'), photoUrl('living-room'), photoUrl('sofa-lounge')],
     capacity: 4,
     beds: 2,
     amenities: ['Wi-Fi', 'Air-conditioning', 'Fresh linen and towels'],
