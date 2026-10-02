@@ -1,0 +1,32 @@
+@if (settings(); as s) {
+  <section class="section">
+    <h1>Contact us</h1>
+
+    <div class="details">
+      @if (s.contactEmail) {
+        <p><strong>Email:</strong> <a [href]="'mailto:' + s.contactEmail">{{ s.contactEmail }}</a></p>
+      }
+      @if (s.contactPhone) {
+        <p>
+          <strong>Phone:</strong> <a [href]="'tel:' + s.contactPhone">{{ s.contactPhone }}</a>
+          &middot; <a [href]="whatsappLink(s.contactPhone)" target="_blank" rel="noopener">WhatsApp</a>
+        </p>
+      }
+      @if (s.address) {
+        <p><strong>Address:</strong> {{ s.address }}</p>
+      }
+    </div>
+
+    @if (s.socialLinks.length > 0) {
+      <div class="social">
+        @for (link of s.socialLinks; track link.url) {
+          <a [href]="link.url" target="_blank" rel="noopener">{{ link.platform }}</a>
+        }
+      </div>
+    }
+
+    @if (!s.contactEmail && !s.contactPhone) {
+      <p>Contact details haven't been added yet.</p>
+    }
+  </section>
+}

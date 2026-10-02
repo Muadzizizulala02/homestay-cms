@@ -1,0 +1,104 @@
+<mat-toolbar color="primary">
+  <a routerLink="/admin/dashboard" aria-label="Back to dashboard">
+    <button mat-icon-button type="button"><mat-icon>arrow_back</mat-icon></button>
+  </a>
+  <span>Site content</span>
+</mat-toolbar>
+
+@if (loaded()) {
+  <form [formGroup]="form" class="content" (ngSubmit)="save()">
+    <h2>Homepage</h2>
+    <mat-form-field appearance="outline" class="full">
+      <mat-label>Hero headline</mat-label>
+      <input matInput formControlName="heroHeadline" />
+    </mat-form-field>
+    <mat-form-field appearance="outline" class="full">
+      <mat-label>Hero subheadline</mat-label>
+      <input matInput formControlName="heroSubheadline" />
+    </mat-form-field>
+
+    <h2>About</h2>
+    <mat-form-field appearance="outline" class="full">
+      <mat-label>About the homestay</mat-label>
+      <textarea matInput formControlName="aboutContent" rows="4"></textarea>
+    </mat-form-field>
+    <mat-form-field appearance="outline" class="full">
+      <mat-label>Host introduction</mat-label>
+      <textarea matInput formControlName="hostIntro" rows="3"></textarea>
+    </mat-form-field>
+
+    <h2>Location &amp; contact</h2>
+    <mat-form-field appearance="outline" class="full">
+      <mat-label>Address</mat-label>
+      <input matInput formControlName="address" />
+    </mat-form-field>
+    <mat-form-field appearance="outline">
+      <mat-label>Contact email</mat-label>
+      <input matInput type="email" formControlName="contactEmail" />
+    </mat-form-field>
+    <mat-form-field appearance="outline">
+      <mat-label>Contact phone</mat-label>
+      <input matInput formControlName="contactPhone" />
+    </mat-form-field>
+
+    <h2>Check-in / check-out</h2>
+    <mat-form-field appearance="outline">
+      <mat-label>Check-in time</mat-label>
+      <input matInput formControlName="checkInTime" placeholder="14:00" />
+    </mat-form-field>
+    <mat-form-field appearance="outline">
+      <mat-label>Check-out time</mat-label>
+      <input matInput formControlName="checkOutTime" placeholder="12:00" />
+    </mat-form-field>
+    <mat-form-field appearance="outline" class="full">
+      <mat-label>Cancellation / refund policy</mat-label>
+      <textarea matInput formControlName="cancellationPolicy" rows="3"></textarea>
+    </mat-form-field>
+
+    <h2>House rules</h2>
+    <div formArrayName="houseRules" class="list">
+      @for (rule of houseRules.controls; track $index) {
+        <div class="row">
+          <mat-form-field appearance="outline" class="full">
+            <input matInput [formControlName]="$index" />
+          </mat-form-field>
+          <button mat-icon-button type="button" (click)="removeHouseRule($index)" aria-label="Remove rule">
+            <mat-icon>close</mat-icon>
+          </button>
+        </div>
+      }
+    </div>
+    <button mat-button type="button" (click)="addHouseRule()">
+      <mat-icon>add</mat-icon>
+      Add house rule
+    </button>
+
+    <h2>FAQ</h2>
+    <div formArrayName="faqs" class="list">
+      @for (faq of faqs.controls; track $index) {
+        <div class="faq-row" [formGroupName]="$index">
+          <mat-form-field appearance="outline" class="full">
+            <mat-label>Question</mat-label>
+            <input matInput formControlName="question" />
+          </mat-form-field>
+          <mat-form-field appearance="outline" class="full">
+            <mat-label>Answer</mat-label>
+            <textarea matInput formControlName="answer" rows="2"></textarea>
+          </mat-form-field>
+          <button mat-button type="button" color="warn" (click)="removeFaq($index)">
+            <mat-icon>close</mat-icon>
+            Remove
+          </button>
+        </div>
+      }
+    </div>
+    <button mat-button type="button" (click)="addFaq()">
+      <mat-icon>add</mat-icon>
+      Add FAQ
+    </button>
+
+    <div class="save-bar">
+      <button mat-flat-button color="primary" type="submit" [disabled]="form.invalid">Save changes</button>
+    </div>
+  </form>
+}

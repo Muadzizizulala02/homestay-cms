@@ -1,0 +1,45 @@
+<mat-toolbar color="primary">
+  <a routerLink="/admin/dashboard" aria-label="Back to dashboard">
+    <button mat-icon-button type="button"><mat-icon>arrow_back</mat-icon></button>
+  </a>
+  <span>Gallery</span>
+</mat-toolbar>
+
+<div class="content">
+  <div class="upload-bar">
+    <mat-form-field appearance="outline">
+      <mat-label>Alt text for next upload</mat-label>
+      <input matInput [ngModel]="pendingAltText()" (ngModelChange)="pendingAltText.set($event)" />
+    </mat-form-field>
+
+    <input type="file" accept="image/*,video/*" (change)="onFileSelected($event)" [disabled]="uploading()" />
+
+    @if (uploading()) {
+      <mat-spinner diameter="24" />
+    }
+  </div>
+
+  @if (items().length === 0) {
+    <p class="empty">No media yet. Upload the first photo above.</p>
+  } @else {
+    <div class="grid">
+      @for (item of items(); track item.id) {
+        <div class="card">
+          <img [src]="item.url" [alt]="item.altText" />
+          <mat-form-field appearance="outline" class="alt-field">
+            <mat-label>Alt text</mat-label>
+            <input
+              matInput
+              [ngModel]="item.altText"
+              (blur)="updateAltText(item, $any($event.target).value)"
+            />
+          </mat-form-field>
+          <button mat-button color="warn" type="button" (click)="deleteItem(item)">
+            <mat-icon>delete</mat-icon>
+            Delete
+          </button>
+        </div>
+      }
+    </div>
+  }
+</div>

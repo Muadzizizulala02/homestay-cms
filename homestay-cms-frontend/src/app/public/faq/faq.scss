@@ -1,0 +1,35 @@
+.section {
+  max-width: 700px;
+  margin: 0 auto;
+  padding: 2.5rem 1.25rem;
+}
+
+.times {
+  display: flex;
+  gap: 2rem;
+  margin: 1rem 0 1.5rem;
+
+  div {
+    display: flex;
+    flex-direction: column;
+  }
+
+  span {
+    font-size: 1.1rem;
+  }
+}
+
+.faq-item {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  padding: 0.75rem 0;
+
+  summary {
+    cursor: pointer;
+    font-weight: 500;
+  }
+
+  p {
+    margin: 0.5rem 0 0;
+    line-height: 1.5;
+  }
+}

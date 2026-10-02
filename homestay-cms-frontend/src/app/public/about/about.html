@@ -1,0 +1,27 @@
+@if (settings(); as s) {
+  <section class="section">
+    <h1>About us</h1>
+    @if (s.aboutContent) {
+      <p class="body">{{ s.aboutContent }}</p>
+    }
+
+    @if (s.hostIntro) {
+      <h2>Meet your host</h2>
+      <p class="body">{{ s.hostIntro }}</p>
+    }
+
+    @if (s.address) {
+      <h2>Location</h2>
+      <p>{{ s.address }}</p>
+      @if (mapUrl()) {
+        <iframe
+          class="map"
+          [src]="mapUrl()"
+          title="Map"
+          loading="lazy"
+          referrerpolicy="no-referrer-when-downgrade"
+        ></iframe>
+      }
+    }
+  </section>
+}

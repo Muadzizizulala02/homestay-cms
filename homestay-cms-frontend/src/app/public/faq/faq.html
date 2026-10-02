@@ -1,0 +1,34 @@
+@if (settings(); as s) {
+  <section class="section">
+    <h1>FAQ &amp; house rules</h1>
+
+    <div class="times">
+      <div><strong>Check-in</strong><span>{{ s.checkInTime }}</span></div>
+      <div><strong>Check-out</strong><span>{{ s.checkOutTime }}</span></div>
+    </div>
+
+    @if (s.houseRules.length > 0) {
+      <h2>House rules</h2>
+      <ul>
+        @for (rule of s.houseRules; track rule) {
+          <li>{{ rule }}</li>
+        }
+      </ul>
+    }
+
+    @if (s.cancellationPolicy) {
+      <h2>Cancellation &amp; refund policy</h2>
+      <p>{{ s.cancellationPolicy }}</p>
+    }
+
+    @if (s.faqs.length > 0) {
+      <h2>Frequently asked questions</h2>
+      @for (faq of s.faqs; track faq.question) {
+        <details class="faq-item">
+          <summary>{{ faq.question }}</summary>
+          <p>{{ faq.answer }}</p>
+        </details>
+      }
+    }
+  </section>
+}

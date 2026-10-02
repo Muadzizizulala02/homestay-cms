@@ -1,0 +1,30 @@
+.spacer {
+  flex: 1 1 auto;
+}
+
+.content {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 1.5rem;
+}
+
+.error {
+  color: #b3261e;
+}
+
+.note {
+  font-size: 0.875rem;
+  color: rgba(0, 0, 0, 0.6);
+}
+
+.nav-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+
+  a {
+    text-decoration: none;
+    color: inherit;
+  }
+}

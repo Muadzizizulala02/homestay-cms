@@ -1,0 +1,117 @@
+@if (notFound()) {
+  <section class="section">
+    <h1>Select a room first</h1>
+    <p><a routerLink="/accommodation">Browse accommodation</a></p>
+  </section>
+} @else if (unit(); as u) {
+  <section class="section">
+    <h1>Book: {{ u.name }}</h1>
+
+    <ol class="steps">
+      <li [class.active]="step() === 'dates'">1. Dates</li>
+      <li [class.active]="step() === 'guest'">2. Your details</li>
+      <li [class.active]="step() === 'review' || step() === 'confirmation'">3. Confirm</li>
+    </ol>
+
+    @if (step() === 'dates') {
+      <div class="step-panel">
+        <div class="field-row">
+          <label>
+            Check-in
+            <input type="date" [ngModel]="checkInDate()" (ngModelChange)="checkInDate.set($event)" />
+          </label>
+          <label>
+            Check-out
+            <input type="date" [ngModel]="checkOutDate()" (ngModelChange)="checkOutDate.set($event)" />
+          </label>
+          <label>
+            Guests
+            <input
+              type="number"
+              min="1"
+              [max]="u.capacity"
+              [ngModel]="guestCount()"
+              (ngModelChange)="guestCount.set($event)"
+            />
+          </label>
+        </div>
+
+        @if (nights() > 0) {
+          <p class="hint">{{ nights() }} night(s) &middot; up to {{ u.capacity }} guests</p>
+        }
+
+        @if (availabilityError()) {
+          <p class="error">{{ availabilityError() }}</p>
+        }
+
+        <button type="button" class="cta" [disabled]="checkingAvailability()" (click)="checkAvailabilityAndContinue()">
+          {{ checkingAvailability() ? 'Checking…' : 'Check availability' }}
+        </button>
+      </div>
+    }
+
+    @if (step() === 'guest') {
+      <div class="step-panel">
+        <label>
+          Full name
+          <input type="text" [ngModel]="guestName()" (ngModelChange)="guestName.set($event)" />
+        </label>
+        <label>
+          Email
+          <input type="email" [ngModel]="guestEmail()" (ngModelChange)="guestEmail.set($event)" />
+        </label>
+        <label>
+          Phone
+          <input type="tel" [ngModel]="guestPhone()" (ngModelChange)="guestPhone.set($event)" />
+        </label>
+        <label>
+          Notes (optional)
+          <textarea rows="3" [ngModel]="guestNotes()" (ngModelChange)="guestNotes.set($event)"></textarea>
+        </label>
+
+        <div class="actions">
+          <button type="button" (click)="backToDates()">Back</button>
+          <button type="button" class="cta" [disabled]="!guestDetailsValid()" (click)="goToReview()">Continue</button>
+        </div>
+      </div>
+    }
+
+    @if (step() === 'review') {
+      <div class="step-panel">
+        <h2>Review your booking</h2>
+        <p><strong>{{ u.name }}</strong></p>
+        <p>{{ checkInDate() }} &rarr; {{ checkOutDate() }} ({{ nights() }} night(s))</p>
+        <p>{{ guestCount() }} guest(s)</p>
+        <p>{{ guestName() }} &middot; {{ guestEmail() }} &middot; {{ guestPhone() }}</p>
+        @if (guestNotes()) {
+          <p><em>{{ guestNotes() }}</em></p>
+        }
+
+        @if (submitError()) {
+          <p class="error">{{ submitError() }}</p>
+        }
+
+        <div class="actions">
+          <button type="button" (click)="backToGuestDetails()">Back</button>
+          <button type="button" class="cta" [disabled]="submitting()" (click)="confirmBooking()">
+            {{ submitting() ? 'Booking…' : 'Confirm booking' }}
+          </button>
+        </div>
+      </div>
+    }
+
+    @if (step() === 'confirmation' && confirmedBooking(); as booking) {
+      <div class="step-panel confirmation">
+        <h2>Booking received</h2>
+        <p>Your reference: <strong>{{ booking.reference }}</strong></p>
+        <p>{{ booking.checkInDate }} &rarr; {{ booking.checkOutDate }} ({{ booking.price.nights }} night(s))</p>
+        <p class="total">Total: RM {{ booking.price.total }}</p>
+        <p class="note">
+          Online payment isn't live yet — we'll contact you at {{ booking.guest.email }} to arrange payment.
+          Please keep your reference number for your records.
+        </p>
+        <a routerLink="/">Back to home</a>
+      </div>
+    }
+  </section>
+}

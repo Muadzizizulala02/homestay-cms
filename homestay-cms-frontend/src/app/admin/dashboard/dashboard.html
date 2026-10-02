@@ -1,0 +1,50 @@
+<mat-toolbar color="primary">
+  <span>Homestay Admin</span>
+  <span class="spacer"></span>
+  <button mat-button type="button" (click)="logout()">Sign out</button>
+</mat-toolbar>
+
+<div class="content">
+  <mat-card>
+    <mat-card-header>
+      <mat-card-title>Welcome{{ email ? ', ' + email : '' }}</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <p>You're signed in as an administrator.</p>
+
+      @switch (backendCheck()) {
+        @case ('pending') {
+          <p>Checking connection to the API…</p>
+        }
+        @case ('ok') {
+          <p>&check; Backend session verified.</p>
+        }
+        @case ('error') {
+          <p class="error">Could not verify your session with the backend API.</p>
+        }
+      }
+
+      <p class="note">
+        Availability and booking management land in later phases.
+      </p>
+    </mat-card-content>
+  </mat-card>
+
+  <div class="nav-cards">
+    <a routerLink="/admin/content">
+      <mat-card>
+        <mat-card-content>Manage site content</mat-card-content>
+      </mat-card>
+    </a>
+    <a routerLink="/admin/accommodation">
+      <mat-card>
+        <mat-card-content>Manage accommodation</mat-card-content>
+      </mat-card>
+    </a>
+    <a routerLink="/admin/media">
+      <mat-card>
+        <mat-card-content>Manage gallery</mat-card-content>
+      </mat-card>
+    </a>
+  </div>
+</div>
