@@ -87,4 +87,50 @@ describe('site-settings.service', () => {
     expect(publicView.notices.map((n) => n.id)).toEqual(['live']);
     expect(adminView.notices.map((n) => n.id)).toEqual(['live', 'draft']);
   });
+
+  it('defaults the hero slideshow (empty, 5 seconds) and policies for a document that predates them', async () => {
+    await db.doc('siteSettings/main').set({
+      heroHeadline: 'Older Homestay',
+      heroSubheadline: '',
+      heroImageUrl: 'https://a.example/hero.jpg',
+      aboutContent: '',
+      hostIntro: '',
+      address: '',
+      geo: { lat: 0, lng: 0 },
+      contactEmail: '',
+      contactPhone: '',
+      socialLinks: [],
+      checkInTime: '14:00',
+      checkOutTime: '12:00',
+      houseRules: [],
+      faqs: [],
+      cancellationPolicy: '',
+      seoDefaults: { title: '', description: '', shareImageUrl: '' },
+    });
+
+    const settings = await getSiteSettings();
+
+    expect(settings.heroImages).toEqual([]);
+    expect(settings.heroIntervalSeconds).toBe(5);
+    expect(settings.privacyPolicy).toBe('');
+    expect(settings.termsAndConditions).toBe('');
+    expect(settings.heroImageUrl).toBe('https://a.example/hero.jpg'); // existing value untouched
+  });
+
+  it('stores a slideshow, its interval and the policies, and returns them publicly', async () => {
+    await updateSiteSettings({
+      heroImages: ['https://a.example/1.jpg', 'https://a.example/2.jpg'],
+      heroIntervalSeconds: 7,
+      privacyPolicy: 'Privacy text',
+      termsAndConditions: 'Terms text',
+      translations: { ms: { privacyPolicy: 'Teks privasi' } },
+    });
+
+    const publicView = await getPublicSiteSettings();
+
+    expect(publicView.heroImages).toHaveLength(2);
+    expect(publicView.heroIntervalSeconds).toBe(7);
+    expect(publicView.privacyPolicy).toBe('Privacy text');
+    expect(publicView.translations.ms.privacyPolicy).toBe('Teks privasi');
+  });
 });

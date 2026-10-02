@@ -7,13 +7,14 @@ import { localizeDescription } from '../../shared/i18n/localize';
 import { AccommodationService, type Accommodation } from '../../shared/services/accommodation.service';
 import { SiteContentService } from '../../shared/services/site-content.service';
 import { BookingBar } from '../../shared/ui/booking-bar/booking-bar';
+import { HeroSlideshow } from '../../shared/ui/hero-slideshow/hero-slideshow';
 import { Skeleton } from '../../shared/ui/skeleton/skeleton';
 
 const ROOMS_ON_HOME = 3;
 
 @Component({
   selector: 'app-home',
-  imports: [RouterLink, MatIconModule, BookingBar, Skeleton],
+  imports: [RouterLink, MatIconModule, BookingBar, HeroSlideshow, Skeleton],
   templateUrl: './home.html',
   styleUrl: './home.scss',
 })

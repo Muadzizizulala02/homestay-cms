@@ -1,7 +1,14 @@
 import { describe, it, expect } from 'vitest';
 import { createAccommodationSchema } from '../../validation/accommodation.schema';
 import { updateSiteSettingsSchema } from '../../validation/site-settings.schema';
-import { STARTER_CONTENT, STARTER_GALLERY, STARTER_HERO_PHOTO_ID, STARTER_PHOTOS, STARTER_ROOMS } from '../starter-content';
+import {
+  STARTER_CONTENT,
+  STARTER_GALLERY,
+  STARTER_HERO_PHOTO_ID,
+  STARTER_HERO_PHOTO_IDS,
+  STARTER_PHOTOS,
+  STARTER_ROOMS,
+} from '../starter-content';
 
 describe('STARTER_CONTENT', () => {
   it('passes the same validation the admin editor is held to', () => {
@@ -117,5 +124,31 @@ describe('STARTER_PHOTOS and gallery', () => {
         expect(declared.has(photo), `${room.slug}: ${photo}`).toBe(true);
       }
     }
+  });
+});
+
+describe('starter hero slideshow and policies', () => {
+  it('seeds a slideshow of declared stock photos that starts with the hero photo', () => {
+    expect(STARTER_HERO_PHOTO_IDS.length).toBeGreaterThanOrEqual(3);
+    expect(STARTER_HERO_PHOTO_IDS[0]).toBe(STARTER_HERO_PHOTO_ID);
+    const declared = new Map(STARTER_PHOTOS.map((p) => [p.id, p.sourceUrl]));
+    expect(STARTER_CONTENT.heroImages).toEqual(STARTER_HERO_PHOTO_IDS.map((id) => declared.get(id)));
+    expect(STARTER_CONTENT.heroImageUrl).toBe(STARTER_CONTENT.heroImages[0]);
+  });
+
+  it('shows each hero image for 5 seconds by default', () => {
+    expect(STARTER_CONTENT.heroIntervalSeconds).toBe(5);
+  });
+
+  it('seeds a privacy policy and terms in both languages', () => {
+    expect(STARTER_CONTENT.privacyPolicy.length).toBeGreaterThan(100);
+    expect(STARTER_CONTENT.termsAndConditions.length).toBeGreaterThan(100);
+    expect(STARTER_CONTENT.translations.ms.privacyPolicy?.length).toBeGreaterThan(100);
+    expect(STARTER_CONTENT.translations.ms.termsAndConditions?.length).toBeGreaterThan(100);
+  });
+
+  it('does not seed social links or a cancellation policy (those are the owner\'s own facts)', () => {
+    expect(STARTER_CONTENT.socialLinks).toEqual([]);
+    expect(STARTER_CONTENT.cancellationPolicy).toBe('');
   });
 });

@@ -47,4 +47,37 @@ describe('updateSiteSettingsSchema', () => {
       }).success
     ).toBe(true);
   });
+
+  it('accepts a hero slideshow, its interval, policies and Malay policies', () => {
+    const parsed = updateSiteSettingsSchema.safeParse({
+      heroImages: ['https://res.cloudinary.com/demo/a.jpg', 'https://res.cloudinary.com/demo/b.jpg'],
+      heroIntervalSeconds: 5,
+      privacyPolicy: 'We use your details only to handle your booking.',
+      termsAndConditions: 'By booking you agree to these terms.',
+      translations: { ms: { privacyPolicy: 'Kami guna maklumat anda untuk tempahan.', termsAndConditions: 'Dengan menempah anda bersetuju.' } },
+    });
+    expect(parsed.success).toBe(true);
+  });
+
+  it('keeps the new fields instead of stripping them', () => {
+    const parsed = updateSiteSettingsSchema.parse({ heroImages: ['https://a.example/1.jpg'], heroIntervalSeconds: 8, privacyPolicy: 'x' });
+    expect(parsed.heroImages).toEqual(['https://a.example/1.jpg']);
+    expect(parsed.heroIntervalSeconds).toBe(8);
+    expect(parsed.privacyPolicy).toBe('x');
+  });
+
+  it('limits the slideshow length and the interval to sensible values', () => {
+    const many = Array.from({ length: 11 }, (_, i) => `https://a.example/${i}.jpg`);
+    expect(updateSiteSettingsSchema.safeParse({ heroImages: many }).success).toBe(false);
+    expect(updateSiteSettingsSchema.safeParse({ heroIntervalSeconds: 1 }).success).toBe(false);
+    expect(updateSiteSettingsSchema.safeParse({ heroIntervalSeconds: 31 }).success).toBe(false);
+    expect(updateSiteSettingsSchema.safeParse({ heroIntervalSeconds: 2.5 }).success).toBe(false);
+    expect(updateSiteSettingsSchema.safeParse({ heroIntervalSeconds: 2 }).success).toBe(true);
+    expect(updateSiteSettingsSchema.safeParse({ heroIntervalSeconds: 30 }).success).toBe(true);
+  });
+
+  it('only allows http(s) slideshow images', () => {
+    expect(updateSiteSettingsSchema.safeParse({ heroImages: ['javascript:alert(1)'] }).success).toBe(false);
+    expect(updateSiteSettingsSchema.safeParse({ heroImages: ['data:image/png;base64,AAAA'] }).success).toBe(false);
+  });
 });

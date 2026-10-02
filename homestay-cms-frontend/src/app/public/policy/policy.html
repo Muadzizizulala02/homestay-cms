@@ -1,0 +1,20 @@
+@if (content()) {
+  <article class="page policy">
+    <h1 class="page-title">{{ title() }}</h1>
+    @if (text().trim()) {
+      <div class="prose">{{ text() }}</div>
+    } @else {
+      <p>{{ i18n.t('policy.empty') }}</p>
+    }
+  </article>
+} @else if (failed()) {
+  <section class="page">
+    <app-load-error (retry)="retry()" />
+  </section>
+} @else {
+  <article class="page policy" aria-busy="true">
+    <span class="visually-hidden" role="status">{{ i18n.t('common.loading') }}</span>
+    <h1 class="page-title">{{ title() }}</h1>
+    <app-skeleton [lines]="6" />
+  </article>
+}

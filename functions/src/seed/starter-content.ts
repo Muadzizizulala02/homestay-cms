@@ -47,6 +47,9 @@ export const STARTER_PHOTOS: readonly StockPhoto[] = [
 /** Which stock photo is the hero (and the social-share image). */
 export const STARTER_HERO_PHOTO_ID = 'living-room';
 
+/** The starter hero slideshow, in order; it starts with the hero photo. */
+export const STARTER_HERO_PHOTO_IDS: readonly string[] = ['living-room', 'sofa-lounge', 'lounge-kitchen', 'bedroom'];
+
 function photoUrl(id: string): string {
   const photo = STARTER_PHOTOS.find((p) => p.id === id);
   if (!photo) {
@@ -63,6 +66,86 @@ export const STARTER_GALLERY: ReadonlyArray<{ id: string; photoId: string; altTe
 }));
 
 /**
+ * Plain-language STARTER policies. They describe only what this website really does (what a
+ * booking collects, where it is kept, what the browser remembers) and say nothing about refunds,
+ * fees or liability, which are the owner's decisions. They are a starting point, not legal advice:
+ * the owner should read and adjust them (Admin > Site content) before launch.
+ */
+const PRIVACY_EN = [
+  'What we collect',
+  'When you book, we ask for your name, email address and phone number, and any notes you choose to add. We use these only to manage your booking and to contact you about your stay.',
+  '',
+  'Payments',
+  "Where online payment is available, you pay on the payment provider's own page. We do not see or store your card or bank details.",
+  '',
+  'Who can see your details',
+  'Your booking details are kept securely and are visible only to us. We do not sell them or use them for advertising.',
+  '',
+  'Your choices',
+  'To see, correct or delete the details we hold about you, contact us using the details on our Contact page.',
+  '',
+  'What your browser remembers',
+  'This site remembers your language choice and which notices you have closed. It does not use advertising cookies.',
+  '',
+  'Changes',
+  'We may update this policy from time to time. The latest version is always on this page.',
+].join('\n');
+
+const TERMS_EN = [
+  'Bookings',
+  'A booking is confirmed once we confirm it, or once payment is received where online payment is available. Please keep your booking reference.',
+  '',
+  'Guests and your stay',
+  'Only the guests named in the booking may stay overnight. Please follow the house rules on our FAQ page.',
+  '',
+  'Prices',
+  'Prices are shown in Malaysian ringgit (RM) for the dates you choose.',
+  '',
+  'Changes and cancellations',
+  'Contact us with your booking reference and we will help. Where we have published a cancellation policy, it is on our About page.',
+  '',
+  'Questions',
+  'If anything in these terms is unclear, please contact us using the details on our Contact page.',
+].join('\n');
+
+const PRIVACY_MS = [
+  'Maklumat yang kami kumpul',
+  'Apabila anda menempah, kami meminta nama, alamat e-mel dan nombor telefon anda, serta sebarang catatan yang anda pilih untuk tambah. Kami menggunakannya hanya untuk menguruskan tempahan anda dan menghubungi anda tentang penginapan anda.',
+  '',
+  'Pembayaran',
+  'Jika pembayaran dalam talian tersedia, anda membayar di halaman penyedia pembayaran itu sendiri. Kami tidak melihat atau menyimpan butiran kad atau bank anda.',
+  '',
+  'Siapa yang boleh melihat maklumat anda',
+  'Butiran tempahan anda disimpan dengan selamat dan hanya boleh dilihat oleh kami. Kami tidak menjualnya atau menggunakannya untuk pengiklanan.',
+  '',
+  'Pilihan anda',
+  'Untuk melihat, membetulkan atau memadam maklumat yang kami simpan tentang anda, hubungi kami melalui butiran di halaman Hubungi kami.',
+  '',
+  'Apa yang diingati pelayar anda',
+  'Laman ini mengingati pilihan bahasa anda dan makluman yang telah anda tutup. Ia tidak menggunakan kuki pengiklanan.',
+  '',
+  'Perubahan',
+  'Kami mungkin mengemas kini dasar ini dari semasa ke semasa. Versi terkini sentiasa ada di halaman ini.',
+].join('\n');
+
+const TERMS_MS = [
+  'Tempahan',
+  'Tempahan disahkan apabila kami mengesahkannya, atau apabila bayaran diterima jika pembayaran dalam talian tersedia. Sila simpan nombor rujukan tempahan anda.',
+  '',
+  'Tetamu dan penginapan anda',
+  'Hanya tetamu yang dinamakan dalam tempahan dibenarkan bermalam. Sila patuhi peraturan rumah di halaman Soalan Lazim.',
+  '',
+  'Harga',
+  'Harga dipaparkan dalam ringgit Malaysia (RM) untuk tarikh yang anda pilih.',
+  '',
+  'Perubahan dan pembatalan',
+  'Hubungi kami dengan nombor rujukan tempahan anda dan kami akan membantu. Jika kami telah menerbitkan dasar pembatalan, ia terdapat di halaman Tentang Kami.',
+  '',
+  'Pertanyaan',
+  'Jika sebarang perkara dalam terma ini kurang jelas, sila hubungi kami melalui butiran di halaman Hubungi kami.',
+].join('\n');
+
+/**
  * Neutral first-day content for a brand-new site, so the public pages are not empty before the
  * owner has written their own. Deliberately says nothing the owner has not told us: no address,
  * phone, email, prices, refund terms or notices. Those must be entered in the admin. The only
@@ -76,6 +159,8 @@ export const STARTER_CONTENT: Omit<SiteSettings, 'updatedAt'> = {
   heroHeadline: 'Our Homestay',
   heroSubheadline: 'A comfortable place to stay. Choose your dates to see which rooms are free.',
   heroImageUrl: photoUrl(STARTER_HERO_PHOTO_ID),
+  heroImages: STARTER_HERO_PHOTO_IDS.map(photoUrl),
+  heroIntervalSeconds: 5,
   aboutContent:
     'We offer comfortable rooms for short and longer stays. Choose your dates to see which rooms are ' +
     'available, then book in a few steps.',
@@ -113,6 +198,8 @@ export const STARTER_CONTENT: Omit<SiteSettings, 'updatedAt'> = {
     },
   ],
   cancellationPolicy: '',
+  privacyPolicy: PRIVACY_EN,
+  termsAndConditions: TERMS_EN,
   notices: [],
   facilities: [
     { icon: 'wifi', label: 'Wi-Fi', description: '', labelMs: 'Wi-Fi', descriptionMs: '' },
@@ -122,6 +209,8 @@ export const STARTER_CONTENT: Omit<SiteSettings, 'updatedAt'> = {
   ],
   translations: {
     ms: {
+      privacyPolicy: PRIVACY_MS,
+      termsAndConditions: TERMS_MS,
       heroHeadline: 'Homestay Kami',
       heroSubheadline: 'Tempat penginapan yang selesa. Pilih tarikh anda untuk melihat bilik yang masih kosong.',
       aboutContent:

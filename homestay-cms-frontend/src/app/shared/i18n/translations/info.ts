@@ -4,6 +4,11 @@ import type { TranslationSet } from './index';
 // "contact.", "gallery.", "notFound.".
 export const INFO: TranslationSet = {
   en: {
+    'policy.privacy.title': 'Privacy policy',
+    'policy.privacy.seoDescription': 'How we collect, use and protect your personal information.',
+    'policy.terms.title': 'Terms and conditions',
+    'policy.terms.seoDescription': 'The terms that apply when you book and stay with us.',
+    'policy.empty': 'This page has not been published yet.',
     'about.title': 'About the homestay',
     'about.seoDescription': 'The story behind the homestay, our host, and our location.',
     'about.stayFacts': 'Stay details',
@@ -52,6 +57,11 @@ export const INFO: TranslationSet = {
     'notFound.rooms': 'See the rooms',
   },
   ms: {
+    'policy.privacy.title': 'Dasar privasi',
+    'policy.privacy.seoDescription': 'Cara kami mengumpul, menggunakan dan melindungi maklumat peribadi anda.',
+    'policy.terms.title': 'Terma dan syarat',
+    'policy.terms.seoDescription': 'Terma yang terpakai apabila anda menempah dan menginap bersama kami.',
+    'policy.empty': 'Halaman ini belum diterbitkan.',
     'about.title': 'Tentang homestay kami',
     'about.seoDescription': 'Kisah di sebalik homestay ini, tuan rumah dan lokasi kami.',
     'about.stayFacts': 'Butiran penginapan',

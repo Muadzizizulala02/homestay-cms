@@ -48,6 +48,29 @@
       }
     </mat-form-field>
 
+    <h2>Policies</h2>
+    <p class="hint">Shown on the Privacy policy / Terms pages linked from the footer. Leave empty to hide the link.</p>
+    <mat-form-field appearance="outline" class="full">
+      <mat-label>Privacy policy</mat-label>
+      <textarea matInput formControlName="privacyPolicy" rows="10"></textarea>
+      @if (ms) {
+        <mat-hint>Leave blank to show the English text.</mat-hint>
+      }
+      @if (g.controls.privacyPolicy.invalid) {
+        <mat-error>Keep this under 20000 characters</mat-error>
+      }
+    </mat-form-field>
+    <mat-form-field appearance="outline" class="full">
+      <mat-label>Terms and conditions</mat-label>
+      <textarea matInput formControlName="termsAndConditions" rows="10"></textarea>
+      @if (ms) {
+        <mat-hint>Leave blank to show the English text.</mat-hint>
+      }
+      @if (g.controls.termsAndConditions.invalid) {
+        <mat-error>Keep this under 20000 characters</mat-error>
+      }
+    </mat-form-field>
+
     <h2>House rules</h2>
     @if (ms) {
       <p class="hint">Leave blank to show the English text.</p>
@@ -125,40 +148,107 @@
         [ngTemplateOutletContext]="{ group: form.controls.en, ms: false }"
       />
 
-      <h2>Hero image</h2>
-      <p class="hint">The large photo at the top of the home page, also used when the site is shared. Pick one of your gallery photos, or paste an image address (https). Leave empty for a plain background.</p>
-      @if (form.controls.heroImageUrl.value) {
-        <img class="hero-preview" [src]="form.controls.heroImageUrl.value" alt="Current hero image" />
+      <h2>Hero slideshow</h2>
+      <p class="hint">The photos at the top of the home page, shown in this order (up to {{ maxSlides }}). The first photo is also used when the site is shared. Leave empty for a plain background.</p>
+      @if (slides().length === 1) {
+        <p class="hint">A slideshow needs two or more photos. With one photo, it is shown still.</p>
       }
+      @if (slides().length > 0) {
+        <ol class="slide-list">
+          @for (slide of slides(); track slide; let i = $index; let first = $first; let last = $last) {
+            <li class="slide-row">
+              <img class="slide-thumb" [src]="slide" alt="" />
+              <span class="slide-label">Photo {{ i + 1 }} of {{ slides().length }}</span>
+              <span class="slide-actions">
+                <button mat-icon-button type="button" [disabled]="first" (click)="moveSlide(i, -1)" [attr.aria-label]="'Move photo ' + (i + 1) + ' up'">
+                  <mat-icon>arrow_upward</mat-icon>
+                </button>
+                <button mat-icon-button type="button" [disabled]="last" (click)="moveSlide(i, 1)" [attr.aria-label]="'Move photo ' + (i + 1) + ' down'">
+                  <mat-icon>arrow_downward</mat-icon>
+                </button>
+                <button mat-icon-button type="button" (click)="removeSlide(i)" [attr.aria-label]="'Remove photo ' + (i + 1)">
+                  <mat-icon>close</mat-icon>
+                </button>
+              </span>
+            </li>
+          }
+        </ol>
+      }
+
+      <div class="upload-row">
+        <input
+          #photoInput
+          class="visually-hidden"
+          type="file"
+          accept="image/*"
+          multiple
+          tabindex="-1"
+          aria-hidden="true"
+          [disabled]="uploadStatus() !== null || slides().length >= maxSlides"
+          (change)="uploadSlides($event)"
+        />
+        <button
+          mat-flat-button
+          color="primary"
+          type="button"
+          class="upload-button"
+          [disabled]="uploadStatus() !== null || slides().length >= maxSlides"
+          (click)="photoInput.click()"
+        >
+          <mat-icon>upload</mat-icon>
+          Upload photos
+        </button>
+        @if (uploadStatus(); as status) {
+          <span class="hint" role="status">{{ status }}</span>
+        }
+        @if (slides().length >= maxSlides) {
+          <span class="hint">The slideshow is full ({{ maxSlides }} photos).</span>
+        }
+      </div>
+
       @if (galleryPhotos().length > 0) {
-        <div class="hero-picker" role="group" aria-label="Choose a gallery photo as the hero image">
+        <h3>Choose from gallery</h3>
+        <div class="hero-picker" role="group" aria-label="Add a gallery photo to the slideshow">
           @for (photo of galleryPhotos(); track photo.id) {
             <button
               type="button"
               class="hero-choice"
-              [class.selected]="photo.url === form.controls.heroImageUrl.value"
-              [attr.aria-pressed]="photo.url === form.controls.heroImageUrl.value"
-              [attr.aria-label]="'Use as hero image: ' + photo.altText"
-              (click)="chooseHero(photo.url)"
+              [class.selected]="slides().includes(photo.url)"
+              [attr.aria-pressed]="slides().includes(photo.url)"
+              [attr.aria-label]="'Add to slideshow: ' + photo.altText"
+              [disabled]="slides().length >= maxSlides && !slides().includes(photo.url)"
+              (click)="addGallerySlide(photo.url)"
             >
               <img [src]="photo.url" alt="" />
             </button>
           }
         </div>
       }
-      <mat-form-field appearance="outline" class="full">
-        <mat-label>Hero image address</mat-label>
-        <input matInput formControlName="heroImageUrl" placeholder="https://" />
-        @if (form.controls.heroImageUrl.invalid) {
-          <mat-error>Enter an address starting with http:// or https://</mat-error>
+
+      <h3>Add by address</h3>
+      <div class="row address-row">
+        <mat-form-field appearance="outline" class="full">
+          <mat-label>Image address</mat-label>
+          <input matInput [formControl]="slideAddress" placeholder="https://" (input)="slideAddressError.set(false)" (keydown.enter)="$event.preventDefault(); addSlideByAddress()" />
+          @if (slideAddressError()) {
+            <mat-error>Enter an address starting with http:// or https://</mat-error>
+          }
+        </mat-form-field>
+        <button mat-stroked-button type="button" [disabled]="slides().length >= maxSlides" (click)="addSlideByAddress()">Add</button>
+      </div>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Seconds per photo</mat-label>
+        <input matInput type="number" inputmode="numeric" formControlName="heroIntervalSeconds" [min]="minInterval" [max]="maxInterval" step="1" />
+        <mat-hint>How long each photo is shown. Between 2 and 30 seconds.</mat-hint>
+        @if (form.controls.heroIntervalSeconds.errors?.['required']) {
+          <mat-error>Enter a number of seconds</mat-error>
+        } @else if (form.controls.heroIntervalSeconds.errors?.['whole']) {
+          <mat-error>Use a whole number of seconds</mat-error>
+        } @else if (form.controls.heroIntervalSeconds.invalid) {
+          <mat-error>Enter a number between 2 and 30</mat-error>
         }
       </mat-form-field>
-      <div>
-        <button mat-button type="button" [disabled]="!form.controls.heroImageUrl.value" (click)="clearHero()">
-          <mat-icon>close</mat-icon>
-          Remove hero image
-        </button>
-      </div>
 
       <h2>Location &amp; contact</h2>
       <mat-form-field appearance="outline" class="full">
@@ -173,6 +263,52 @@
         <mat-label>Contact phone</mat-label>
         <input matInput formControlName="contactPhone" />
       </mat-form-field>
+
+      <h2>Social media</h2>
+      <p class="hint">Links shown on the Contact page (up to {{ maxSocialLinks }}). Rows with an empty address are not saved.</p>
+      <div formArrayName="socialLinks" class="list">
+        @for (link of socialLinks.controls; track link) {
+          <div class="social-row" [formGroupName]="$index">
+            <mat-form-field appearance="outline" class="social-platform">
+              <mat-label>Platform</mat-label>
+              <mat-select formControlName="platform">
+                @for (name of platforms; track name) {
+                  <mat-option [value]="name">{{ name }}</mat-option>
+                }
+                <mat-option [value]="otherPlatform">Other</mat-option>
+              </mat-select>
+            </mat-form-field>
+            @if (link.controls.platform.value === otherPlatform) {
+              <mat-form-field appearance="outline" class="social-platform">
+                <mat-label>Platform name</mat-label>
+                <input matInput formControlName="customPlatform" maxlength="40" />
+                @if (link.errors?.['platformName']) {
+                  <mat-error>Enter the platform name</mat-error>
+                }
+              </mat-form-field>
+            }
+            <mat-form-field appearance="outline" class="social-url">
+              <mat-label>Address</mat-label>
+              <input matInput type="url" formControlName="url" placeholder="https://" />
+              @if (link.controls.platform.value === 'WhatsApp') {
+                <mat-hint>Use a wa.me link, e.g. https://wa.me/60123456789</mat-hint>
+              }
+              @if (link.controls.url.invalid) {
+                <mat-error>Enter an address starting with http:// or https://</mat-error>
+              }
+            </mat-form-field>
+            <button mat-icon-button type="button" (click)="removeSocialLink($index)" [attr.aria-label]="'Remove social link ' + ($index + 1)">
+              <mat-icon>close</mat-icon>
+            </button>
+          </div>
+        }
+      </div>
+      <div>
+        <button mat-button type="button" [disabled]="socialLinks.length >= maxSocialLinks" (click)="addSocialLink()">
+          <mat-icon>add</mat-icon>
+          Add link
+        </button>
+      </div>
 
       <h2>Check-in / check-out</h2>
       <mat-form-field appearance="outline">

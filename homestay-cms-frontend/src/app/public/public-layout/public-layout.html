@@ -80,10 +80,37 @@
       </div>
     }
     <div>
-      <h2>{{ i18n.t('footer.explore') }}</h2>
+      <h2>{{ i18n.t('footer.information') }}</h2>
+      <p><a routerLink="/about">{{ i18n.t('footer.about') }}</a></p>
       <p><a routerLink="/faq">{{ i18n.t('footer.faqRules') }}</a></p>
       <p><a routerLink="/contact">{{ i18n.t('footer.contactUs') }}</a></p>
     </div>
+    @if (content(); as c) {
+      @if (c.privacyPolicy || c.termsAndConditions || c.cancellationPolicy) {
+        <div>
+          <h2>{{ i18n.t('footer.policies') }}</h2>
+          @if (c.privacyPolicy) {
+            <p><a routerLink="/privacy">{{ i18n.t('footer.privacy') }}</a></p>
+          }
+          @if (c.termsAndConditions) {
+            <p><a routerLink="/terms">{{ i18n.t('footer.terms') }}</a></p>
+          }
+          @if (c.cancellationPolicy) {
+            <p><a routerLink="/about">{{ i18n.t('footer.cancellation') }}</a></p>
+          }
+        </div>
+      }
+      @if (c.socialLinks.length) {
+        <div>
+          <h2>{{ i18n.t('footer.follow') }}</h2>
+          @for (link of c.socialLinks; track $index) {
+            <p>
+              <a [href]="link.url" target="_blank" rel="noopener noreferrer">{{ link.platform }}<span class="visually-hidden"> {{ i18n.t('footer.newTab') }}</span></a>
+            </p>
+          }
+        </div>
+      }
+    }
   </div>
   <p class="copyright">&copy; {{ currentYear }}@if (content() || failed()) { {{ content()?.heroHeadline || 'Homestay' }}}. {{ i18n.t('footer.rights') }}</p>
 </footer>

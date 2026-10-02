@@ -1,4 +1,9 @@
-<section class="hero" [class.has-photo]="content()?.heroImageUrl" [style.background-image]="content()?.heroImageUrl ? 'url(' + content()?.heroImageUrl + ')' : null">
+<section class="hero" [class.has-photo]="content()?.heroSlides?.length">
+  @if (content(); as c) {
+    @if (c.heroSlides.length) {
+      <app-hero-slideshow [slides]="c.heroSlides" [intervalSeconds]="c.heroIntervalSeconds" />
+    }
+  }
   <div class="hero-inner">
     @if (content(); as c) {
       <h1>{{ c.heroHeadline }}</h1>

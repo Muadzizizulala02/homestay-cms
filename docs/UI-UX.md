@@ -23,6 +23,18 @@ Fonts: **Bricolage Grotesque** for headings, **Public Sans** for body (Google Fo
 
 The one memorable element is the **hero booking bar** (`shared/ui/booking-bar`): check-in, check-out, guests and a live night count, overlapping the hero's lower edge. It sends `checkIn`, `checkOut`, `guests` query params to `/accommodation`, which carries them to the room detail and booking pages.
 
+## Hero slideshow
+
+The home hero cross-fades through the photos listed in **Admin > Site content > Hero slideshow** (up to 10), showing each for the configured **seconds per photo** (2-30, default 5). Admins upload several photos at once (straight to Cloudinary, folder `homestay/hero`), add from the gallery or by https address, reorder with Move up/down, and remove. The first photo doubles as the social-share image unless that was set separately.
+
+Behaviour (`shared/ui/hero-slideshow`): a single photo is shown still with no controls; with two or more there is a **Pause/Play** button and one indicator per photo (auto-moving content must be pausable); it pauses while the tab is hidden; with `prefers-reduced-motion` it does not autoplay and does not fade. The next image is preloaded so the fade never shows a blank. If no slideshow is set it falls back to the single `heroImageUrl`, then to the plain tile background.
+
+## Header and footer
+
+The header carries only the main journey: Home, Rooms, Gallery, the language toggle and "Book a stay". **About, FAQ & house rules and Contact live in the footer** under *Information*, with *Policies* (Privacy policy, Terms and conditions; Cancellation policy appears only when written) and *Follow us* (the social links). Any footer column with nothing to show is hidden.
+
+Privacy and Terms are CMS-managed pages (`/privacy`, `/terms`), written in English and Bahasa Malaysia in **Admin > Site content > Policies**; an empty policy hides its footer link. The starter text describes only what this website really does and is not legal advice: review it before launch. Social links are edited under **Social media** (Facebook, Instagram, TikTok, WhatsApp, YouTube, X, Other; https only, up to 8).
+
 ## Notices
 
 Admins manage notices in **Admin → Site content**. Ordinary active notices show in a slim strip under the header (dismissible); notices marked *important* also open once per browser session in a pop-up. Dismissals live in `sessionStorage` (`shared/ui/notices`).

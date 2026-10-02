@@ -1,6 +1,6 @@
 # CMS
 
-Status: site content, accommodation, and media management are implemented (backend + admin UI). A bookings screen (list, confirm as paid, cancel, record refund) is implemented; availability blocking is still planned.
+Status: site content, accommodation, and media management are implemented (backend + admin UI). Hero slideshow (multi-upload, reorder, interval), policies and social links are editable under Site content. A bookings screen (list, confirm as paid, cancel, record refund) is implemented; availability blocking is still planned.
 
 Deliberately small in scope — this serves one owner-operator, not a multi-tenant CMS.
 

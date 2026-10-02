@@ -2,7 +2,8 @@
 /**
  * One-time: puts neutral starter content (English + Bahasa Malaysia) on a new site so the public
  * pages are not empty before the owner has written their own:
- *   - site settings, with a hero / social-share image;
+ *   - site settings: a hero slideshow (5 s per photo) that doubles as the social-share image,
+ *     plus starter Privacy policy and Terms text (linked from the footer);
  *   - a gallery;
  *   - three PLACEHOLDER rooms with photos and made-up sample prices.
  * No address, phone, email or refund terms are invented. ALL PHOTOS ARE STOCK IMAGES, NOT YOUR
@@ -15,7 +16,10 @@
  * or you pass --no-upload, the original stock URLs are used instead.
  *
  * Nothing you already have is overwritten unless you pass --force:
- *   - settings that exist are left alone, except an EMPTY hero / share image is filled in;
+ *   - settings that exist are left alone, except anything still EMPTY is filled in: the hero
+ *     slideshow (only if the current hero is not your own photo), the share image, the interval,
+ *     and the privacy / terms text in each language;
+ *   - social links are never seeded: they are your accounts, so add them in the admin;
  *   - rooms that exist (or whose URL slug is taken) are skipped;
  *   - the gallery is only seeded when it has no photos yet.
  *
@@ -126,36 +130,71 @@ function makeImageResolver(useCloudinary) {
   };
 }
 
-async function seedSettings(db, content, photos, heroId, resolve, target, force) {
+/** True for an image this seed put there (Cloudinary starter folder or the original stock host). */
+function isStarterImage(url) {
+  return typeof url === 'string' && (url.includes('/homestay/starter/') || url.includes('images.unsplash.com'));
+}
+
+async function seedSettings(db, content, photos, heroIds, resolve, target, force) {
   const ref = db.doc('siteSettings/main');
   const existing = await ref.get();
+  const sourceOf = (id) => photos.find((p) => p.id === id).sourceUrl;
+  const resolveSlides = async () => Promise.all(heroIds.map(async (id) => (await resolve(sourceOf(id), id)).url));
 
-  if (existing.exists && !force) {
-    // Leave the owner's content alone; only fill in an image that is still missing.
-    const data = existing.data();
-    const heroEmpty = !data.heroImageUrl;
-    const shareEmpty = !(data.seoDefaults && data.seoDefaults.shareImageUrl);
-    if (!heroEmpty && !shareEmpty) {
-      console.log(`Site settings already exist on ${target}. Left unchanged.`);
-      return;
-    }
-    const hero = await resolve(photos.find((p) => p.id === heroId).sourceUrl, heroId);
-    const update = { updatedAt: Timestamp.now() };
-    if (heroEmpty) update.heroImageUrl = hero.url;
-    if (shareEmpty) update.seoDefaults = { ...(data.seoDefaults || {}), shareImageUrl: hero.url };
-    await ref.update(update);
-    console.log(`Site settings already exist on ${target}; filled in the missing ${[heroEmpty && 'hero', shareEmpty && 'share'].filter(Boolean).join(' + ')} image only.`);
+  if (!existing.exists || force) {
+    const slides = await resolveSlides();
+    await ref.set({
+      ...content,
+      heroImageUrl: slides[0],
+      heroImages: slides,
+      seoDefaults: { ...content.seoDefaults, shareImageUrl: slides[0] },
+      updatedAt: Timestamp.now(),
+    });
+    console.log(`${existing.exists ? 'Replaced' : 'Created'} starter site settings on ${target} (${slides.length}-photo hero slideshow, ${content.heroIntervalSeconds}s per photo).`);
     return;
   }
 
-  const hero = await resolve(photos.find((p) => p.id === heroId).sourceUrl, heroId);
-  await ref.set({
-    ...content,
-    heroImageUrl: hero.url,
-    seoDefaults: { ...content.seoDefaults, shareImageUrl: hero.url },
-    updatedAt: Timestamp.now(),
-  });
-  console.log(`${existing.exists ? 'Replaced' : 'Created'} starter site settings on ${target}.`);
+  // Settings already exist: never touch the owner's content; only fill in what is still empty.
+  const data = existing.data();
+  const update = {};
+  const filled = [];
+  const ownerHero = !!data.heroImageUrl && !isStarterImage(data.heroImageUrl);
+  const hasSlides = Array.isArray(data.heroImages) && data.heroImages.length > 0;
+
+  if (!hasSlides && !ownerHero) {
+    const slides = await resolveSlides();
+    update.heroImages = slides;
+    if (!data.heroImageUrl) update.heroImageUrl = slides[0];
+    filled.push(`hero slideshow (${slides.length} photos)`);
+  }
+  const effectiveHero = update.heroImageUrl || data.heroImageUrl;
+  if (!(data.seoDefaults && data.seoDefaults.shareImageUrl) && effectiveHero) {
+    update.seoDefaults = { ...(data.seoDefaults || {}), shareImageUrl: effectiveHero };
+    filled.push('share image');
+  }
+  if (typeof data.heroIntervalSeconds !== 'number') {
+    update.heroIntervalSeconds = content.heroIntervalSeconds;
+    filled.push('slideshow interval');
+  }
+  const ms = (data.translations && data.translations.ms) || {};
+  for (const [field, label] of [['privacyPolicy', 'privacy policy'], ['termsAndConditions', 'terms']]) {
+    if (!data[field]) {
+      update[field] = content[field];
+      filled.push(label);
+    }
+    if (!ms[field]) {
+      update[`translations.ms.${field}`] = content.translations.ms[field];
+      filled.push(`${label} (Malay)`);
+    }
+  }
+
+  if (filled.length === 0) {
+    console.log(`Site settings already exist on ${target}. Left unchanged.`);
+    return;
+  }
+  update.updatedAt = Timestamp.now();
+  await ref.update(update);
+  console.log(`Site settings already exist on ${target}; filled in only what was missing: ${filled.join(', ')}.`);
 }
 
 async function seedRooms(db, rooms, photos, resolve, target, force) {
@@ -230,14 +269,14 @@ async function main() {
   }
   console.log(useCloudinary ? 'Images: uploading to your Cloudinary account.' : 'Images: using the original stock URLs (no upload).');
 
-  const { STARTER_CONTENT, STARTER_ROOMS, STARTER_GALLERY, STARTER_PHOTOS, STARTER_HERO_PHOTO_ID } = loadStarterContent();
+  const { STARTER_CONTENT, STARTER_ROOMS, STARTER_GALLERY, STARTER_PHOTOS, STARTER_HERO_PHOTO_IDS } = loadStarterContent();
 
   initializeApp(emulator ? undefined : { projectId: project });
   const db = getFirestore();
   const target = emulator ? `emulator (${process.env.GCLOUD_PROJECT})` : `project "${project}"`;
   const resolve = makeImageResolver(useCloudinary);
 
-  await seedSettings(db, STARTER_CONTENT, STARTER_PHOTOS, STARTER_HERO_PHOTO_ID, resolve, target, force);
+  await seedSettings(db, STARTER_CONTENT, STARTER_PHOTOS, STARTER_HERO_PHOTO_IDS, resolve, target, force);
   if (!has('--no-gallery')) {
     await seedGallery(db, STARTER_GALLERY, STARTER_PHOTOS, resolve, target, force);
   }
@@ -248,6 +287,8 @@ async function main() {
   console.log('');
   console.log('!! All seeded photos are STOCK IMAGES and the room prices are SAMPLES. They are not your property.');
   console.log('!! Replace them in Admin > Accommodation, Admin > Gallery and Admin > Site content before real guests book.');
+  console.log('The privacy policy and terms are generic starter text, not legal advice: read and adjust them in Admin > Site content.');
+  console.log('Social media links are not seeded (they are your own accounts): add them in Admin > Site content > Social media.');
   console.log('Next: open Admin > Site content and enter your real name, address, phone and email.');
 }
 

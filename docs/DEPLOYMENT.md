@@ -43,7 +43,7 @@ None of these are committed; only `.env.example` placeholder files are tracked.
 
 A brand-new site has no content, so the public pages look unfinished. `functions/scripts/seed-starter-content.js` seeds, in English and Bahasa Malaysia:
 
-1. **Site settings** (headline, about, four common facilities, house rules, FAQs) plus a **hero / social-share image**. It invents **no** address, phone, email or refund terms.
+1. **Site settings** (headline, about, four common facilities, house rules, FAQs), a **4-photo hero slideshow** (5 s per photo, doubles as the social-share image) and starter **Privacy policy and Terms** text in both languages. It invents **no** address, phone, email or refund terms.
 2. **A gallery** of five photos, each with accurate alt text.
 3. **Two placeholder rooms** (Standard Room, Family Room), RM 150 / RM 250 per night.
 
@@ -60,4 +60,4 @@ node scripts/seed-starter-content.js --project=homestay-cms
 node scripts/seed-starter-content.js --emulator
 ```
 
-Flags: `--no-rooms`, `--no-gallery`, `--no-upload`, `--upload` (emulator only), `--force`. It refuses to run without `--project` or `--emulator`. **Nothing you already have is overwritten without `--force`:** existing settings are left alone (except an *empty* hero / share image, which is filled in), rooms that exist or whose URL slug is taken are skipped, and the gallery is only seeded when it has no photos. The content lives in `functions/src/seed/starter-content.ts` and is validated by the same schemas as the admin forms (`npm test`). The older `seed-dummy-data.js` is a local-only demo (fake business) and refuses to run against a real project.
+Flags: `--no-rooms`, `--no-gallery`, `--no-upload`, `--upload` (emulator only), `--force`. It refuses to run without `--project` or `--emulator`. **Nothing you already have is overwritten without `--force`:** existing settings are left alone except anything still *empty*, which is filled in (the hero slideshow, only when your current hero isn't your own photo; the share image; the interval; the privacy / terms text per language). Social links are never seeded — they are your own accounts, rooms that exist or whose URL slug is taken are skipped, and the gallery is only seeded when it has no photos. The content lives in `functions/src/seed/starter-content.ts` and is validated by the same schemas as the admin forms (`npm test`). The older `seed-dummy-data.js` is a local-only demo (fake business) and refuses to run against a real project.

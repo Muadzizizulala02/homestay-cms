@@ -1,7 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { NgTemplateOutlet } from '@angular/common';
 import { Component, OnInit, inject, signal } from '@angular/core';
-import { AbstractControl, FormArray, FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { AbstractControl, FormArray, FormBuilder, FormControl, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
@@ -20,24 +20,44 @@ import {
   type SiteSettings,
 } from '../../shared/services/site-settings.service';
 import {
+  MAX_SLIDES,
+  MAX_SOCIAL_LINKS,
   OTHER_ICON,
+  OTHER_PLATFORM,
+  SOCIAL_PLATFORMS,
   SUGGESTED_ICONS,
+  addSlide,
   createFacilityGroup,
   createFaqGroup,
   createNoticeGroup,
   createRuleControl,
+  createSocialLinkGroup,
   createTranslatableGroup,
+  initialSlides,
   isHttpUrlOrEmpty,
+  moveSlide,
   nextShareImage,
+  removeSlide,
   toFacilities,
   toMalayContent,
   toNotices,
+  toSocialLinks,
   type FacilityGroup,
   type NoticeGroup,
+  type SocialLinkGroup,
   type TranslatableGroup,
 } from './content-form';
 
 type Language = 'en' | 'ms';
+
+const MIN_INTERVAL = 2;
+const MAX_INTERVAL = 30;
+const DEFAULT_INTERVAL = 5;
+
+function wholeSeconds(control: AbstractControl): ValidationErrors | null {
+  const value = control.value;
+  return typeof value === 'number' && Number.isInteger(value) ? null : { whole: true };
+}
 
 @Component({
   selector: 'app-admin-content',
@@ -77,11 +97,28 @@ export class ContentPage implements OnInit {
   readonly maxFacilities = 30;
   readonly icons = SUGGESTED_ICONS;
   readonly otherIcon = OTHER_ICON;
+  readonly maxSlides = MAX_SLIDES;
+  readonly maxSocialLinks = MAX_SOCIAL_LINKS;
+  readonly minInterval = MIN_INTERVAL;
+  readonly maxInterval = MAX_INTERVAL;
+  readonly platforms = SOCIAL_PLATFORMS;
+  readonly otherPlatform = OTHER_PLATFORM;
+
+  /** Hero slideshow photos in display order. */
+  readonly slides = signal<string[]>([]);
+  /** Progress text while photos upload, e.g. "Uploading 2 of 5…"; null when idle. */
+  readonly uploadStatus = signal<string | null>(null);
+  /** Address typed for "Add by address"; not part of the saved form. */
+  readonly slideAddress = new FormControl('', { nonNullable: true });
+  readonly slideAddressError = signal(false);
 
   readonly form = this.fb.group({
     en: createTranslatableGroup(this.fb, true),
     ms: createTranslatableGroup(this.fb, false),
-    heroImageUrl: ['', (control: AbstractControl) => (isHttpUrlOrEmpty(String(control.value ?? '')) ? null : { url: true })],
+    heroIntervalSeconds: [
+      DEFAULT_INTERVAL,
+      [Validators.required, Validators.min(MIN_INTERVAL), Validators.max(MAX_INTERVAL), wholeSeconds],
+    ],
     address: [''],
     contactEmail: ['', Validators.email],
     contactPhone: [''],
@@ -89,6 +126,7 @@ export class ContentPage implements OnInit {
     checkOutTime: [''],
     notices: this.fb.array<NoticeGroup>([]),
     facilities: this.fb.array<FacilityGroup>([]),
+    socialLinks: this.fb.array<SocialLinkGroup>([]),
   });
 
   get notices(): FormArray<NoticeGroup> {
@@ -97,6 +135,10 @@ export class ContentPage implements OnInit {
 
   get facilities(): FormArray<FacilityGroup> {
     return this.form.controls.facilities;
+  }
+
+  get socialLinks(): FormArray<SocialLinkGroup> {
+    return this.form.controls.socialLinks;
   }
 
   ngOnInit(): void {
@@ -130,6 +172,8 @@ export class ContentPage implements OnInit {
       aboutContent: content.aboutContent ?? '',
       hostIntro: content.hostIntro ?? '',
       cancellationPolicy: content.cancellationPolicy ?? '',
+      privacyPolicy: content.privacyPolicy ?? '',
+      termsAndConditions: content.termsAndConditions ?? '',
     });
     group.controls.houseRules.clear();
     for (const rule of content.houseRules ?? []) {
@@ -145,8 +189,9 @@ export class ContentPage implements OnInit {
     this.fillTranslatable(this.form.controls.en, settings, true);
     this.fillTranslatable(this.form.controls.ms, settings.translations?.ms ?? {}, false);
     this.baseline = settings;
+    this.slides.set(initialSlides(settings.heroImages, settings.heroImageUrl));
     this.form.patchValue({
-      heroImageUrl: settings.heroImageUrl ?? '',
+      heroIntervalSeconds: settings.heroIntervalSeconds ?? DEFAULT_INTERVAL,
       address: settings.address,
       contactEmail: settings.contactEmail,
       contactPhone: settings.contactPhone,
@@ -162,15 +207,80 @@ export class ContentPage implements OnInit {
     for (const facility of settings.facilities ?? []) {
       this.facilities.push(createFacilityGroup(this.fb, facility));
     }
+    this.socialLinks.clear();
+    for (const link of settings.socialLinks ?? []) {
+      this.socialLinks.push(createSocialLinkGroup(this.fb, link));
+    }
   }
 
-  chooseHero(url: string): void {
-    this.form.controls.heroImageUrl.setValue(url);
-    this.form.controls.heroImageUrl.markAsDirty();
+  private markSlidesChanged(next: string[]): void {
+    this.slides.set(next);
+    this.form.markAsDirty();
   }
 
-  clearHero(): void {
-    this.chooseHero('');
+  /** Adds a gallery photo to the slideshow (duplicates are ignored). */
+  addGallerySlide(url: string): void {
+    if (this.slides().length >= MAX_SLIDES) {
+      this.snackBar.open(`The slideshow can have at most ${MAX_SLIDES} photos`, 'Dismiss', { duration: 4000 });
+      return;
+    }
+    this.markSlidesChanged(addSlide(this.slides(), url));
+  }
+
+  addSlideByAddress(): void {
+    const value = this.slideAddress.value.trim();
+    if (value === '' || !isHttpUrlOrEmpty(value)) {
+      this.slideAddressError.set(true);
+      return;
+    }
+    this.slideAddressError.set(false);
+    this.addGallerySlide(value);
+    this.slideAddress.setValue('');
+  }
+
+  moveSlide(index: number, offset: number): void {
+    this.markSlidesChanged(moveSlide(this.slides(), index, offset));
+  }
+
+  removeSlide(index: number): void {
+    this.markSlidesChanged(removeSlide(this.slides(), index));
+  }
+
+  /** Uploads the chosen photos one at a time, adding each to the slideshow as it finishes. */
+  async uploadSlides(event: Event): Promise<void> {
+    const input = event.target as HTMLInputElement;
+    const files = Array.from(input.files ?? []);
+    input.value = '';
+    if (files.length === 0 || this.uploadStatus() !== null) {
+      return;
+    }
+    const room = MAX_SLIDES - this.slides().length;
+    if (files.length > room) {
+      this.snackBar.open(
+        `The slideshow can have at most ${MAX_SLIDES} photos; only the first ${room} will be uploaded`,
+        'Dismiss',
+        { duration: 5000 },
+      );
+    }
+    const chosen = files.slice(0, Math.max(room, 0));
+    for (const [index, file] of chosen.entries()) {
+      this.uploadStatus.set(`Uploading ${index + 1} of ${chosen.length}…`);
+      try {
+        const { url } = await this.mediaService.uploadRaw(file, 'homestay/hero');
+        this.markSlidesChanged(addSlide(this.slides(), url));
+      } catch {
+        this.snackBar.open(`Could not upload ${file.name}`, 'Dismiss', { duration: 5000 });
+      }
+    }
+    this.uploadStatus.set(null);
+  }
+
+  addSocialLink(): void {
+    this.socialLinks.push(createSocialLinkGroup(this.fb));
+  }
+
+  removeSocialLink(index: number): void {
+    this.socialLinks.removeAt(index);
   }
 
   setLanguage(language: Language): void {
@@ -220,8 +330,8 @@ export class ContentPage implements OnInit {
   save(): void {
     if (this.form.invalid) {
       // Show the tab that has the problem rather than leaving Save inert.
-      // Everything except the Malay group (including the hero address, contacts, notices and
-      // facilities) is on the English view; go to Malay only when Malay is the sole problem.
+      // Everything except the Malay group (including the slideshow interval, contacts, notices,
+      // facilities and social links) is on the English view; go to Malay only when Malay is the sole problem.
       const englishViewInvalid = Object.entries(this.form.controls).some(([key, control]) => key !== 'ms' && control.invalid);
       this.setLanguage(englishViewInvalid ? 'en' : 'ms');
       this.form.markAllAsTouched();
@@ -231,7 +341,8 @@ export class ContentPage implements OnInit {
 
     const raw = this.form.getRawValue();
     const en = raw.en;
-    const hero = raw.heroImageUrl.trim();
+    const slides = this.slides();
+    const hero = slides[0] ?? '';
     const baseHero = this.baseline?.heroImageUrl ?? '';
     const baseSeo = this.baseline?.seoDefaults ?? { title: '', description: '', shareImageUrl: '' };
     this.siteSettingsService
@@ -241,9 +352,13 @@ export class ContentPage implements OnInit {
         aboutContent: en.aboutContent,
         hostIntro: en.hostIntro,
         cancellationPolicy: en.cancellationPolicy,
+        privacyPolicy: en.privacyPolicy,
+        termsAndConditions: en.termsAndConditions,
         houseRules: en.houseRules,
         faqs: en.faqs.map((faq, index) => ({ ...faq, order: index })),
+        heroImages: slides,
         heroImageUrl: hero,
+        heroIntervalSeconds: raw.heroIntervalSeconds,
         seoDefaults: { ...baseSeo, shareImageUrl: nextShareImage(baseHero, baseSeo.shareImageUrl, hero) },
         address: raw.address,
         contactEmail: raw.contactEmail,
@@ -252,6 +367,7 @@ export class ContentPage implements OnInit {
         checkOutTime: raw.checkOutTime,
         notices: toNotices(this.notices.controls),
         facilities: toFacilities(this.facilities.controls),
+        socialLinks: toSocialLinks(this.socialLinks.controls),
         translations: { ms: toMalayContent(this.form.controls.ms) },
       })
       .subscribe({

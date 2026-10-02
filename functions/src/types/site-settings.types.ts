@@ -42,6 +42,8 @@ export interface MalayContent {
   aboutContent?: string;
   hostIntro?: string;
   cancellationPolicy?: string;
+  privacyPolicy?: string;
+  termsAndConditions?: string;
   houseRules?: string[];
   faqs?: FaqItem[];
 }
@@ -50,7 +52,12 @@ export interface MalayContent {
 export interface SiteSettings {
   heroHeadline: string;
   heroSubheadline: string;
+  /** The first slideshow image (or a single hero); also the social-share image. */
   heroImageUrl: string;
+  /** Hero slideshow, in display order. Empty = fall back to `heroImageUrl`, then a plain background. */
+  heroImages: string[];
+  /** Seconds each hero image is shown (2-30). */
+  heroIntervalSeconds: number;
   aboutContent: string;
   hostIntro: string;
   address: string;
@@ -63,6 +70,8 @@ export interface SiteSettings {
   houseRules: string[];
   faqs: FaqItem[];
   cancellationPolicy: string;
+  privacyPolicy: string;
+  termsAndConditions: string;
   notices: Notice[];
   facilities: Facility[];
   translations: { ms: MalayContent };

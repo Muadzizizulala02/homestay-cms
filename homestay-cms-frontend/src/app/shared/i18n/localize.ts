@@ -1,5 +1,5 @@
 import type { Accommodation } from '../services/accommodation.service';
-import type { Facility, FaqItem, Notice, SiteSettings } from '../services/site-settings.service';
+import type { Facility, FaqItem, Notice, SiteSettings, SocialLink } from '../services/site-settings.service';
 import type { Lang } from './i18n.service';
 
 /** The site content a visitor sees in their language. Every field has an English fallback. */
@@ -7,6 +7,9 @@ export interface LocalizedSettings {
   heroHeadline: string;
   heroSubheadline: string;
   heroImageUrl: string;
+  /** The slideshow to show: `heroImages`, else the single `heroImageUrl`, else empty. */
+  heroSlides: string[];
+  heroIntervalSeconds: number;
   aboutContent: string;
   hostIntro: string;
   address: string;
@@ -15,6 +18,9 @@ export interface LocalizedSettings {
   checkInTime: string;
   checkOutTime: string;
   cancellationPolicy: string;
+  privacyPolicy: string;
+  termsAndConditions: string;
+  socialLinks: SocialLink[];
   houseRules: string[];
   faqs: FaqItem[];
   notices: LocalizedNotice[];
@@ -43,6 +49,25 @@ function pickList<T>(lang: Lang, english: T[], malay: T[] | undefined): T[] {
   return lang === 'ms' && malay && malay.length > 0 ? malay : english;
 }
 
+/** The images the hero should cycle through: the slideshow if set, else the single hero image. */
+export function heroSlides(settings: Pick<SiteSettings, 'heroImages' | 'heroImageUrl'>): string[] {
+  const slides = (settings.heroImages ?? []).filter((url) => !!url);
+  if (slides.length > 0) {
+    return slides;
+  }
+  return settings.heroImageUrl ? [settings.heroImageUrl] : [];
+}
+
+export const DEFAULT_HERO_INTERVAL_SECONDS = 5;
+
+/** Documents saved before the slideshow existed have no interval; out-of-range values are pulled back in. */
+export function clampInterval(seconds: number | undefined): number {
+  if (typeof seconds !== 'number' || !Number.isFinite(seconds)) {
+    return DEFAULT_HERO_INTERVAL_SECONDS;
+  }
+  return Math.min(30, Math.max(2, Math.round(seconds)));
+}
+
 export function localizeNotice(notice: Notice, lang: Lang): LocalizedNotice {
   return {
     id: notice.id,
@@ -67,6 +92,8 @@ export function localizeSettings(settings: SiteSettings, lang: Lang): LocalizedS
     heroHeadline: pick(lang, settings.heroHeadline, ms.heroHeadline),
     heroSubheadline: pick(lang, settings.heroSubheadline, ms.heroSubheadline),
     heroImageUrl: settings.heroImageUrl,
+    heroSlides: heroSlides(settings),
+    heroIntervalSeconds: clampInterval(settings.heroIntervalSeconds),
     aboutContent: pick(lang, settings.aboutContent, ms.aboutContent),
     hostIntro: pick(lang, settings.hostIntro, ms.hostIntro),
     address: settings.address,
@@ -75,6 +102,9 @@ export function localizeSettings(settings: SiteSettings, lang: Lang): LocalizedS
     checkInTime: settings.checkInTime,
     checkOutTime: settings.checkOutTime,
     cancellationPolicy: pick(lang, settings.cancellationPolicy, ms.cancellationPolicy),
+    privacyPolicy: pick(lang, settings.privacyPolicy ?? '', ms.privacyPolicy),
+    termsAndConditions: pick(lang, settings.termsAndConditions ?? '', ms.termsAndConditions),
+    socialLinks: settings.socialLinks ?? [],
     houseRules: pickList(lang, settings.houseRules ?? [], ms.houseRules),
     faqs: pickList(lang, settings.faqs ?? [], ms.faqs),
     notices: (settings.notices ?? []).filter((n) => n.active).map((n) => localizeNotice(n, lang)),

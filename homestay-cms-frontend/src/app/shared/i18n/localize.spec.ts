@@ -1,12 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import type { SiteSettings } from '../services/site-settings.service';
-import { localizeFacility, localizeNotice, localizeSettings, pick } from './localize';
+import { clampInterval, heroSlides, localizeFacility, localizeNotice, localizeSettings, pick } from './localize';
 
 function settings(overrides: Partial<SiteSettings> = {}): SiteSettings {
   return {
     heroHeadline: 'Welcome',
     heroSubheadline: 'A quiet stay',
     heroImageUrl: '',
+    heroImages: [],
+    heroIntervalSeconds: 5,
     aboutContent: 'About us',
     hostIntro: '',
     address: '1 Jalan Satu',
@@ -19,6 +21,8 @@ function settings(overrides: Partial<SiteSettings> = {}): SiteSettings {
     houseRules: ['No smoking'],
     faqs: [{ question: 'Parking?', answer: 'Yes', order: 0 }],
     cancellationPolicy: 'Free until 7 days before',
+    privacyPolicy: '',
+    termsAndConditions: '',
     notices: [],
     facilities: [],
     translations: { ms: {} },
@@ -96,5 +100,52 @@ describe('localizeNotice and localizeFacility', () => {
 
     const facility = { icon: 'wifi', label: 'Wi-Fi', description: 'Fast', descriptionMs: 'Laju' };
     expect(localizeFacility(facility, 'ms')).toEqual({ icon: 'wifi', label: 'Wi-Fi', description: 'Laju' });
+  });
+});
+
+describe('heroSlides', () => {
+  it('uses the slideshow when there is one', () => {
+    expect(heroSlides({ heroImages: ['a', 'b'], heroImageUrl: 'single' })).toEqual(['a', 'b']);
+  });
+
+  it('falls back to the single hero image, then to nothing', () => {
+    expect(heroSlides({ heroImages: [], heroImageUrl: 'single' })).toEqual(['single']);
+    expect(heroSlides({ heroImages: [], heroImageUrl: '' })).toEqual([]);
+  });
+
+  it('copes with a settings document that has no slideshow field at all', () => {
+    expect(heroSlides({ heroImageUrl: 'single' } as never)).toEqual(['single']);
+  });
+
+  it('ignores blank entries', () => {
+    expect(heroSlides({ heroImages: ['', 'a'], heroImageUrl: '' })).toEqual(['a']);
+  });
+});
+
+describe('clampInterval', () => {
+  it('defaults to 5 when missing or not a number', () => {
+    expect(clampInterval(undefined)).toBe(5);
+    expect(clampInterval(Number.NaN)).toBe(5);
+  });
+
+  it('keeps sensible values and pulls extremes back into 2-30', () => {
+    expect(clampInterval(8)).toBe(8);
+    expect(clampInterval(0)).toBe(2);
+    expect(clampInterval(500)).toBe(30);
+  });
+});
+
+describe('localizeSettings policies and slides', () => {
+  it('shows Malay policies when present and English otherwise', () => {
+    const base = settings({ privacyPolicy: 'Privacy', termsAndConditions: 'Terms', translations: { ms: { privacyPolicy: 'Privasi' } } });
+    const ms = localizeSettings(base, 'ms');
+    expect(ms.privacyPolicy).toBe('Privasi');
+    expect(ms.termsAndConditions).toBe('Terms');
+  });
+
+  it('exposes the slides and a clamped interval', () => {
+    const result = localizeSettings(settings({ heroImages: ['a', 'b'], heroIntervalSeconds: 99 }), 'en');
+    expect(result.heroSlides).toEqual(['a', 'b']);
+    expect(result.heroIntervalSeconds).toBe(30);
   });
 });

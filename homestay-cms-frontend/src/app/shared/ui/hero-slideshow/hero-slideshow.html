@@ -1,0 +1,39 @@
+@if (count() > 0) {
+  <div class="slides">
+    @for (src of slides(); track $index; let i = $index) {
+      <img
+        class="slide"
+        [class.active]="i === current()"
+        [class.instant]="reducedMotion()"
+        [src]="src"
+        alt=""
+        [attr.loading]="i === 0 ? 'eager' : 'lazy'"
+        [attr.fetchpriority]="i === 0 ? 'high' : null"
+      />
+    }
+  </div>
+
+  @if (multiple()) {
+    <div class="controls" role="group" [attr.aria-label]="i18n.t('slideshow.controls')">
+      <button
+        type="button"
+        class="toggle"
+        [attr.aria-label]="paused() ? i18n.t('slideshow.play') : i18n.t('slideshow.pause')"
+        (click)="togglePause()"
+      >
+        <mat-icon aria-hidden="true">{{ paused() ? 'play_arrow' : 'pause' }}</mat-icon>
+      </button>
+      <div class="dots">
+        @for (src of slides(); track $index; let i = $index) {
+          <button
+            type="button"
+            class="dot"
+            [attr.aria-label]="i18n.t('slideshow.show', { n: i + 1, total: count() })"
+            [attr.aria-current]="i === current() ? 'true' : null"
+            (click)="show(i)"
+          ></button>
+        }
+      </div>
+    </div>
+  }
+}

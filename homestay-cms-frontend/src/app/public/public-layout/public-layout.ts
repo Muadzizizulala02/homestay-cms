@@ -25,9 +25,6 @@ export class PublicLayout implements OnInit {
     { path: '/', labelKey: 'nav.home' },
     { path: '/accommodation', labelKey: 'nav.rooms' },
     { path: '/gallery', labelKey: 'nav.gallery' },
-    { path: '/about', labelKey: 'nav.about' },
-    { path: '/faq', labelKey: 'nav.faq' },
-    { path: '/contact', labelKey: 'nav.contact' },
   ];
 
   ngOnInit(): void {
