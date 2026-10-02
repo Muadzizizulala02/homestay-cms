@@ -1,12 +1,20 @@
 @if (content()) {
-  <article class="page policy">
-    <h1 class="page-title">{{ title() }}</h1>
-    @if (text().trim()) {
-      <div class="prose">{{ text() }}</div>
-    } @else {
+  @if (text().trim()) {
+    <app-policy-showcase
+      [pageTitle]="true"
+      [eyebrow]="i18n.t('policy.eyebrow')"
+      [title]="title()"
+      [subtitle]="subtitle()"
+      [quote]="quote()"
+      [items]="items()"
+      [background]="background()"
+    />
+  } @else {
+    <article class="page policy">
+      <h1 class="page-title">{{ title() }}</h1>
       <p>{{ i18n.t('policy.empty') }}</p>
-    }
-  </article>
+    </article>
+  }
 } @else if (failed()) {
   <section class="page">
     <app-load-error (retry)="retry()" />

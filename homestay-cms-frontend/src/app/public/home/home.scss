@@ -239,33 +239,6 @@
   color: var(--ink);
 }
 
-// ---- House rules: plain two-column list ----
-.rule-list {
-  margin: 0;
-  padding-left: 1.2rem;
-  max-width: 62rem;
-  line-height: 1.6;
-
-  @media (min-width: 760px) {
-    columns: 2;
-    column-gap: 3rem;
-  }
-
-  li {
-    margin-bottom: 0.6rem;
-    break-inside: avoid;
-  }
-
-  li::marker {
-    color: var(--moss);
-  }
-}
-
-.check-times {
-  margin: 1.25rem 0 0;
-  font-weight: 600;
-}
-
 .about .prose {
   margin: 0 0 1rem;
 }
@@ -281,28 +254,6 @@
 // ---- Motion ----
 // One orchestrated moment on load: the headline words rise in one after another, then the
 // intro line, then the booking bar. (Reduced motion: all shown immediately.)
-// The caret is zero-width so it never changes where the line wraps; it blinks on the line being typed.
-.caret {
-  display: inline-block;
-  position: relative;
-  width: 0;
-
-  &::after {
-    content: '';
-    position: absolute;
-    left: 0.06em;
-    top: 0.12em;
-    height: 0.82em;
-    border-left: 0.07em solid currentColor;
-    opacity: 0;
-  }
-
-  &.active::after {
-    opacity: 1;
-    animation: caret-blink 1s steps(1) infinite;
-  }
-}
-
 // Not yet typed: takes up its space (so lines never re-wrap) but is invisible.
 .untyped {
   visibility: hidden;
@@ -367,9 +318,6 @@
     animation: none;
   }
 
-  .caret::after {
-    display: none;
-  }
 
   .room-media img,
   .room:hover .room-media img,

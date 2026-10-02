@@ -17,30 +17,30 @@ const L = 6; // lead length
 
 describe('frameAt', () => {
   it('shows nothing during the start delay', () => {
-    expect(frameAt(0, H, L, cfg)).toEqual({ head: 0, lead: 0, caret: 'head' });
-    expect(frameAt(199, H, L, cfg)).toEqual({ head: 0, lead: 0, caret: 'head' });
+    expect(frameAt(0, H, L, cfg)).toEqual({ head: 0, lead: 0 });
+    expect(frameAt(199, H, L, cfg)).toEqual({ head: 0, lead: 0 });
   });
 
-  it('types the headline one character at a time, caret on the headline', () => {
-    expect(frameAt(200 + 100, H, L, cfg)).toEqual({ head: 1, lead: 0, caret: 'head' });
-    expect(frameAt(200 + 250, H, L, cfg)).toEqual({ head: 2, lead: 0, caret: 'head' });
+  it('types the headline one character at a time', () => {
+    expect(frameAt(200 + 100, H, L, cfg)).toEqual({ head: 1, lead: 0 });
+    expect(frameAt(200 + 250, H, L, cfg)).toEqual({ head: 2, lead: 0 });
   });
 
-  it('then moves the caret to the lead and types it', () => {
-    expect(frameAt(200 + 400 + 50, H, L, cfg)).toEqual({ head: H, lead: 0, caret: 'lead' }); // in the gap
-    expect(frameAt(200 + 400 + 100 + 150, H, L, cfg)).toEqual({ head: H, lead: 3, caret: 'lead' });
+  it('then types the intro line after a short beat', () => {
+    expect(frameAt(200 + 400 + 50, H, L, cfg)).toEqual({ head: H, lead: 0 }); // in the gap
+    expect(frameAt(200 + 400 + 100 + 150, H, L, cfg)).toEqual({ head: H, lead: 3 });
   });
 
   it('holds with everything typed', () => {
     const t = 200 + 400 + 100 + 300 + 500; // mid-hold
-    expect(frameAt(t, H, L, cfg)).toEqual({ head: H, lead: L, caret: 'lead' });
+    expect(frameAt(t, H, L, cfg)).toEqual({ head: H, lead: L });
   });
 
   it('erases the lead, then the headline, then rests empty', () => {
     const afterHold = 200 + 400 + 100 + 300 + 1000;
-    expect(frameAt(afterHold + 30, H, L, cfg)).toEqual({ head: H, lead: 3, caret: 'lead' });
-    expect(frameAt(afterHold + 60 + 40, H, L, cfg)).toEqual({ head: 2, lead: 0, caret: 'head' });
-    expect(frameAt(afterHold + 60 + 80 + 100, H, L, cfg)).toEqual({ head: 0, lead: 0, caret: 'head' });
+    expect(frameAt(afterHold + 30, H, L, cfg)).toEqual({ head: H, lead: 3 });
+    expect(frameAt(afterHold + 60 + 40, H, L, cfg)).toEqual({ head: 2, lead: 0 });
+    expect(frameAt(afterHold + 60 + 80 + 100, H, L, cfg)).toEqual({ head: 0, lead: 0 });
   });
 
   it('loops forever: a later cycle repeats the same typing, without the start delay', () => {
@@ -67,7 +67,7 @@ describe('frameAt', () => {
   });
 
   it('copes with no text at all', () => {
-    expect(frameAt(5000, 0, 0, cfg)).toEqual({ head: 0, lead: 0, caret: 'head' });
+    expect(frameAt(5000, 0, 0, cfg)).toEqual({ head: 0, lead: 0 });
   });
 
   it('has sensible defaults: a visible hold and a finite cycle', () => {

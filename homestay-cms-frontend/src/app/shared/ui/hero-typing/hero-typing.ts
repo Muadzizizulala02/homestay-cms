@@ -7,8 +7,6 @@ export interface HeroTyping {
   head: Signal<{ on: string; off: string }>;
   /** The intro line, likewise. */
   lead: Signal<{ on: string; off: string }>;
-  /** Which line the caret is on, or `none` when nothing is animating. */
-  caret: Signal<'head' | 'lead' | 'none'>;
 }
 
 const TICK_MS = 40;
@@ -27,7 +25,7 @@ export function injectHeroTyping(headline: Signal<string>, lead: Signal<string>)
   const win = document.defaultView;
   const reduceMotion = !!win && typeof win.matchMedia === 'function' && win.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  const frame = signal<TypingFrame>({ head: 0, lead: 0, caret: 'head' });
+  const frame = signal<TypingFrame>({ head: 0, lead: 0 });
   const headLen = computed(() => Array.from(headline()).length);
   const leadLen = computed(() => Array.from(lead()).length);
 
@@ -36,7 +34,7 @@ export function injectHeroTyping(headline: Signal<string>, lead: Signal<string>)
     const l = leadLen();
 
     if (reduceMotion || (h === 0 && l === 0)) {
-      frame.set({ head: h, lead: l, caret: 'head' });
+      frame.set({ head: h, lead: l });
       return;
     }
 
@@ -51,7 +49,7 @@ export function injectHeroTyping(headline: Signal<string>, lead: Signal<string>)
         elapsed += now - last;
         const next = frameAt(elapsed, h, l, DEFAULT_TYPING);
         const current = frame();
-        if (next.head !== current.head || next.lead !== current.lead || next.caret !== current.caret) {
+        if (next.head !== current.head || next.lead !== current.lead) {
           frame.set(next);
         }
       }
@@ -64,6 +62,5 @@ export function injectHeroTyping(headline: Signal<string>, lead: Signal<string>)
   return {
     head: computed(() => splitAt(headline(), frame().head)),
     lead: computed(() => splitAt(lead(), frame().lead)),
-    caret: computed(() => (reduceMotion ? 'none' : frame().caret)),
   };
 }

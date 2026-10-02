@@ -25,11 +25,7 @@ h2 {
 .layout {
   display: grid;
   gap: 2.5rem;
-
-  @media (min-width: 56rem) {
-    grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
-    gap: 4rem;
-  }
+  max-width: 52rem;
 }
 
 .item {

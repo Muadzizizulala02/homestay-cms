@@ -34,21 +34,18 @@
           </details>
         }
       </div>
-
-      <div class="rules">
-        <h2>{{ i18n.t('faq.rules') }}</h2>
-        @if (c.houseRules.length > 0) {
-          <ul>
-            @for (rule of c.houseRules; track $index) {
-              <li>{{ rule }}</li>
-            }
-          </ul>
-        } @else {
-          <p class="empty">{{ i18n.t('faq.noRules') }}</p>
-        }
-      </div>
     </div>
   </section>
+
+  @if (c.houseRules.length > 0) {
+    <app-policy-showcase
+      [eyebrow]="i18n.t('rules.eyebrow')"
+      [title]="i18n.t('faq.rules')"
+      [subtitle]="i18n.t('rules.subtitle')"
+      [items]="ruleItems()"
+      [background]="heroBackground()"
+    />
+  }
 } @else if (failed()) {
   <section class="page">
     <app-load-error (retry)="retry()" />

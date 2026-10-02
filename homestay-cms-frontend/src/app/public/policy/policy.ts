@@ -6,6 +6,8 @@ import { SeoService } from '../../core/seo.service';
 import { I18nService } from '../../shared/i18n/i18n.service';
 import { SiteContentService } from '../../shared/services/site-content.service';
 import { LoadError } from '../../shared/ui/load-error/load-error';
+import { toItems } from '../../shared/ui/policy-showcase/policy-parse';
+import { PolicyShowcase } from '../../shared/ui/policy-showcase/policy-showcase';
 import { Skeleton } from '../../shared/ui/skeleton/skeleton';
 
 type PolicyKind = 'privacy' | 'terms';
@@ -13,7 +15,7 @@ type PolicyKind = 'privacy' | 'terms';
 /** One page for both /privacy and /terms; the route's `data.policy` picks which text to show. */
 @Component({
   selector: 'app-policy-page',
-  imports: [LoadError, Skeleton],
+  imports: [LoadError, Skeleton, PolicyShowcase],
   templateUrl: './policy.html',
   styleUrl: './policy.scss',
 })
@@ -39,6 +41,13 @@ export class PolicyPage implements OnInit {
     }
     return (this.kind() === 'terms' ? c.termsAndConditions : c.privacyPolicy) ?? '';
   });
+
+  /** The policy text laid out as icon cards (headings become card titles). */
+  readonly items = computed(() => toItems(this.text()));
+  readonly subtitle = computed(() => this.i18n.t(`policy.${this.kind()}.subtitle`));
+  readonly quote = computed(() => this.i18n.t(`policy.${this.kind()}.quote`));
+  /** The first hero photo sits behind the section, so the policy pages feel part of the same site. */
+  readonly background = computed(() => this.content()?.heroSlides?.[0] ?? '');
 
   constructor() {
     effect(() => {

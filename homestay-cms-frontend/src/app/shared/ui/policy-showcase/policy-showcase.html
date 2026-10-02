@@ -1,0 +1,64 @@
+<section class="showcase" [class.has-photo]="!!background()" [class.is-page]="pageTitle()" [style.background-image]="backgroundImage()">
+  <div class="inner">
+    <header class="head" appReveal>
+      @if (eyebrow()) {
+        <p class="eyebrow">{{ eyebrow() }}</p>
+      }
+      @if (pageTitle()) {
+        <h1 class="title">{{ title() }}</h1>
+      } @else {
+        <h2 class="title">{{ title() }}</h2>
+      }
+      @if (subtitle()) {
+        <p class="subtitle">{{ subtitle() }}</p>
+      }
+      @if (quote()) {
+        <p class="quote">{{ quote() }}</p>
+      }
+    </header>
+
+    <div class="cards">
+      @for (column of [cards().left, cards().right]; track $index; let c = $index) {
+        @if (column.length > 0) {
+          <div class="card" [appReveal]="200 + c * 140">
+            <ul>
+              @for (item of column; track $index) {
+                <li class="item">
+                  <span class="icon" aria-hidden="true"><mat-icon>{{ item.icon }}</mat-icon></span>
+                  <div class="text">
+                    @if (item.heading) {
+                      <h3>{{ item.heading }}</h3>
+                    }
+                    @if (item.body) {
+                      <p>{{ item.body }}</p>
+                    }
+                  </div>
+                </li>
+              }
+            </ul>
+          </div>
+        }
+      }
+
+      @if (cards().bottom.length > 0) {
+        <div class="card wide" [appReveal]="480">
+          <ul>
+            @for (item of cards().bottom; track $index) {
+              <li class="item">
+                <span class="icon" aria-hidden="true"><mat-icon>{{ item.icon }}</mat-icon></span>
+                <div class="text">
+                  @if (item.heading) {
+                    <h3>{{ item.heading }}</h3>
+                  }
+                  @if (item.body) {
+                    <p>{{ item.body }}</p>
+                  }
+                </div>
+              </li>
+            }
+          </ul>
+        </div>
+      }
+    </div>
+  </div>
+</section>

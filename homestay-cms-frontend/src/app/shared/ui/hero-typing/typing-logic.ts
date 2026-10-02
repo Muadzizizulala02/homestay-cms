@@ -34,8 +34,6 @@ export interface TypingFrame {
   head: number;
   /** Characters of the intro line currently shown. */
   lead: number;
-  /** Which line the blinking caret sits on. */
-  caret: 'head' | 'lead';
 }
 
 /** Length of one full type-hold-erase-rest loop. */
@@ -58,45 +56,45 @@ export function cycleLength(headLen: number, leadLen: number, cfg: TypingConfig 
 export function frameAt(elapsedMs: number, headLen: number, leadLen: number, cfg: TypingConfig = DEFAULT_TYPING): TypingFrame {
   const sinceStart = elapsedMs - cfg.startDelayMs;
   if (sinceStart < 0 || (headLen === 0 && leadLen === 0)) {
-    return { head: 0, lead: 0, caret: 'head' };
+    return { head: 0, lead: 0 };
   }
 
   let t = sinceStart % cycleLength(headLen, leadLen, cfg);
 
   const typeHead = headLen * cfg.headMsPerChar;
   if (t < typeHead) {
-    return { head: Math.min(headLen, Math.floor(t / cfg.headMsPerChar)), lead: 0, caret: 'head' };
+    return { head: Math.min(headLen, Math.floor(t / cfg.headMsPerChar)), lead: 0 };
   }
   t -= typeHead;
 
   if (t < cfg.gapMs) {
-    return { head: headLen, lead: 0, caret: 'lead' };
+    return { head: headLen, lead: 0 };
   }
   t -= cfg.gapMs;
 
   const typeLead = leadLen * cfg.leadMsPerChar;
   if (t < typeLead) {
-    return { head: headLen, lead: Math.min(leadLen, Math.floor(t / cfg.leadMsPerChar)), caret: 'lead' };
+    return { head: headLen, lead: Math.min(leadLen, Math.floor(t / cfg.leadMsPerChar)) };
   }
   t -= typeLead;
 
   if (t < cfg.holdMs) {
-    return { head: headLen, lead: leadLen, caret: 'lead' };
+    return { head: headLen, lead: leadLen };
   }
   t -= cfg.holdMs;
 
   const eraseLead = leadLen * cfg.eraseLeadMsPerChar;
   if (t < eraseLead) {
-    return { head: headLen, lead: Math.max(0, leadLen - Math.floor(t / cfg.eraseLeadMsPerChar)), caret: 'lead' };
+    return { head: headLen, lead: Math.max(0, leadLen - Math.floor(t / cfg.eraseLeadMsPerChar)) };
   }
   t -= eraseLead;
 
   const eraseHead = headLen * cfg.eraseHeadMsPerChar;
   if (t < eraseHead) {
-    return { head: Math.max(0, headLen - Math.floor(t / cfg.eraseHeadMsPerChar)), lead: 0, caret: 'head' };
+    return { head: Math.max(0, headLen - Math.floor(t / cfg.eraseHeadMsPerChar)), lead: 0 };
   }
 
-  return { head: 0, lead: 0, caret: 'head' };
+  return { head: 0, lead: 0 };
 }
 
 /** Splits text after `count` whole characters (so emoji are never cut in half). */

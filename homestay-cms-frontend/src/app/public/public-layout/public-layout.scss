@@ -203,7 +203,7 @@ main {
   }
 
   @media (min-width: 1000px) {
-    grid-template-columns: 1.4fr repeat(3, minmax(0, 1fr));
+    grid-template-columns: 1.3fr repeat(4, minmax(0, 1fr));
   }
 }
 

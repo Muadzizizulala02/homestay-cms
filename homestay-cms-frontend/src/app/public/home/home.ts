@@ -10,6 +10,8 @@ import { BookingBar } from '../../shared/ui/booking-bar/booking-bar';
 import { HeroSlideshow } from '../../shared/ui/hero-slideshow/hero-slideshow';
 import { Reveal } from '../../shared/ui/reveal/reveal';
 import { injectHeroTyping } from '../../shared/ui/hero-typing/hero-typing';
+import { rulesToItems } from '../../shared/ui/policy-showcase/policy-parse';
+import { PolicyShowcase } from '../../shared/ui/policy-showcase/policy-showcase';
 import { ImgFade } from '../../shared/ui/img-fade/img-fade';
 import { Skeleton } from '../../shared/ui/skeleton/skeleton';
 
@@ -17,7 +19,7 @@ const ROOMS_ON_HOME = 3;
 
 @Component({
   selector: 'app-home',
-  imports: [RouterLink, MatIconModule, BookingBar, HeroSlideshow, Skeleton, Reveal, ImgFade],
+  imports: [RouterLink, MatIconModule, BookingBar, HeroSlideshow, Skeleton, Reveal, ImgFade, PolicyShowcase],
   templateUrl: './home.html',
   styleUrl: './home.scss',
 })
@@ -34,6 +36,13 @@ export class Home implements OnInit {
     computed(() => this.content()?.heroHeadline ?? ''),
     computed(() => this.content()?.heroSubheadline ?? '')
   );
+  /** House rules as icon cards, with the check-in/out times as the section's closing line. */
+  readonly ruleItems = computed(() => rulesToItems(this.content()?.houseRules ?? []));
+  readonly heroBackground = computed(() => this.content()?.heroSlides?.[0] ?? '');
+  readonly checkTimes = computed(() => {
+    const c = this.content();
+    return c?.checkInTime && c?.checkOutTime ? this.i18n.t('home.rules.checkTimes', { in: c.checkInTime, out: c.checkOutTime }) : '';
+  });
   readonly featured = signal<Accommodation[]>([]);
   /** False until the rooms request finishes (success or error), so we show a skeleton, not nothing. */
   readonly roomsLoaded = signal(false);
