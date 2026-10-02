@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import crypto from 'node:crypto';
 import { Timestamp } from 'firebase-admin/firestore';
 import { db } from '../../config/firebase';
-import { createBooking } from '../booking.service';
+import { createBooking, expireStalePendingBookings } from '../booking.service';
 import {
   createPaymentForBooking,
   handleToyyibPayWebhook,
@@ -206,6 +206,58 @@ describe('handleToyyibPayWebhook', () => {
     expect(bookingDoc.data()?.['paymentStatus']).toBe('failed');
   });
 
+  it('does not revive an expired booking paid late, and leaves the dates new owner untouched', async () => {
+    const booking = await seedPendingBooking();
+    await createPaymentForBooking(booking.id);
+    await db
+      .collection('bookings')
+      .doc(booking.id)
+      .update({ holdExpiresAt: Timestamp.fromMillis(Date.now() - 1000) });
+    await expireStalePendingBookings();
+
+    // Someone else books the freed dates before the original guest's payment lands.
+    const rebooked = await createBooking({
+      accommodationId: booking.accommodationId,
+      checkInDate: booking.checkInDate,
+      checkOutDate: booking.checkOutDate,
+      guestCount: 2,
+      guest,
+    });
+
+    const fields = { status: '1', order_id: booking.reference, refno: 'ref-late' };
+    await handleToyyibPayWebhook({ ...fields, billcode: billCode, amount: '30000', hash: signPayload(fields) });
+
+    const bookingData = (await db.collection('bookings').doc(booking.id).get()).data();
+    expect(bookingData?.['status']).toBe('expired'); // not revived
+    expect(bookingData?.['paymentStatus']).toBe('paid'); // but the money is on record, for a refund
+
+    // Refunding the late payment must not free the dates now owned by the second guest.
+    await markPaymentRefunded(booking.id);
+    const nightDoc = await db
+      .collection('accommodations')
+      .doc(booking.accommodationId)
+      .collection('availability')
+      .doc(booking.checkInDate)
+      .get();
+    expect(nightDoc.data()?.['bookingId']).toBe(rebooked.id);
+  });
+
+  it('does not downgrade a paid payment when a later failed callback arrives', async () => {
+    const booking = await seedPendingBooking();
+    await createPaymentForBooking(booking.id);
+
+    const paid = { status: '1', order_id: booking.reference, refno: 'ref-paid' };
+    await handleToyyibPayWebhook({ ...paid, billcode: billCode, amount: '30000', hash: signPayload(paid) });
+    const failed = { status: '3', order_id: booking.reference, refno: 'ref-failed' };
+    await handleToyyibPayWebhook({ ...failed, billcode: billCode, amount: '30000', hash: signPayload(failed) });
+
+    const bookingData = (await db.collection('bookings').doc(booking.id).get()).data();
+    expect(bookingData?.['status']).toBe('confirmed');
+    expect(bookingData?.['paymentStatus']).toBe('paid');
+    const paymentSnap = await db.collection('payments').where('bookingId', '==', booking.id).limit(1).get();
+    expect(paymentSnap.docs[0].data()['status']).toBe('paid');
+  });
+
   it('rejects a callback with an invalid hash', async () => {
     const booking = await seedPendingBooking();
     await createPaymentForBooking(booking.id);
@@ -268,6 +320,23 @@ describe('markPaymentRefunded', () => {
     const bookingDoc = await db.collection('bookings').doc(booking.id).get();
     expect(bookingDoc.data()?.['status']).toBe('cancelled');
     expect(bookingDoc.data()?.['paymentStatus']).toBe('refunded');
+  });
+
+  it("frees the refunded booking's nights so the dates can be rebooked", async () => {
+    const booking = await seedPendingBooking();
+    await createPaymentForBooking(booking.id);
+    const fields = { status: '1', order_id: booking.reference, refno: 'ref-6' };
+    await handleToyyibPayWebhook({ ...fields, billcode: billCode, amount: '30000', hash: signPayload(fields) });
+
+    await markPaymentRefunded(booking.id);
+
+    const nightDoc = await db
+      .collection('accommodations')
+      .doc(booking.accommodationId)
+      .collection('availability')
+      .doc(booking.checkInDate)
+      .get();
+    expect(nightDoc.exists).toBe(false);
   });
 
   it('rejects refunding a booking that was never paid', async () => {

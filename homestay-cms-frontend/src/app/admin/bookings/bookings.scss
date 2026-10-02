@@ -1,0 +1,95 @@
+.spacer {
+  flex: 1 1 auto;
+}
+
+.content {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 1.5rem;
+}
+
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+
+  .active {
+    background: rgba(0, 0, 0, 0.08);
+  }
+}
+
+.booking-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.75rem;
+}
+
+.booking {
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  border-radius: 8px;
+  padding: 1rem;
+
+  p {
+    margin: 0.25rem 0;
+  }
+
+  &.faded {
+    opacity: 0.6;
+  }
+}
+
+.head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.status {
+  font-size: 0.8125rem;
+  padding: 0.125rem 0.5rem;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.08);
+}
+
+.status-pending_payment {
+  background: #fff3cd;
+}
+
+.status-confirmed {
+  background: #d7f0dd;
+}
+
+.notes {
+  font-style: italic;
+  color: rgba(0, 0, 0, 0.7);
+}
+
+.total {
+  font-weight: 500;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.empty {
+  color: rgba(0, 0, 0, 0.6);
+}
+
+.error {
+  color: #b3261e;
+}
+
+.alert {
+  background: #fdecea;
+  color: #b3261e;
+  border-radius: 6px;
+  padding: 0.5rem 0.75rem;
+}

@@ -1,5 +1,7 @@
 import express from 'express';
 import cors from 'cors';
+import { rateLimit } from 'express-rate-limit';
+import { corsOptions } from './config/cors';
 import './config/firebase';
 import healthRoutes from './routes/health.routes';
 import publicRoutes from './routes/public.routes';
@@ -14,7 +16,10 @@ import { errorHandler } from './middleware/error.middleware';
 
 export const app = express();
 
-app.use(cors({ origin: true }));
+// Cloud Functions sits behind Google's front end; trust one hop so req.ip is the real client,
+// not the proxy (otherwise every guest would share one rate-limit bucket).
+app.set('trust proxy', 1);
+app.use(cors(corsOptions));
 app.use(express.json());
 // ToyyibPay posts its webhook as application/x-www-form-urlencoded, not JSON.
 app.use(express.urlencoded({ extended: false }));
@@ -25,6 +30,18 @@ app.use(express.urlencoded({ extended: false }));
 // would silently 404 every route. The full client-facing URL still reads .../api/v1/... (see
 // environment.apiUrl in the frontend) because that "api" segment is the function name, supplied
 // by the caller, not part of what Express routes on.
+// Public guest endpoints that create records or take a reference+email guess: cap per IP.
+// In-memory, so the cap is per function instance — a speed bump against casual abuse, not a
+// hard guarantee. The ToyyibPay webhook is deliberately not limited (it authenticates by hash).
+const guestBookingLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 30,
+  standardHeaders: 'draft-7',
+  legacyHeaders: false,
+  message: { error: { code: 'RATE_LIMITED', message: 'Too many requests. Please try again shortly.' } },
+});
+app.use('/v1/bookings', guestBookingLimiter);
+
 app.use('/v1', healthRoutes);
 app.use('/v1', publicRoutes);
 app.use('/v1', bookingRoutes);

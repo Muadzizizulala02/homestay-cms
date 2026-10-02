@@ -1,0 +1,92 @@
+<mat-toolbar color="primary">
+  <a routerLink="/admin/dashboard" aria-label="Back to dashboard">
+    <button mat-icon-button type="button"><mat-icon>arrow_back</mat-icon></button>
+  </a>
+  <span>Bookings</span>
+  <span class="spacer"></span>
+  <button mat-icon-button type="button" (click)="refresh()" aria-label="Refresh">
+    <mat-icon>refresh</mat-icon>
+  </button>
+</mat-toolbar>
+
+<div class="content">
+  <div class="filters" role="group" aria-label="Filter bookings">
+    <button mat-stroked-button type="button" [class.active]="filter() === 'all'" (click)="setFilter('all')">
+      All
+    </button>
+    <button
+      mat-stroked-button
+      type="button"
+      [class.active]="filter() === 'pending_payment'"
+      (click)="setFilter('pending_payment')"
+    >
+      Awaiting payment ({{ awaitingCount() }})
+    </button>
+    <button
+      mat-stroked-button
+      type="button"
+      [class.active]="filter() === 'confirmed'"
+      (click)="setFilter('confirmed')"
+    >
+      Confirmed
+    </button>
+  </div>
+
+  @if (loading()) {
+    <p class="empty">Loading bookings…</p>
+  } @else if (loadFailed()) {
+    <p class="error">Could not load bookings. <button type="button" (click)="refresh()">Try again</button></p>
+  } @else if (visibleBookings().length === 0) {
+    <p class="empty">No bookings here yet.</p>
+  } @else {
+    <ul class="booking-list">
+      @for (booking of visibleBookings(); track booking.id) {
+        <li class="booking" [class.faded]="(booking.status === 'cancelled' || booking.status === 'expired') && !needsRefund(booking)">
+          <div class="head">
+            <strong>{{ booking.reference }}</strong>
+            <span class="status status-{{ booking.status }}">{{ statusLabel(booking.status) }}</span>
+          </div>
+          <p>{{ unitName(booking) }} · {{ booking.checkInDate }} &rarr; {{ booking.checkOutDate }}
+            ({{ booking.price.nights }} night{{ booking.price.nights === 1 ? '' : 's' }},
+            {{ booking.guestCount }} guest{{ booking.guestCount === 1 ? '' : 's' }})</p>
+          <p>
+            {{ booking.guest.name }} ·
+            <a [href]="'mailto:' + booking.guest.email">{{ booking.guest.email }}</a> ·
+            <a [href]="'tel:' + booking.guest.phone">{{ booking.guest.phone }}</a>
+          </p>
+          @if (booking.guest.notes) {
+            <p class="notes">“{{ booking.guest.notes }}”</p>
+          }
+          @if (needsRefund(booking)) {
+            <p class="alert">
+              The guest paid after this booking {{ booking.status === 'expired' ? 'expired' : 'was cancelled' }}.
+              Their dates may no longer be available — refund them through ToyyibPay, then record it below.
+            </p>
+          }
+          <p class="total">
+            RM {{ booking.price.total }} ·
+            {{ booking.paidOnline ? 'Paid online' : booking.paymentStatus === 'paid' ? 'Paid (manual)' : 'Unpaid' }}
+          </p>
+
+          <div class="actions">
+            @if (canConfirm(booking)) {
+              <button mat-flat-button type="button" [disabled]="busyId() === booking.id" (click)="confirm(booking)">
+                Mark paid &amp; confirm
+              </button>
+            }
+            @if (canRefund(booking)) {
+              <button mat-stroked-button type="button" [disabled]="busyId() === booking.id" (click)="refund(booking)">
+                Record refund
+              </button>
+            }
+            @if (canCancel(booking)) {
+              <button mat-stroked-button type="button" [disabled]="busyId() === booking.id" (click)="cancel(booking)">
+                Cancel &amp; release dates
+              </button>
+            }
+          </div>
+        </li>
+      }
+    </ul>
+  }
+</div>

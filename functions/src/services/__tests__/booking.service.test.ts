@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { Timestamp } from 'firebase-admin/firestore';
 import { db } from '../../config/firebase';
 import {
@@ -199,6 +199,38 @@ describe('expireStalePendingBookings', () => {
       bookingInput(accommodationId, { checkInDate: '2027-01-01', checkOutDate: '2027-01-03' })
     );
     expect(rebooked.status).toBe('pending_payment');
+  });
+
+  it('does not expire a booking that a payment confirms after the sweep has selected it', async () => {
+    const accommodationId = await seedAccommodation();
+    const booking = await createBooking(
+      bookingInput(accommodationId, { checkInDate: '2027-03-01', checkOutDate: '2027-03-03' })
+    );
+    await db
+      .collection('bookings')
+      .doc(booking.id)
+      .update({ holdExpiresAt: Timestamp.fromMillis(Date.now() - 1000) });
+
+    // The sweep's query selects this booking as stale; then the guest's payment lands, before
+    // the sweep's transaction runs. Simulate that by confirming it just before the transaction.
+    const original = db.runTransaction.bind(db) as (fn: unknown, opts?: unknown) => Promise<unknown>;
+    vi.spyOn(db, 'runTransaction').mockImplementationOnce((async (fn: unknown, opts?: unknown) => {
+      await db.collection('bookings').doc(booking.id).update({ status: 'confirmed', paymentStatus: 'paid' });
+      return original(fn, opts);
+    }) as never);
+
+    await expireStalePendingBookings();
+    vi.restoreAllMocks();
+
+    const bookingDoc = await db.collection('bookings').doc(booking.id).get();
+    expect(bookingDoc.data()?.status).toBe('confirmed');
+    const nightDoc = await db
+      .collection('accommodations')
+      .doc(accommodationId)
+      .collection('availability')
+      .doc('2027-03-01')
+      .get();
+    expect(nightDoc.exists).toBe(true);
   });
 
   it('leaves bookings whose hold has not expired untouched', async () => {

@@ -1,0 +1,45 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  functions:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: functions
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: functions/package-lock.json
+      # The Firestore/Auth emulators the tests run against need a JVM.
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - run: npm ci
+      - run: npm run build
+      - run: npm install --global firebase-tools
+      - run: npm test
+
+  frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: homestay-cms-frontend
+    steps:
+      - uses: actions/checkout@v4
+      # Angular 22 requires Node >= 22.22.3 / 24.15.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: homestay-cms-frontend/package-lock.json
+      - run: npm ci
+      - run: npm run build

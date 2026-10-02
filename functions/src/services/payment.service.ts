@@ -3,6 +3,7 @@ import { Timestamp } from 'firebase-admin/firestore';
 import { db } from '../config/firebase';
 import { env } from '../config/env';
 import { AppError } from '../utils/app-error';
+import { releaseBookingNights } from './booking.service';
 import type { Booking, BookingStatus } from '../types/booking.types';
 import type { Payment } from '../types/payment.types';
 import type { PaymentStatus } from '../types/booking.types';
@@ -34,6 +35,7 @@ async function createToyyibPayBill(input: CreateToyyibPayBillInput): Promise<{ b
     billEmail: input.email,
     billPhone: input.phone,
     billPaymentChannel: '2', // FPX + card
+    billExpiryDays: '1', // gateway-side cap; the hold is shorter, so the webhook also handles late payment
   });
 
   const res = await fetch(`${env.toyyibpayBaseUrl}/index.php/api/createBill`, {
@@ -158,20 +160,47 @@ export async function handleToyyibPayWebhook(payload: Record<string, string>): P
   const paymentDoc = paymentSnap.docs[0];
   const payment = paymentDoc.data() as Payment;
   const isPaid = payload['status'] === '1';
-  const paymentStatus: PaymentStatus = isPaid ? 'paid' : 'failed';
+  const bookingRef = db.collection('bookings').doc(payment.bookingId);
 
   await db.runTransaction(async (tx) => {
-    tx.update(paymentDoc.ref, {
-      status: paymentStatus,
-      rawWebhookPayload: payload,
-      updatedAt: Timestamp.now(),
-    });
-    tx.update(db.collection('bookings').doc(payment.bookingId), {
-      status: (isPaid ? 'confirmed' : 'pending_payment') satisfies BookingStatus,
-      paymentStatus,
-      ...(isPaid ? { holdExpiresAt: null } : {}),
-      updatedAt: Timestamp.now(),
-    });
+    const [freshPayment, bookingSnap] = await Promise.all([tx.get(paymentDoc.ref), tx.get(bookingRef)]);
+    const currentPayment = freshPayment.data() as Payment;
+    const booking = bookingSnap.data() as Booking | undefined;
+    const now = Timestamp.now();
+
+    // Callbacks can repeat or arrive out of order; a payment that is already paid (or refunded)
+    // is never downgraded by a later one.
+    if (currentPayment.status === 'paid' || currentPayment.status === 'refunded') {
+      return;
+    }
+
+    if (!isPaid) {
+      tx.update(paymentDoc.ref, { status: 'failed' satisfies PaymentStatus, rawWebhookPayload: payload, updatedAt: now });
+      if (booking?.status === 'pending_payment') {
+        tx.update(bookingRef, { paymentStatus: 'failed' satisfies PaymentStatus, updatedAt: now });
+      }
+      return;
+    }
+
+    tx.update(paymentDoc.ref, { status: 'paid' satisfies PaymentStatus, rawWebhookPayload: payload, updatedAt: now });
+    if (!booking) {
+      return;
+    }
+
+    if (booking.status === 'pending_payment') {
+      tx.update(bookingRef, {
+        status: 'confirmed' satisfies BookingStatus,
+        paymentStatus: 'paid' satisfies PaymentStatus,
+        holdExpiresAt: null,
+        updatedAt: now,
+      });
+      return;
+    }
+
+    // The guest paid after the booking expired or was cancelled, so its dates were released and
+    // may belong to someone else. Never revive it: record that money was received and leave the
+    // booking as-is — the admin then sees "paid" on a dead booking and refunds it.
+    tx.update(bookingRef, { paymentStatus: 'paid' satisfies PaymentStatus, updatedAt: now });
   });
 }
 
@@ -182,22 +211,39 @@ export async function handleToyyibPayWebhook(payload: Record<string, string>): P
  * admin has processed the actual refund through ToyyibPay themselves.
  */
 export async function markPaymentRefunded(bookingId: string): Promise<void> {
-  const paymentSnap = await db.collection(COLLECTION).where('bookingId', '==', bookingId).limit(1).get();
+  const paymentSnap = await db
+    .collection(COLLECTION)
+    .where('bookingId', '==', bookingId)
+    .where('status', '==', 'paid')
+    .limit(1)
+    .get();
   if (paymentSnap.empty) {
-    throw new AppError(404, 'No payment found for this booking', 'PAYMENT_NOT_FOUND');
+    const anyPayment = await db.collection(COLLECTION).where('bookingId', '==', bookingId).limit(1).get();
+    throw anyPayment.empty
+      ? new AppError(404, 'No payment found for this booking', 'PAYMENT_NOT_FOUND')
+      : new AppError(409, 'Only a paid booking can be marked as refunded', 'NOT_PAID');
   }
 
-  const paymentDoc = paymentSnap.docs[0];
-  const payment = paymentDoc.data() as Payment;
-  if (payment.status !== 'paid') {
-    throw new AppError(409, 'Only a paid booking can be marked as refunded', 'NOT_PAID');
-  }
+  const paymentRef = paymentSnap.docs[0].ref;
+  const bookingRef = db.collection('bookings').doc(bookingId);
 
   await db.runTransaction(async (tx) => {
-    tx.update(paymentDoc.ref, { status: 'refunded' satisfies PaymentStatus, updatedAt: Timestamp.now() });
-    tx.update(db.collection('bookings').doc(bookingId), {
+    const [freshPayment, bookingSnap] = await Promise.all([tx.get(paymentRef), tx.get(bookingRef)]);
+    if ((freshPayment.data() as Payment).status !== 'paid') {
+      throw new AppError(409, 'Only a paid booking can be marked as refunded', 'NOT_PAID');
+    }
+    if (!bookingSnap.exists) {
+      throw new AppError(404, 'Booking not found', 'BOOKING_NOT_FOUND');
+    }
+
+    // Frees only nights this booking still owns — if it was already expired/cancelled they may
+    // now belong to another guest, and must not be deleted.
+    await releaseBookingNights(tx, bookingSnap.data() as Booking);
+    tx.update(paymentRef, { status: 'refunded' satisfies PaymentStatus, updatedAt: Timestamp.now() });
+    tx.update(bookingRef, {
       status: 'cancelled' satisfies BookingStatus,
       paymentStatus: 'refunded' satisfies PaymentStatus,
+      holdExpiresAt: null,
       updatedAt: Timestamp.now(),
     });
   });

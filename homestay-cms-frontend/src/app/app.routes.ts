@@ -12,6 +12,11 @@ export const routes: Routes = [
     loadComponent: () => import('./admin/dashboard/dashboard').then((m) => m.Dashboard),
   },
   {
+    path: 'admin/bookings',
+    canActivate: [adminGuard],
+    loadComponent: () => import('./admin/bookings/bookings').then((m) => m.BookingsPage),
+  },
+  {
     path: 'admin/content',
     canActivate: [adminGuard],
     loadComponent: () => import('./admin/content/content').then((m) => m.ContentPage),

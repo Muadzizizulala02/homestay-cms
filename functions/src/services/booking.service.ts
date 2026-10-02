@@ -1,4 +1,5 @@
-import { Timestamp } from 'firebase-admin/firestore';
+import { logger } from 'firebase-functions';
+import { Timestamp, type DocumentReference, type Transaction } from 'firebase-admin/firestore';
 import { db } from '../config/firebase';
 import { env } from '../config/env';
 import { AppError } from '../utils/app-error';
@@ -148,10 +149,44 @@ export async function getBookingByReferenceAndEmail(reference: string, email: st
   return snap.docs[0].data() as Booking;
 }
 
+function bookingNightRefs(booking: Booking): DocumentReference[] {
+  const availability = db.collection('accommodations').doc(booking.accommodationId).collection('availability');
+  return enumerateNightsForRange(booking.checkInDate, booking.checkOutDate).map((date) => availability.doc(date));
+}
+
+/**
+ * Reads the booking's night documents and returns only those this booking still owns.
+ * A night can legitimately belong to someone else: once a hold expires or a booking is
+ * cancelled its nights are freed and may be rebooked, so a stale booking must never be
+ * treated as owning (or be allowed to delete) dates that now belong to another guest.
+ * Must run before any write in the transaction.
+ */
+export async function readOwnedNights(tx: Transaction, booking: Booking): Promise<DocumentReference[]> {
+  const refs = bookingNightRefs(booking);
+  const snaps = await tx.getAll(...refs);
+  return snaps.filter((snap) => snap.exists && snap.data()?.['bookingId'] === booking.id).map((snap) => snap.ref);
+}
+
+/** True if every night of the booking is still held by it (i.e. its dates were not released). */
+export async function bookingHoldsAllNights(tx: Transaction, booking: Booking): Promise<boolean> {
+  return (await readOwnedNights(tx, booking)).length === bookingNightRefs(booking).length;
+}
+
+/**
+ * Frees the nights this booking owns, inside an existing transaction, so they can be booked
+ * again. Shared by expiry, admin cancellation and refunds. Reads before it deletes, so call it
+ * before any `tx.update`/`tx.set` in the same transaction.
+ */
+export async function releaseBookingNights(tx: Transaction, booking: Booking): Promise<void> {
+  for (const ref of await readOwnedNights(tx, booking)) {
+    tx.delete(ref);
+  }
+}
+
 /**
  * Sweeps pending bookings whose hold has expired, flips them to `expired`, and releases
- * their nights so abandoned checkouts don't permanently lock inventory. Intended to run on
- * a schedule (wiring the Cloud Scheduler trigger itself is a later phase — see docs/CHANGELOG.md).
+ * their nights so abandoned checkouts don't permanently lock inventory. Runs on a schedule
+ * (`expireStaleBookings` in index.ts).
  */
 export async function expireStalePendingBookings(now: Date = new Date()): Promise<number> {
   const staleSnap = await db
@@ -163,22 +198,31 @@ export async function expireStalePendingBookings(now: Date = new Date()): Promis
   let expiredCount = 0;
 
   for (const doc of staleSnap.docs) {
-    const booking = doc.data() as Booking;
-    const nights = enumerateNightsForRange(booking.checkInDate, booking.checkOutDate);
+    try {
+      const expired = await db.runTransaction(async (tx) => {
+        // Re-read inside the transaction: a payment webhook may have confirmed this booking
+        // after the query above ran, and a paid booking must never be expired.
+        const fresh = await tx.get(doc.ref);
+        const booking = fresh.data() as Booking | undefined;
+        if (!booking || booking.status !== 'pending_payment') {
+          return false;
+        }
 
-    await db.runTransaction(async (tx) => {
-      tx.update(doc.ref, {
-        status: 'expired' satisfies BookingStatus,
-        holdExpiresAt: null,
-        updatedAt: Timestamp.now(),
+        await releaseBookingNights(tx, booking);
+        tx.update(doc.ref, {
+          status: 'expired' satisfies BookingStatus,
+          holdExpiresAt: null,
+          updatedAt: Timestamp.now(),
+        });
+        return true;
       });
-      for (const date of nights) {
-        tx.delete(
-          db.collection('accommodations').doc(booking.accommodationId).collection('availability').doc(date)
-        );
+      if (expired) {
+        expiredCount += 1;
       }
-    });
-    expiredCount += 1;
+    } catch (err) {
+      // One bad booking must not stop the rest of the sweep; it is retried on the next run.
+      logger.error('Failed to expire booking', { bookingId: doc.id, err });
+    }
   }
 
   return expiredCount;
