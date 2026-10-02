@@ -2,6 +2,7 @@ import { Component, computed, inject, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { I18nService } from '../../../../shared/i18n/i18n.service';
+import { cssUrl } from '../../../../shared/ui/css-url';
 import { ImgFade } from '../../../../shared/ui/img-fade/img-fade';
 import { Reveal } from '../../../../shared/ui/reveal/reveal';
 import { splitLead } from '../about-text';
@@ -23,6 +24,9 @@ export class HomeAbout {
   readonly hostIntro = input('');
   /** Photo for the frame; empty hides the frame and the text takes the full width. */
   readonly photo = input('');
+  /** Optional photo behind the whole section; empty keeps the default plain design. */
+  readonly background = input('');
+  protected readonly image = computed(() => cssUrl(this.background()));
 
   protected readonly parts = computed(() => splitLead(this.about()));
 }

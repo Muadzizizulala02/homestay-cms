@@ -1,5 +1,5 @@
 import type { Accommodation } from '../services/accommodation.service';
-import type { Facility, FaqItem, Notice, SiteSettings, SocialLink } from '../services/site-settings.service';
+import type { Facility, FaqItem, Notice, SectionKey, SiteSettings, SocialLink } from '../services/site-settings.service';
 import type { Lang } from './i18n.service';
 
 /** The site content a visitor sees in their language. Every field has an English fallback. */
@@ -21,6 +21,8 @@ export interface LocalizedSettings {
   privacyPolicy: string;
   termsAndConditions: string;
   socialLinks: SocialLink[];
+  /** Photo behind each home section; '' means the section's default design. */
+  sectionBackgrounds: Record<SectionKey, string>;
   houseRules: string[];
   faqs: FaqItem[];
   notices: LocalizedNotice[];
@@ -68,6 +70,19 @@ export function clampInterval(seconds: number | undefined): number {
   return Math.min(30, Math.max(2, Math.round(seconds)));
 }
 
+const SECTION_KEYS: readonly SectionKey[] = ['facilities', 'steps', 'rules', 'about'];
+
+/** Every section always has an entry; missing or non-string values become '' (the default design). */
+export function sectionBackgrounds(settings: Pick<SiteSettings, 'sectionBackgrounds'>): Record<SectionKey, string> {
+  const raw = settings.sectionBackgrounds ?? {};
+  const result = {} as Record<SectionKey, string>;
+  for (const key of SECTION_KEYS) {
+    const value = raw[key];
+    result[key] = typeof value === 'string' ? value.trim() : '';
+  }
+  return result;
+}
+
 export function localizeNotice(notice: Notice, lang: Lang): LocalizedNotice {
   return {
     id: notice.id,
@@ -105,6 +120,7 @@ export function localizeSettings(settings: SiteSettings, lang: Lang): LocalizedS
     privacyPolicy: pick(lang, settings.privacyPolicy ?? '', ms.privacyPolicy),
     termsAndConditions: pick(lang, settings.termsAndConditions ?? '', ms.termsAndConditions),
     socialLinks: settings.socialLinks ?? [],
+    sectionBackgrounds: sectionBackgrounds(settings),
     houseRules: pickList(lang, settings.houseRules ?? [], ms.houseRules),
     faqs: pickList(lang, settings.faqs ?? [], ms.faqs),
     notices: (settings.notices ?? []).filter((n) => n.active).map((n) => localizeNotice(n, lang)),

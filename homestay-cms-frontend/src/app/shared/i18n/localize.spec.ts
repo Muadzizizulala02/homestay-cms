@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { SiteSettings } from '../services/site-settings.service';
-import { clampInterval, heroSlides, localizeFacility, localizeNotice, localizeSettings, pick } from './localize';
+import { clampInterval, heroSlides, localizeFacility, localizeNotice, localizeSettings, pick, sectionBackgrounds } from './localize';
 
 function settings(overrides: Partial<SiteSettings> = {}): SiteSettings {
   return {
@@ -26,6 +26,7 @@ function settings(overrides: Partial<SiteSettings> = {}): SiteSettings {
     notices: [],
     facilities: [],
     translations: { ms: {} },
+    sectionBackgrounds: {},
     seoDefaults: { title: '', description: '', shareImageUrl: '' },
     ...overrides,
   };
@@ -147,5 +148,30 @@ describe('localizeSettings policies and slides', () => {
     const result = localizeSettings(settings({ heroImages: ['a', 'b'], heroIntervalSeconds: 99 }), 'en');
     expect(result.heroSlides).toEqual(['a', 'b']);
     expect(result.heroIntervalSeconds).toBe(30);
+  });
+});
+
+describe('sectionBackgrounds', () => {
+  it('gives every section an entry, empty meaning the default design', () => {
+    expect(sectionBackgrounds({ sectionBackgrounds: {} })).toEqual({ facilities: '', steps: '', rules: '', about: '' });
+  });
+
+  it('passes set photos through, trimmed, and leaves the others empty', () => {
+    expect(sectionBackgrounds({ sectionBackgrounds: { steps: ' https://a/1.jpg ', about: 'https://a/2.jpg' } })).toEqual({
+      facilities: '',
+      steps: 'https://a/1.jpg',
+      rules: '',
+      about: 'https://a/2.jpg',
+    });
+  });
+
+  it('copes with a settings document that predates the field', () => {
+    expect(sectionBackgrounds({} as never)).toEqual({ facilities: '', steps: '', rules: '', about: '' });
+  });
+
+  it('is exposed through localizeSettings', () => {
+    const result = localizeSettings(settings({ sectionBackgrounds: { facilities: 'https://a/f.jpg' } }), 'en');
+    expect(result.sectionBackgrounds.facilities).toBe('https://a/f.jpg');
+    expect(result.sectionBackgrounds.steps).toBe('');
   });
 });

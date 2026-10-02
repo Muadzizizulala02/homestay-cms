@@ -99,11 +99,11 @@
   </section>
 } @else if (content(); as c) {
   @if (c.facilities.length) {
-    <app-home-facilities [facilities]="c.facilities" />
+    <app-home-facilities [facilities]="c.facilities" [background]="c.sectionBackgrounds.facilities" />
   }
 }
 
-<app-home-steps />
+<app-home-steps [background]="backgrounds().steps" />
 
 @if (content()?.houseRules?.length) {
   <app-policy-showcase
@@ -112,12 +112,13 @@
     [subtitle]="i18n.t('rules.subtitle')"
     [quote]="checkTimes()"
     [items]="ruleItems()"
-    [background]="heroBackground()"
+    [background]="rulesBackground()"
+    [flush]="true"
   />
 }
 
 @if (content(); as c) {
   @if (c.aboutContent) {
-    <app-home-about [about]="c.aboutContent" [hostIntro]="c.hostIntro" [photo]="aboutPhoto()" />
+    <app-home-about [about]="c.aboutContent" [hostIntro]="c.hostIntro" [photo]="aboutPhoto()" [background]="c.sectionBackgrounds.about" />
   }
 }

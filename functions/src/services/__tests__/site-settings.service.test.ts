@@ -133,4 +133,14 @@ describe('site-settings.service', () => {
     expect(publicView.privacyPolicy).toBe('Privacy text');
     expect(publicView.translations.ms.privacyPolicy).toBe('Teks privasi');
   });
+
+  it('defaults to no section backgrounds (the default designs) and stores them when set', async () => {
+    await db.doc('siteSettings/main').delete();
+    expect((await getSiteSettings()).sectionBackgrounds).toEqual({});
+
+    await updateSiteSettings({ sectionBackgrounds: { steps: 'https://a.example/steps.jpg', facilities: '' } });
+    const publicView = await getPublicSiteSettings();
+    expect(publicView.sectionBackgrounds.steps).toBe('https://a.example/steps.jpg');
+    expect(publicView.sectionBackgrounds.facilities).toBe('');
+  });
 });

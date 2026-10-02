@@ -281,6 +281,8 @@ export const STARTER_CONTENT: Omit<SiteSettings, 'updatedAt'> = {
       ],
     },
   },
+  // No section photos by default: each home section keeps its own designed look until the owner adds one.
+  sectionBackgrounds: {},
   seoDefaults: { title: 'Homestay', description: '', shareImageUrl: photoUrl(STARTER_HERO_PHOTO_ID) },
 };
 

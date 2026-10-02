@@ -80,4 +80,26 @@ describe('updateSiteSettingsSchema', () => {
     expect(updateSiteSettingsSchema.safeParse({ heroImages: ['javascript:alert(1)'] }).success).toBe(false);
     expect(updateSiteSettingsSchema.safeParse({ heroImages: ['data:image/png;base64,AAAA'] }).success).toBe(false);
   });
+
+  it('accepts a background image per home section, and empty meaning "use the default design"', () => {
+    const parsed = updateSiteSettingsSchema.safeParse({
+      sectionBackgrounds: { facilities: 'https://res.cloudinary.com/demo/a.jpg', steps: '', rules: 'https://res.cloudinary.com/demo/b.jpg' },
+    });
+    expect(parsed.success).toBe(true);
+  });
+
+  it('keeps sectionBackgrounds instead of stripping it', () => {
+    const parsed = updateSiteSettingsSchema.parse({ sectionBackgrounds: { about: 'https://a.example/x.jpg' } });
+    expect(parsed.sectionBackgrounds?.about).toBe('https://a.example/x.jpg');
+  });
+
+  it('only allows http(s) background addresses', () => {
+    expect(updateSiteSettingsSchema.safeParse({ sectionBackgrounds: { steps: 'javascript:alert(1)' } }).success).toBe(false);
+    expect(updateSiteSettingsSchema.safeParse({ sectionBackgrounds: { about: 'data:image/png;base64,AAAA' } }).success).toBe(false);
+  });
+
+  it('ignores unknown section names rather than storing arbitrary keys', () => {
+    const parsed = updateSiteSettingsSchema.parse({ sectionBackgrounds: { facilities: '', hacked: 'https://a.example/x.jpg' } });
+    expect(Object.keys(parsed.sectionBackgrounds ?? {})).toEqual(['facilities']);
+  });
 });

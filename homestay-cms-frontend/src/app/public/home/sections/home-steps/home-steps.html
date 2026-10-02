@@ -1,4 +1,4 @@
-<section class="band" appReveal>
+<section class="band" [class.has-photo]="!!image()" [style.background-image]="image()" appReveal>
   <div class="inner">
     <header class="head">
       <h2>{{ i18n.t('home.steps.title') }}</h2>

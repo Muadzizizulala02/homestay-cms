@@ -45,6 +45,10 @@ Each home section has its own layout and background, so the page reads as a sequ
 | House rules | dark **photo section** with icon cards | `policy-showcase` |
 | About the stay | **editorial**: a large lead sentence behind a gold rule, the remainder below, the host's note as a speech card, and a framed photo with an offset gold block | `home-about` |
 
+**Optional background photo per section.** In Admin > Site content > *Home page backgrounds* the owner can put a photo behind *What you can count on*, *How booking works*, *House rules* and *About the stay* (upload, pick from the gallery, or paste an https address; Remove returns to the default). With no photo each section keeps the design in the table above; with one it gets a dark scrim and light text (step nodes turn pale, tiles and the host card stay white) so it stays readable. *House rules* uses the first hero photo until the owner picks one. Stored as `siteSettings.sectionBackgrounds` (`facilities`, `steps`, `rules`, `about`; empty = default). Background addresses are escaped by `shared/ui/css-url.ts`, so a stray quote can never inject CSS.
+
+The full-bleed sections sit flush against each other (no gap between the facilities band, the booking steps, the house rules and About).
+
 The About text is split by `about-text.ts` (first paragraph, or first sentence, becomes the lead); the photo is the second hero photo; with no photo, host note or body text the section simply simplifies. A section with nothing to show (no facilities) is omitted; the booking steps are always shown. Everything is translated and respects `prefers-reduced-motion` (nodes and lines are simply shown).
 
 ## Policy sections (Privacy, Terms, house rules)

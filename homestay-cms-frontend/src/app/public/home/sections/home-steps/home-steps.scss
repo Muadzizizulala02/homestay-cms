@@ -2,13 +2,24 @@
   display: block;
 }
 
-// A plain white band: the booking journey is the only thing on it.
+// A plain white band: the booking journey is the only thing on it. It sits flush against the
+// bands above and below (no gap). With a photo (set in the admin) it gets a dark scrim and light text.
 .band {
-  margin-top: clamp(3rem, 7vw, 5rem);
+  position: relative;
   background: var(--paper);
+  background-size: cover;
+  background-position: center;
+
+  &.has-photo::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(20, 52, 58, 0.84);
+  }
 }
 
 .inner {
+  position: relative;
   max-width: var(--page-max);
   margin: 0 auto;
   padding: clamp(2.75rem, 7vw, 5rem) var(--gutter);
@@ -164,5 +175,31 @@ $line: 4px;
   .step:not(.last)::after {
     transform: none;
     transition: none;
+  }
+}
+
+// On a photo: light text, pale nodes with ink numerals, and a translucent track for the gold line.
+.band.has-photo {
+  .head h2,
+  .text h3 {
+    color: var(--paper);
+  }
+
+  .head p,
+  .text p {
+    color: rgba(255, 255, 255, 0.84);
+  }
+
+  .node {
+    color: var(--ink);
+    background: var(--paper);
+  }
+
+  .step.last .node {
+    background: var(--kunyit);
+  }
+
+  .step:not(.last)::before {
+    background: rgba(255, 255, 255, 0.3);
   }
 }

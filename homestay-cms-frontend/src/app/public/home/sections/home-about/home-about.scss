@@ -2,16 +2,29 @@
   display: block;
 }
 
+// A full-width band that sits flush under the section above (no gap), with its own padding.
+// With a photo (set in the admin) it gets a dark scrim and light text.
 .about {
-  margin-top: clamp(3rem, 7vw, 5rem);
+  position: relative;
+  padding-top: clamp(3rem, 7vw, 5rem);
+  background-size: cover;
+  background-position: center;
+
+  &.has-photo::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(20, 52, 58, 0.84);
+  }
 }
 
 .inner {
+  position: relative;
   display: grid;
   gap: 2.5rem;
   max-width: var(--page-max);
   margin: 0 auto;
-  padding: 0 var(--gutter) clamp(1rem, 3vw, 2rem);
+  padding: 0 var(--gutter) clamp(2.5rem, 6vw, 4rem);
 
   @media (min-width: 900px) {
     grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
@@ -140,5 +153,21 @@ h2 {
 
   .frame:hover::before {
     transform: translate(1rem, 1rem);
+  }
+}
+
+// On a photo: light text; the host note stays a white card and the framed photo is unchanged.
+.about.has-photo {
+  h2,
+  .lead {
+    color: var(--paper);
+  }
+
+  .rest {
+    color: rgba(255, 255, 255, 0.86);
+  }
+
+  .more {
+    color: var(--paper);
   }
 }

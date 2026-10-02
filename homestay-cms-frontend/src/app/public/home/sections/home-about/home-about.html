@@ -1,4 +1,4 @@
-<section class="about" appReveal>
+<section class="about" [class.has-photo]="!!image()" [style.background-image]="image()" appReveal>
   <div class="inner" [class.no-photo]="!photo()">
     <div class="copy">
       <h2>{{ i18n.t('home.about.title') }}</h2>

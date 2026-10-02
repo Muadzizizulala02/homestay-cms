@@ -27,6 +27,7 @@ const DEFAULT_SITE_SETTINGS: Omit<SiteSettings, 'updatedAt'> = {
   notices: [],
   facilities: [],
   translations: { ms: {} },
+  sectionBackgrounds: {},
   seoDefaults: { title: 'Homestay', description: '', shareImageUrl: '' },
 };
 

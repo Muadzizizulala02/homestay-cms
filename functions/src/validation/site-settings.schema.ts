@@ -74,6 +74,15 @@ export const updateSiteSettingsSchema = z.object({
   notices: z.array(noticeSchema).max(20).optional(),
   facilities: z.array(facilitySchema).max(30).optional(),
   translations: z.object({ ms: malayContentSchema }).optional(),
+  // One optional photo per home section; '' (or absent) keeps the default design. Zod drops unknown keys.
+  sectionBackgrounds: z
+    .object({
+      facilities: urlOrEmpty.optional(),
+      steps: urlOrEmpty.optional(),
+      rules: urlOrEmpty.optional(),
+      about: urlOrEmpty.optional(),
+    })
+    .optional(),
   seoDefaults: z
     .object({ title: z.string(), description: z.string(), shareImageUrl: z.string() })
     .optional(),

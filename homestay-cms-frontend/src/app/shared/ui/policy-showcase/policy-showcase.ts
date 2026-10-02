@@ -1,5 +1,6 @@
 import { Component, computed, input } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
+import { cssUrl } from '../css-url';
 import { Reveal } from '../reveal/reveal';
 import { splitIntoCards, type PolicyItem } from './policy-parse';
 
@@ -26,7 +27,9 @@ export class PolicyShowcase {
   readonly background = input('');
   /** True when this is the page's main heading (an h1); otherwise it is an h2. */
   readonly pageTitle = input(false);
+  /** True to sit flush against the sections above (no gap), e.g. between bands on the home page. */
+  readonly flush = input(false);
 
   protected readonly cards = computed(() => splitIntoCards(this.items()));
-  protected readonly backgroundImage = computed(() => (this.background() ? `url("${this.background().replace(/"/g, '%22')}")` : null));
+  protected readonly backgroundImage = computed(() => cssUrl(this.background()));
 }

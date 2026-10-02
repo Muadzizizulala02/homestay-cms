@@ -46,6 +46,10 @@ export interface MalayContent {
   faqs?: FaqItem[];
 }
 
+/** Optional photo behind each home section; empty/absent keeps the section's default design. */
+export type SectionKey = 'facilities' | 'steps' | 'rules' | 'about';
+export type SectionBackgrounds = Partial<Record<SectionKey, string>>;
+
 export interface SiteSettings {
   heroHeadline: string;
   heroSubheadline: string;
@@ -71,6 +75,7 @@ export interface SiteSettings {
   notices: Notice[];
   facilities: Facility[];
   translations: { ms: MalayContent };
+  sectionBackgrounds: SectionBackgrounds;
   seoDefaults: { title: string; description: string; shareImageUrl: string };
 }
 

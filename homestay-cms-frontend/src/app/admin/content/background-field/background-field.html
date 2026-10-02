@@ -1,0 +1,72 @@
+<div class="field">
+  <h3 class="title">{{ label() }}</h3>
+  @if (hint()) {
+    <p class="hint">{{ hint() }}</p>
+  }
+
+  @if (value()) {
+    <img class="preview" [src]="value()" [alt]="'Background photo for ' + label()" />
+  } @else {
+    <div class="preview placeholder">Default design (no photo)</div>
+  }
+
+  <div class="actions">
+    <input
+      #fileInput
+      class="visually-hidden"
+      type="file"
+      accept="image/*"
+      tabindex="-1"
+      aria-hidden="true"
+      [disabled]="uploading()"
+      (change)="upload($event)"
+    />
+    <button mat-flat-button color="primary" type="button" [disabled]="uploading()" (click)="fileInput.click()">
+      <mat-icon>upload</mat-icon>
+      {{ uploading() ? 'Uploading…' : 'Upload photo' }}
+    </button>
+    <button
+      mat-stroked-button
+      type="button"
+      [disabled]="!value() || uploading()"
+      [attr.aria-label]="'Remove photo and return to the default design for ' + label()"
+      (click)="remove()"
+    >
+      Remove
+    </button>
+  </div>
+
+  @if (gallery().length > 0) {
+    <div class="picker" role="group" [attr.aria-label]="'Choose a gallery photo for ' + label()">
+      @for (photo of gallery(); track photo.id) {
+        <button
+          type="button"
+          class="choice"
+          [class.selected]="photo.url === value()"
+          [attr.aria-pressed]="photo.url === value()"
+          [attr.aria-label]="'Use as background: ' + photo.altText"
+          (click)="choose(photo.url)"
+        >
+          <img [src]="photo.url" alt="" />
+        </button>
+      }
+    </div>
+  }
+
+  <div class="address-row">
+    <mat-form-field appearance="outline" class="address">
+      <mat-label>Image address</mat-label>
+      <input
+        matInput
+        [formControl]="address"
+        placeholder="https://"
+        (input)="addressError.set(false)"
+        (keydown.enter)="$event.preventDefault(); setAddress()"
+      />
+      @if (addressError()) {
+        <mat-error>Enter an address starting with http:// or https://</mat-error>
+      }
+    </mat-form-field>
+    <button mat-stroked-button type="button" (click)="setAddress()">Set</button>
+  </div>
+</div>

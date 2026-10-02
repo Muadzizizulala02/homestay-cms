@@ -1,6 +1,7 @@
-import { Component, inject } from '@angular/core';
+import { Component, computed, inject, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { I18nService } from '../../../../shared/i18n/i18n.service';
+import { cssUrl } from '../../../../shared/ui/css-url';
 import { Reveal } from '../../../../shared/ui/reveal/reveal';
 
 /**
@@ -17,4 +18,7 @@ import { Reveal } from '../../../../shared/ui/reveal/reveal';
 export class HomeSteps {
   protected readonly i18n = inject(I18nService);
   protected readonly steps = [1, 2, 3, 4];
+  /** Optional photo behind the band; empty keeps the default white design. */
+  readonly background = input('');
+  protected readonly image = computed(() => cssUrl(this.background()));
 }

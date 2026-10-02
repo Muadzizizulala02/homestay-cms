@@ -7,7 +7,14 @@ import {
   ValidationErrors,
   Validators,
 } from '@angular/forms';
-import type { Facility, MalayContent, Notice, SocialLink } from '../../shared/services/site-settings.service';
+import type {
+  Facility,
+  MalayContent,
+  Notice,
+  SectionBackgrounds,
+  SectionKey,
+  SocialLink,
+} from '../../shared/services/site-settings.service';
 
 export const ICON_PATTERN = /^[a-z0-9_]{1,40}$/;
 export const MAX_POLICY_LENGTH = 20000;
@@ -173,6 +180,34 @@ export function toMalayContent(group: TranslatableGroup): MalayContent {
 export function isHttpUrlOrEmpty(value: string): boolean {
   const trimmed = value.trim();
   return trimmed === '' || /^https?:\/\/\S+$/i.test(trimmed);
+}
+
+/** A non-empty http(s) address. */
+export function isHttpUrl(value: string): boolean {
+  return value.trim() !== '' && isHttpUrlOrEmpty(value);
+}
+
+export const BACKGROUND_SECTIONS: readonly { key: SectionKey; label: string }[] = [
+  { key: 'facilities', label: 'What you can count on' },
+  { key: 'steps', label: 'How booking works' },
+  { key: 'rules', label: 'House rules' },
+  { key: 'about', label: 'About the stay' },
+];
+
+/** All four section keys, trimmed; missing or non-string entries become ''. */
+export function normalizeBackgrounds(raw: SectionBackgrounds | undefined): Record<SectionKey, string> {
+  const source: Record<string, unknown> = raw ?? {};
+  const pick = (key: SectionKey): string => (typeof source[key] === 'string' ? (source[key] as string).trim() : '');
+  return { facilities: pick('facilities'), steps: pick('steps'), rules: pick('rules'), about: pick('about') };
+}
+
+/** A copy of the backgrounds with one section changed. */
+export function withBackground(
+  backgrounds: Readonly<Record<SectionKey, string>>,
+  key: SectionKey,
+  url: string,
+): Record<SectionKey, string> {
+  return { ...backgrounds, [key]: url };
 }
 
 /**

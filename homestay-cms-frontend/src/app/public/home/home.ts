@@ -42,6 +42,10 @@ export class Home implements OnInit {
   /** House rules as icon cards, with the check-in/out times as the section's closing line. */
   readonly ruleItems = computed(() => rulesToItems(this.content()?.houseRules ?? []));
   readonly heroBackground = computed(() => this.content()?.heroSlides?.[0] ?? '');
+  /** Photo behind each home section, set in the admin; '' keeps that section's default design. */
+  readonly backgrounds = computed(() => this.content()?.sectionBackgrounds ?? { facilities: '', steps: '', rules: '', about: '' });
+  /** House rules always have a photo: the owner's choice, else the first hero photo (the long-standing default). */
+  readonly rulesBackground = computed(() => this.backgrounds().rules || this.heroBackground());
   /** The About section's framed photo: the second hero photo (so it differs from the one behind the hero), else the first. */
   readonly aboutPhoto = computed(() => this.content()?.heroSlides?.[1] ?? this.content()?.heroSlides?.[0] ?? '');
   readonly checkTimes = computed(() => {

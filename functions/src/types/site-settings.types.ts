@@ -48,6 +48,17 @@ export interface MalayContent {
   faqs?: FaqItem[];
 }
 
+/**
+ * Optional background photo for each home-page section. An empty/absent entry means the
+ * section keeps its default design (no photo).
+ */
+export interface SectionBackgrounds {
+  facilities?: string;
+  steps?: string;
+  rules?: string;
+  about?: string;
+}
+
 /** Singleton document at siteSettings/main. */
 export interface SiteSettings {
   heroHeadline: string;
@@ -75,6 +86,7 @@ export interface SiteSettings {
   notices: Notice[];
   facilities: Facility[];
   translations: { ms: MalayContent };
+  sectionBackgrounds: SectionBackgrounds;
   seoDefaults: {
     title: string;
     description: string;

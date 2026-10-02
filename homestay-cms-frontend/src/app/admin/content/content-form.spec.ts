@@ -5,7 +5,10 @@ import {
   addSlide,
   createSocialLinkGroup,
   initialSlides,
+  isHttpUrl,
   isHttpUrlOrEmpty,
+  normalizeBackgrounds,
+  withBackground,
   moveSlide,
   nextShareImage,
   platformChoice,
@@ -108,5 +111,33 @@ describe('social links', () => {
       { platform: 'Facebook', url: 'https://facebook.com/a' },
       { platform: 'Line', url: 'https://line.me/x' },
     ]);
+  });
+});
+
+describe('section backgrounds', () => {
+  const empty = { facilities: '', steps: '', rules: '', about: '' };
+
+  it('fills all four keys when nothing is saved', () => {
+    expect(normalizeBackgrounds(undefined)).toEqual(empty);
+    expect(normalizeBackgrounds({})).toEqual(empty);
+  });
+
+  it('trims values and turns non-strings into empty', () => {
+    const raw = { steps: ' https://a/1.jpg ', about: 5, rules: null } as never;
+    expect(normalizeBackgrounds(raw)).toEqual({ ...empty, steps: 'https://a/1.jpg' });
+  });
+
+  it('withBackground returns a changed copy without mutating', () => {
+    const before = { ...empty };
+    const after = withBackground(before, 'rules', 'https://a/r.jpg');
+    expect(after.rules).toBe('https://a/r.jpg');
+    expect(before).toEqual(empty);
+  });
+
+  it('isHttpUrl requires a non-empty http(s) address', () => {
+    expect(isHttpUrl('')).toBe(false);
+    expect(isHttpUrl('  ')).toBe(false);
+    expect(isHttpUrl('ftp://x')).toBe(false);
+    expect(isHttpUrl('https://x/y.jpg')).toBe(true);
   });
 });

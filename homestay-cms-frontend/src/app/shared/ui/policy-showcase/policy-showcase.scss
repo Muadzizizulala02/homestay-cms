@@ -12,6 +12,11 @@
   background-size: cover;
   background-position: center;
 
+  // Flush against the section above it (the home page's bands touch each other).
+  &.flush {
+    margin-top: 0;
+  }
+
   // When the section is the whole page, it sits flush under the header.
   &.is-page {
     margin-top: 0;

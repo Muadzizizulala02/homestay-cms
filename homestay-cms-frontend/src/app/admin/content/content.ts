@@ -12,14 +12,17 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatToolbarModule } from '@angular/material/toolbar';
+import { BackgroundField } from './background-field/background-field';
 import { Skeleton } from '../../shared/ui/skeleton/skeleton';
 import { MediaService, type MediaItem } from '../../shared/services/media.service';
 import {
   SiteSettingsService,
   type MalayContent,
+  type SectionKey,
   type SiteSettings,
 } from '../../shared/services/site-settings.service';
 import {
+  BACKGROUND_SECTIONS,
   MAX_SLIDES,
   MAX_SOCIAL_LINKS,
   OTHER_ICON,
@@ -37,11 +40,13 @@ import {
   isHttpUrlOrEmpty,
   moveSlide,
   nextShareImage,
+  normalizeBackgrounds,
   removeSlide,
   toFacilities,
   toMalayContent,
   toNotices,
   toSocialLinks,
+  withBackground,
   type FacilityGroup,
   type NoticeGroup,
   type SocialLinkGroup,
@@ -74,6 +79,7 @@ function wholeSeconds(control: AbstractControl): ValidationErrors | null {
     MatSelectModule,
     MatToolbarModule,
     Skeleton,
+    BackgroundField,
   ],
   templateUrl: './content.html',
   styleUrl: './content.scss',
@@ -106,6 +112,9 @@ export class ContentPage implements OnInit {
 
   /** Hero slideshow photos in display order. */
   readonly slides = signal<string[]>([]);
+  /** Optional photo behind each home page section ('' = default design). */
+  readonly backgrounds = signal<Record<SectionKey, string>>(normalizeBackgrounds({}));
+  readonly backgroundSections = BACKGROUND_SECTIONS;
   /** Progress text while photos upload, e.g. "Uploading 2 of 5…"; null when idle. */
   readonly uploadStatus = signal<string | null>(null);
   /** Address typed for "Add by address"; not part of the saved form. */
@@ -189,6 +198,7 @@ export class ContentPage implements OnInit {
     this.fillTranslatable(this.form.controls.en, settings, true);
     this.fillTranslatable(this.form.controls.ms, settings.translations?.ms ?? {}, false);
     this.baseline = settings;
+    this.backgrounds.set(normalizeBackgrounds(settings.sectionBackgrounds));
     this.slides.set(initialSlides(settings.heroImages, settings.heroImageUrl));
     this.form.patchValue({
       heroIntervalSeconds: settings.heroIntervalSeconds ?? DEFAULT_INTERVAL,
@@ -275,6 +285,11 @@ export class ContentPage implements OnInit {
     this.uploadStatus.set(null);
   }
 
+  setBackground(key: SectionKey, url: string): void {
+    this.backgrounds.set(withBackground(this.backgrounds(), key, url));
+    this.form.markAsDirty();
+  }
+
   addSocialLink(): void {
     this.socialLinks.push(createSocialLinkGroup(this.fb));
   }
@@ -359,6 +374,7 @@ export class ContentPage implements OnInit {
         heroImages: slides,
         heroImageUrl: hero,
         heroIntervalSeconds: raw.heroIntervalSeconds,
+        sectionBackgrounds: normalizeBackgrounds(this.backgrounds()),
         seoDefaults: { ...baseSeo, shareImageUrl: nextShareImage(baseHero, baseSeo.shareImageUrl, hero) },
         address: raw.address,
         contactEmail: raw.contactEmail,
