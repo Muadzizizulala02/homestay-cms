@@ -33,6 +33,20 @@ Behaviour (`shared/ui/hero-slideshow`): a single photo is shown still with no co
 
 The "HS" monogram set lives in `public/` (served at the site root): `favicon.ico`, 16/32 px PNGs, `apple-touch-icon.png`, 192/512 px Android icons and `site.webmanifest` (name "Homestay", theme colour `#14343a`). `index.html` links them all and sets `theme-color`. To change the icon, replace those files with a new set from the same generator and keep the names.
 
+## Home page sections
+
+Each home section has its own layout and background, so the page reads as a sequence of different spaces rather than one repeated card style (components in `public/home/sections/`):
+
+| Section | Look | Where |
+|---|---|---|
+| Rooms | image-led list, first room large | plaster page |
+| What you can count on | light **mist band**: heading + mosaic motif on the left, **icon tiles** on the right that flip to dark ink with a gold icon on hover | `home-facilities` |
+| How booking works | white band, a **journey**: four numbered nodes joined by a gold line that draws itself as it scrolls in (a vertical timeline on phones), ending in a "Start with your dates" button | `home-steps` |
+| House rules | dark **photo section** with icon cards | `policy-showcase` |
+| About the stay | **editorial**: a large lead sentence behind a gold rule, the remainder below, the host's note as a speech card, and a framed photo with an offset gold block | `home-about` |
+
+The About text is split by `about-text.ts` (first paragraph, or first sentence, becomes the lead); the photo is the second hero photo; with no photo, host note or body text the section simply simplifies. A section with nothing to show (no facilities) is omitted; the booking steps are always shown. Everything is translated and respects `prefers-reduced-motion` (nodes and lines are simply shown).
+
 ## Policy sections (Privacy, Terms, house rules)
 
 One component, `shared/ui/policy-showcase`, renders them all: a full-width section over a dark scrim on the hero photo, a centred small tracked label ("Our policy" / "House rules"), the title, a subtitle and an italic quote, then rounded cream **cards** of items, each with a ringed icon, a heading and a short description. Items are laid out as two side-by-side cards (the left takes an odd item), with anything past eight in a full-width card beneath; on phones the cards stack.

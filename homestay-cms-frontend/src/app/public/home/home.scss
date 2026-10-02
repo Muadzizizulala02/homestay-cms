@@ -164,83 +164,18 @@
   font: 700 1.25rem var(--font-display);
 }
 
-// ---- Facilities: a ruled list, not a grid of cards ----
-.facility-list {
-  display: grid;
-  gap: 0 2.5rem;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-
-  @media (min-width: 640px) {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  @media (min-width: 960px) {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-
-  li {
-    display: flex;
+// Loading placeholder for the facilities band: tile-shaped blocks in the same grid.
+.facilities-skeleton {
+  .tile-skeletons {
+    display: grid;
     gap: 0.9rem;
-    padding: 1.1rem 0;
-    border-top: 2px solid var(--ink);
+    margin-top: 1.5rem;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+
+    @media (min-width: 640px) {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
   }
-
-  mat-icon {
-    flex: none;
-    color: var(--moss);
-  }
-
-  h3 {
-    margin: 0 0 0.2rem;
-    font-size: 1.05rem;
-  }
-
-  p {
-    margin: 0;
-    line-height: 1.5;
-    color: var(--ink-soft);
-  }
-}
-
-// ---- Steps: a real sequence, so numbers are information here ----
-.step-list {
-  display: grid;
-  gap: 1.5rem 2rem;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-
-  @media (min-width: 720px) {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-  }
-
-  li {
-    padding-top: 1rem;
-    border-top: 5px solid var(--kunyit);
-  }
-
-  h3 {
-    margin: 0.4rem 0 0.3rem;
-    font-size: 1.15rem;
-  }
-
-  p {
-    margin: 0;
-    line-height: 1.5;
-    color: var(--ink-soft);
-  }
-}
-
-.step-number {
-  font: 700 2.75rem/1 var(--font-display);
-  font-variant-numeric: tabular-nums;
-  color: var(--ink);
-}
-
-.about .prose {
-  margin: 0 0 1rem;
 }
 
 // Skeleton on the dark hero: faint light-on-dark instead of the page's pale grey.
@@ -295,23 +230,6 @@
   }
 }
 
-.step-number {
-  display: inline-block;
-  transition: transform 0.3s ease;
-}
-
-.step-list li:hover .step-number {
-  transform: translateY(-3px);
-}
-
-.facility-list li mat-icon {
-  transition: transform 0.3s ease;
-}
-
-.facility-list li:hover mat-icon {
-  transform: scale(1.15);
-}
-
 @media (prefers-reduced-motion: reduce) {
   .bar-wrap {
     opacity: 1;
@@ -320,11 +238,7 @@
 
 
   .room-media img,
-  .room:hover .room-media img,
-  .step-number,
-  .step-list li:hover .step-number,
-  .facility-list li mat-icon,
-  .facility-list li:hover mat-icon {
+  .room:hover .room-media img {
     transform: none;
     transition: none;
   }

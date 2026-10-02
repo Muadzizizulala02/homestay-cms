@@ -1,0 +1,30 @@
+<section class="about" appReveal>
+  <div class="inner" [class.no-photo]="!photo()">
+    <div class="copy">
+      <h2>{{ i18n.t('home.about.title') }}</h2>
+      <p class="lead">{{ parts().lead }}</p>
+      @if (parts().rest) {
+        <p class="rest">{{ parts().rest }}</p>
+      }
+      <a routerLink="/about" class="more">{{ i18n.t('home.about.more') }}</a>
+
+      @if (hostIntro()) {
+        <aside class="host" [appReveal]="200">
+          <span class="host-icon" aria-hidden="true"><mat-icon>home</mat-icon></span>
+          <div>
+            <p class="host-label">{{ i18n.t('home.about.hostNote') }}</p>
+            <p class="host-text">{{ hostIntro() }}</p>
+          </div>
+        </aside>
+      }
+    </div>
+
+    @if (photo()) {
+      <div class="photo" [appReveal]="150">
+        <div class="frame">
+          <img appImgFade [src]="photo()" alt="" loading="lazy" />
+        </div>
+      </div>
+    }
+  </div>
+</section>

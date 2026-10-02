@@ -1,0 +1,168 @@
+:host {
+  display: block;
+}
+
+// A plain white band: the booking journey is the only thing on it.
+.band {
+  margin-top: clamp(3rem, 7vw, 5rem);
+  background: var(--paper);
+}
+
+.inner {
+  max-width: var(--page-max);
+  margin: 0 auto;
+  padding: clamp(2.75rem, 7vw, 5rem) var(--gutter);
+}
+
+.head {
+  margin-bottom: clamp(2rem, 5vw, 3.25rem);
+
+  h2 {
+    margin: 0 0 0.6rem;
+    font-size: clamp(1.7rem, 4vw, 2.5rem);
+  }
+
+  p {
+    margin: 0;
+    color: var(--ink-soft);
+    line-height: 1.6;
+  }
+}
+
+$node: 3.4rem;
+$line: 4px;
+
+.journey {
+  display: grid;
+  gap: 2rem;
+  margin: 0 0 2.5rem;
+  padding: 0;
+  list-style: none;
+
+  @media (min-width: 760px) {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 1.5rem;
+  }
+}
+
+.step {
+  position: relative;
+  display: grid;
+  grid-template-columns: $node 1fr;
+  gap: 1rem;
+  align-items: start;
+
+  @media (min-width: 760px) {
+    grid-template-columns: 1fr;
+    gap: 1.1rem;
+  }
+}
+
+// Numbered node. It pops in when its step is revealed; the last one is gold to mark arrival.
+.node {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: $node;
+  height: $node;
+  font: 700 1.4rem/1 var(--font-display);
+  font-variant-numeric: tabular-nums;
+  color: var(--kunyit);
+  background: var(--ink);
+  border-radius: 50%;
+  transform: scale(0.55);
+  transition: transform 0.55s cubic-bezier(0.3, 1.5, 0.5, 1) calc(var(--reveal-delay, 0ms) + 0.1s);
+}
+
+.step.is-visible .node {
+  transform: none;
+}
+
+.step.last .node {
+  color: var(--ink);
+  background: var(--kunyit);
+}
+
+// The connector to the next step: a pale track with a gold line drawing over it.
+.step:not(.last)::before,
+.step:not(.last)::after {
+  content: '';
+  position: absolute;
+  border-radius: $line;
+}
+
+.step:not(.last)::before {
+  background: var(--mist);
+}
+
+.step:not(.last)::after {
+  background: var(--kunyit);
+  transform: scaleY(0);
+  transition: transform 0.7s cubic-bezier(0.4, 0, 0.2, 1) calc(var(--reveal-delay, 0ms) + 0.45s);
+}
+
+.step.is-visible:not(.last)::after {
+  transform: scaleY(1);
+}
+
+// Phones: a vertical timeline, the line runs down beside the nodes.
+.step:not(.last)::before,
+.step:not(.last)::after {
+  left: calc(#{$node} / 2 - #{$line} / 2);
+  top: calc(#{$node} + 0.4rem);
+  width: $line;
+  height: calc(100% - #{$node} + 1.2rem);
+  transform-origin: top;
+}
+
+// Wide screens: the line runs across to the next node.
+@media (min-width: 760px) {
+  .step:not(.last)::before,
+  .step:not(.last)::after {
+    left: calc(#{$node} + 0.5rem);
+    top: calc(#{$node} / 2 - #{$line} / 2);
+    width: calc(100% - #{$node} - 0.5rem + 1.5rem - 0.5rem);
+    height: $line;
+    transform-origin: left;
+  }
+
+  // Horizontal: the gold line grows along its length (left to right).
+  .step:not(.last)::after {
+    transform: scaleX(0);
+  }
+
+  .step.is-visible:not(.last)::after {
+    transform: scaleX(1);
+  }
+}
+
+.text {
+  h3 {
+    margin: 0.15rem 0 0.3rem;
+    font-size: 1.15rem;
+  }
+
+  p {
+    margin: 0;
+    line-height: 1.55;
+    color: var(--ink-soft);
+  }
+}
+
+.cta {
+  min-height: 3rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .node,
+  .step.is-visible .node {
+    transform: none;
+    transition: none;
+  }
+
+  .step:not(.last)::after {
+    transform: none;
+    transition: none;
+  }
+}

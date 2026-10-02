@@ -10,6 +10,9 @@ import { BookingBar } from '../../shared/ui/booking-bar/booking-bar';
 import { HeroSlideshow } from '../../shared/ui/hero-slideshow/hero-slideshow';
 import { Reveal } from '../../shared/ui/reveal/reveal';
 import { injectHeroTyping } from '../../shared/ui/hero-typing/hero-typing';
+import { HomeAbout } from './sections/home-about/home-about';
+import { HomeFacilities } from './sections/home-facilities/home-facilities';
+import { HomeSteps } from './sections/home-steps/home-steps';
 import { rulesToItems } from '../../shared/ui/policy-showcase/policy-parse';
 import { PolicyShowcase } from '../../shared/ui/policy-showcase/policy-showcase';
 import { ImgFade } from '../../shared/ui/img-fade/img-fade';
@@ -19,7 +22,7 @@ const ROOMS_ON_HOME = 3;
 
 @Component({
   selector: 'app-home',
-  imports: [RouterLink, MatIconModule, BookingBar, HeroSlideshow, Skeleton, Reveal, ImgFade, PolicyShowcase],
+  imports: [RouterLink, MatIconModule, BookingBar, HeroSlideshow, Skeleton, Reveal, ImgFade, PolicyShowcase, HomeFacilities, HomeSteps, HomeAbout],
   templateUrl: './home.html',
   styleUrl: './home.scss',
 })
@@ -39,6 +42,8 @@ export class Home implements OnInit {
   /** House rules as icon cards, with the check-in/out times as the section's closing line. */
   readonly ruleItems = computed(() => rulesToItems(this.content()?.houseRules ?? []));
   readonly heroBackground = computed(() => this.content()?.heroSlides?.[0] ?? '');
+  /** The About section's framed photo: the second hero photo (so it differs from the one behind the hero), else the first. */
+  readonly aboutPhoto = computed(() => this.content()?.heroSlides?.[1] ?? this.content()?.heroSlides?.[0] ?? '');
   readonly checkTimes = computed(() => {
     const c = this.content();
     return c?.checkInTime && c?.checkOutTime ? this.i18n.t('home.rules.checkTimes', { in: c.checkInTime, out: c.checkOutTime }) : '';
@@ -48,7 +53,6 @@ export class Home implements OnInit {
   readonly roomsLoaded = signal(false);
   readonly skeletonRooms = [0, 1, 2];
   readonly skeletonFacilities = [0, 1, 2];
-  readonly stepNumbers = [1, 2, 3, 4];
 
   constructor() {
     // Page title/description follow the visitor's language once the settings have loaded.

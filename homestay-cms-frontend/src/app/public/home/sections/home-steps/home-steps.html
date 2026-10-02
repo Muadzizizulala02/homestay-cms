@@ -1,0 +1,22 @@
+<section class="band" appReveal>
+  <div class="inner">
+    <header class="head">
+      <h2>{{ i18n.t('home.steps.title') }}</h2>
+      <p>{{ i18n.t('home.steps.subtitle') }}</p>
+    </header>
+
+    <ol class="journey">
+      @for (n of steps; track n; let i = $index; let last = $last) {
+        <li class="step" [class.last]="last" [appReveal]="i * 260">
+          <span class="node" aria-hidden="true">{{ n }}</span>
+          <div class="text">
+            <h3>{{ i18n.t('home.steps.' + n + '.title') }}</h3>
+            <p>{{ i18n.t('home.steps.' + n + '.body') }}</p>
+          </div>
+        </li>
+      }
+    </ol>
+
+    <a class="btn cta" routerLink="/accommodation">{{ i18n.t('home.steps.cta') }}</a>
+  </div>
+</section>

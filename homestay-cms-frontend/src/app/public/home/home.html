@@ -88,45 +88,22 @@
 }
 
 @if (!content() && !failed()) {
-  <section class="section facilities" aria-busy="true">
+  <section class="section facilities-skeleton" aria-busy="true">
+    <span class="visually-hidden" role="status">{{ i18n.t('common.loading') }}</span>
     <app-skeleton width="16rem" height="2rem" />
-    <ul class="facility-list" aria-hidden="true">
+    <div class="tile-skeletons" aria-hidden="true">
       @for (n of skeletonFacilities; track n) {
-        <li><app-skeleton width="100%" height="1.6rem" /></li>
+        <app-skeleton height="8.5rem" />
       }
-    </ul>
+    </div>
   </section>
-} @else if (content()?.facilities?.length) {
-  <section class="section facilities" appReveal>
-    <h2>{{ i18n.t('home.facilities.title') }}</h2>
-    <ul class="facility-list">
-      @for (facility of content()?.facilities; track $index; let i = $index) {
-        <li [appReveal]="i * 90">
-          <mat-icon aria-hidden="true">{{ facility.icon }}</mat-icon>
-          <div>
-            <h3>{{ facility.label }}</h3>
-            @if (facility.description) {
-              <p>{{ facility.description }}</p>
-            }
-          </div>
-        </li>
-      }
-    </ul>
-  </section>
+} @else if (content(); as c) {
+  @if (c.facilities.length) {
+    <app-home-facilities [facilities]="c.facilities" />
+  }
 }
 
-<section class="section steps" appReveal>
-  <h2>{{ i18n.t('home.steps.title') }}</h2>
-  <ol class="step-list">
-    @for (n of stepNumbers; track n) {
-      <li [appReveal]="n * 110">
-        <span class="step-number" aria-hidden="true">{{ n }}</span>
-        <h3>{{ i18n.t('home.steps.' + n + '.title') }}</h3>
-        <p>{{ i18n.t('home.steps.' + n + '.body') }}</p>
-      </li>
-    }
-  </ol>
-</section>
+<app-home-steps />
 
 @if (content()?.houseRules?.length) {
   <app-policy-showcase
@@ -139,10 +116,8 @@
   />
 }
 
-@if (content()?.aboutContent) {
-  <section class="section about" appReveal>
-    <h2>{{ i18n.t('home.about.title') }}</h2>
-    <p class="prose">{{ content()?.aboutContent }}</p>
-    <a routerLink="/about" class="text-link">{{ i18n.t('home.about.more') }}</a>
-  </section>
+@if (content(); as c) {
+  @if (c.aboutContent) {
+    <app-home-about [about]="c.aboutContent" [hostIntro]="c.hostIntro" [photo]="aboutPhoto()" />
+  }
 }

@@ -1,0 +1,25 @@
+<section class="band" appReveal>
+  <div class="inner">
+    <header class="intro">
+      <div class="motif" aria-hidden="true">
+        @for (n of motif; track n) {
+          <span></span>
+        }
+      </div>
+      <h2>{{ i18n.t('home.facilities.title') }}</h2>
+      <p>{{ i18n.t('home.facilities.subtitle') }}</p>
+    </header>
+
+    <ul class="tiles">
+      @for (facility of facilities(); track $index; let i = $index) {
+        <li class="tile" [appReveal]="i * 70">
+          <mat-icon aria-hidden="true">{{ facility.icon }}</mat-icon>
+          <h3>{{ facility.label }}</h3>
+          @if (facility.description) {
+            <p>{{ facility.description }}</p>
+          }
+        </li>
+      }
+    </ul>
+  </div>
+</section>

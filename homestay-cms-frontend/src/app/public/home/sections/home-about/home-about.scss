@@ -1,0 +1,144 @@
+:host {
+  display: block;
+}
+
+.about {
+  margin-top: clamp(3rem, 7vw, 5rem);
+}
+
+.inner {
+  display: grid;
+  gap: 2.5rem;
+  max-width: var(--page-max);
+  margin: 0 auto;
+  padding: 0 var(--gutter) clamp(1rem, 3vw, 2rem);
+
+  @media (min-width: 900px) {
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+    gap: 4.5rem;
+    align-items: center;
+  }
+
+  &.no-photo {
+    max-width: 52rem;
+    grid-template-columns: 1fr;
+  }
+}
+
+h2 {
+  margin: 0 0 1.25rem;
+  font-size: clamp(1.7rem, 4vw, 2.5rem);
+}
+
+// The lead is the first thing read: large display type behind a gold rule.
+.lead {
+  margin: 0 0 1.25rem;
+  padding-left: 1.1rem;
+  border-left: 5px solid var(--kunyit);
+  font: 600 clamp(1.3rem, 2.6vw, 1.8rem) / 1.35 var(--font-display);
+  letter-spacing: -0.005em;
+}
+
+.rest {
+  max-width: 56ch;
+  margin: 0 0 1.25rem;
+  line-height: 1.75;
+  color: var(--ink-soft);
+  white-space: pre-line;
+}
+
+.more {
+  font-weight: 600;
+  text-underline-offset: 4px;
+  transition: text-underline-offset 0.2s ease;
+
+  &:hover {
+    text-underline-offset: 8px;
+  }
+}
+
+// The host's note reads like a message: a small speech card with a house badge.
+.host {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+  max-width: 34rem;
+  margin-top: 2rem;
+  padding: 1.15rem 1.3rem;
+  background: var(--paper);
+  border: 1px solid var(--mist);
+  border-radius: 14px 14px 14px 4px;
+}
+
+.host-icon {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  color: var(--paper);
+  background: var(--moss);
+  border-radius: 50%;
+}
+
+.host-label {
+  margin: 0 0 0.3rem;
+  font: 600 0.85rem/1.2 var(--font-body);
+  color: var(--moss);
+}
+
+.host-text {
+  margin: 0;
+  font-style: italic;
+  line-height: 1.6;
+  color: var(--ink);
+}
+
+// The framed photo: a gold block sits offset behind it and shifts on hover.
+.photo {
+  padding: 0 1rem 1rem 0; // room for the offset block so it never causes sideways scrolling
+}
+
+.frame {
+  position: relative;
+  aspect-ratio: 4 / 5;
+  max-height: 34rem;
+
+  @media (max-width: 899px) {
+    aspect-ratio: 4 / 3;
+  }
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--kunyit);
+    border-radius: 14px;
+    transform: translate(1rem, 1rem);
+    transition: transform 0.5s cubic-bezier(0.2, 0.7, 0.2, 1);
+  }
+
+  &:hover::before {
+    transform: translate(1.4rem, 1.4rem);
+  }
+
+  img {
+    position: relative;
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 14px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .frame::before,
+  .frame:hover::before {
+    transition: none;
+  }
+
+  .frame:hover::before {
+    transform: translate(1rem, 1rem);
+  }
+}
