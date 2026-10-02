@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-10-02 — Home page: optional background photo for *Choose your room*
+
+- **Admin > Site content > Home page backgrounds** now lists *Choose your room* first (sections in page order). Stored as `siteSettings.sectionBackgrounds.rooms`; the backend schema accepts it (https or empty), older documents need nothing.
+- Public: the booking bar and the rooms now share one full-width band (`.rooms-band` in `home.html`). With a photo it starts exactly at the hero's lower edge, so the bar straddles hero and photo (on phones most of the tall bar sits on the photo); dark scrim, white heading/room names, light meta text, light-on-dark loading skeletons; the bar keeps its own colours. Shown only while the rooms load or when there are rooms. Without a photo the section looks as before.
+- The gap under the rooms is now the band's padding instead of the facilities band's top margin, so a rooms photo runs flush into the next section (and when there are no facilities, the rooms no longer touch the booking-steps band).
+- On the photo the keyboard focus ring uses the brighter gold (`--kunyit`) so it stays at 3:1 or more over a pale photo. The admin hint notes the rooms photo only shows while a room is published.
+- Tests: backend 129, frontend 90. Browser-verified against the production build (29 checks, desktop and phone, with and without a photo, normal and reduced motion, keyboard focus).
+- **Needs a backend deploy** before the admin can save a rooms photo (the schema change), then a push for the frontend.
+
 ## 2026-10-02 — Home page: optional background photo per section; gaps removed
 
 - **Admin > Site content > Home page backgrounds** (new `app-background-field`): for *What you can count on*, *How booking works*, *House rules* and *About the stay* the owner can upload a photo (straight to Cloudinary, folder `homestay/backgrounds`), pick one from the gallery, or paste an https address; Remove returns the section to its default design. Stored as `siteSettings.sectionBackgrounds` (`facilities` / `steps` / `rules` / `about`, https URL or empty), validated by `updateSiteSettingsSchema` (unknown keys dropped), defaulted to `{}` for older documents.

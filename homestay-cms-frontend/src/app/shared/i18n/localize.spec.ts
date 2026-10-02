@@ -153,11 +153,12 @@ describe('localizeSettings policies and slides', () => {
 
 describe('sectionBackgrounds', () => {
   it('gives every section an entry, empty meaning the default design', () => {
-    expect(sectionBackgrounds({ sectionBackgrounds: {} })).toEqual({ facilities: '', steps: '', rules: '', about: '' });
+    expect(sectionBackgrounds({ sectionBackgrounds: {} })).toEqual({ rooms: '', facilities: '', steps: '', rules: '', about: '' });
   });
 
   it('passes set photos through, trimmed, and leaves the others empty', () => {
     expect(sectionBackgrounds({ sectionBackgrounds: { steps: ' https://a/1.jpg ', about: 'https://a/2.jpg' } })).toEqual({
+      rooms: '',
       facilities: '',
       steps: 'https://a/1.jpg',
       rules: '',
@@ -166,12 +167,13 @@ describe('sectionBackgrounds', () => {
   });
 
   it('copes with a settings document that predates the field', () => {
-    expect(sectionBackgrounds({} as never)).toEqual({ facilities: '', steps: '', rules: '', about: '' });
+    expect(sectionBackgrounds({} as never)).toEqual({ rooms: '', facilities: '', steps: '', rules: '', about: '' });
   });
 
   it('is exposed through localizeSettings', () => {
-    const result = localizeSettings(settings({ sectionBackgrounds: { facilities: 'https://a/f.jpg' } }), 'en');
+    const result = localizeSettings(settings({ sectionBackgrounds: { facilities: 'https://a/f.jpg', rooms: 'https://a/r.jpg' } }), 'en');
     expect(result.sectionBackgrounds.facilities).toBe('https://a/f.jpg');
+    expect(result.sectionBackgrounds.rooms).toBe('https://a/r.jpg');
     expect(result.sectionBackgrounds.steps).toBe('');
   });
 });

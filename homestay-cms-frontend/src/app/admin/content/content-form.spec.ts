@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { FormBuilder } from '@angular/forms';
 import {
+  BACKGROUND_SECTIONS,
   OTHER_PLATFORM,
   addSlide,
   createSocialLinkGroup,
@@ -115,9 +116,9 @@ describe('social links', () => {
 });
 
 describe('section backgrounds', () => {
-  const empty = { facilities: '', steps: '', rules: '', about: '' };
+  const empty = { rooms: '', facilities: '', steps: '', rules: '', about: '' };
 
-  it('fills all four keys when nothing is saved', () => {
+  it('fills every section key when nothing is saved', () => {
     expect(normalizeBackgrounds(undefined)).toEqual(empty);
     expect(normalizeBackgrounds({})).toEqual(empty);
   });
@@ -125,6 +126,14 @@ describe('section backgrounds', () => {
   it('trims values and turns non-strings into empty', () => {
     const raw = { steps: ' https://a/1.jpg ', about: 5, rules: null } as never;
     expect(normalizeBackgrounds(raw)).toEqual({ ...empty, steps: 'https://a/1.jpg' });
+  });
+
+  it('keeps a rooms photo', () => {
+    expect(normalizeBackgrounds({ rooms: 'https://a/rooms.jpg' })).toEqual({ ...empty, rooms: 'https://a/rooms.jpg' });
+  });
+
+  it('offers the rooms section first in the admin, matching the page order', () => {
+    expect(BACKGROUND_SECTIONS.map((s) => s.key)).toEqual(['rooms', 'facilities', 'steps', 'rules', 'about']);
   });
 
   it('withBackground returns a changed copy without mutating', () => {

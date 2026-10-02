@@ -47,7 +47,7 @@ export interface MalayContent {
 }
 
 /** Optional photo behind each home section; empty/absent keeps the section's default design. */
-export type SectionKey = 'facilities' | 'steps' | 'rules' | 'about';
+export type SectionKey = 'rooms' | 'facilities' | 'steps' | 'rules' | 'about';
 export type SectionBackgrounds = Partial<Record<SectionKey, string>>;
 
 export interface SiteSettings {

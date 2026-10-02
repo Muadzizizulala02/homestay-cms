@@ -7,6 +7,7 @@ import { localizeDescription } from '../../shared/i18n/localize';
 import { AccommodationService, type Accommodation } from '../../shared/services/accommodation.service';
 import { SiteContentService } from '../../shared/services/site-content.service';
 import { BookingBar } from '../../shared/ui/booking-bar/booking-bar';
+import { cssUrl } from '../../shared/ui/css-url';
 import { HeroSlideshow } from '../../shared/ui/hero-slideshow/hero-slideshow';
 import { Reveal } from '../../shared/ui/reveal/reveal';
 import { injectHeroTyping } from '../../shared/ui/hero-typing/hero-typing';
@@ -43,7 +44,9 @@ export class Home implements OnInit {
   readonly ruleItems = computed(() => rulesToItems(this.content()?.houseRules ?? []));
   readonly heroBackground = computed(() => this.content()?.heroSlides?.[0] ?? '');
   /** Photo behind each home section, set in the admin; '' keeps that section's default design. */
-  readonly backgrounds = computed(() => this.content()?.sectionBackgrounds ?? { facilities: '', steps: '', rules: '', about: '' });
+  readonly backgrounds = computed(
+    () => this.content()?.sectionBackgrounds ?? { rooms: '', facilities: '', steps: '', rules: '', about: '' }
+  );
   /** House rules always have a photo: the owner's choice, else the first hero photo (the long-standing default). */
   readonly rulesBackground = computed(() => this.backgrounds().rules || this.heroBackground());
   /** The About section's framed photo: the second hero photo (so it differs from the one behind the hero), else the first. */
@@ -55,6 +58,13 @@ export class Home implements OnInit {
   readonly featured = signal<Accommodation[]>([]);
   /** False until the rooms request finishes (success or error), so we show a skeleton, not nothing. */
   readonly roomsLoaded = signal(false);
+  /**
+   * Photo behind the booking bar and rooms, set in the admin. Shown while the rooms load and when
+   * there are rooms; with no rooms section there is nothing for it to sit behind.
+   */
+  readonly roomsImage = computed(() =>
+    !this.roomsLoaded() || this.featured().length > 0 ? cssUrl(this.backgrounds().rooms) : null
+  );
   readonly skeletonRooms = [0, 1, 2];
   readonly skeletonFacilities = [0, 1, 2];
 

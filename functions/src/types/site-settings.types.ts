@@ -53,6 +53,7 @@ export interface MalayContent {
  * section keeps its default design (no photo).
  */
 export interface SectionBackgrounds {
+  rooms?: string;
   facilities?: string;
   steps?: string;
   rules?: string;

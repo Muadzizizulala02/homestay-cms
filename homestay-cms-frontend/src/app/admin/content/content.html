@@ -251,7 +251,7 @@
       </mat-form-field>
 
       <h2>Home page backgrounds</h2>
-      <p class="hint">Optional photo behind each home page section. Leave a section without a photo to keep its default design. The House rules section uses the first hero photo until you choose one here.</p>
+      <p class="hint">Optional photo behind each home page section. Leave a section without a photo to keep its default design. The House rules section uses the first hero photo until you choose one here. The Choose your room photo only shows while at least one room is published.</p>
       @for (section of backgroundSections; track section.key) {
         <app-background-field
           [label]="section.label"

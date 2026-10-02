@@ -32,60 +32,62 @@
   </div>
 </section>
 
-<div class="bar-wrap">
-  <app-booking-bar />
+<div class="rooms-band" [class.has-photo]="!!roomsImage()" [style.background-image]="roomsImage()">
+  <div class="bar-wrap">
+    <app-booking-bar />
+  </div>
+
+  @if (!roomsLoaded()) {
+    <section class="section rooms" aria-busy="true">
+      <span class="visually-hidden" role="status">{{ i18n.t('common.loading') }}</span>
+      <div class="section-head">
+        <app-skeleton width="14rem" height="2rem" />
+      </div>
+      <div class="room-list">
+        @for (n of skeletonRooms; track n; let first = $first) {
+          <div class="room" [class.room-lead]="first">
+            <app-skeleton [ratio]="first ? '16 / 10' : '4 / 3'" />
+            <div class="room-body">
+              <app-skeleton width="55%" height="1.5rem" />
+              <app-skeleton [lines]="2" height="0.9rem" />
+            </div>
+          </div>
+        }
+      </div>
+    </section>
+  } @else if (featured().length > 0) {
+    <section class="section rooms" appReveal>
+      <div class="section-head">
+        <h2>{{ i18n.t('home.rooms.title') }}</h2>
+        <a routerLink="/accommodation" class="text-link">{{ i18n.t('home.rooms.all') }}</a>
+      </div>
+
+      <div class="room-list">
+        @for (unit of featured(); track unit.id; let first = $first; let i = $index) {
+          <a class="room" [class.room-lead]="first" [routerLink]="['/accommodation', unit.slug]" [appReveal]="i * 120">
+            <div class="room-media">
+              @if (unit.photos[0]) {
+                <img appImgFade [src]="unit.photos[0]" [alt]="unit.name" loading="lazy" />
+              } @else {
+                <div class="room-photo-empty" aria-hidden="true"></div>
+              }
+            </div>
+            <div class="room-body">
+              <h3>{{ unit.name }}</h3>
+              @if (first && description(unit)) {
+                <p class="room-desc">{{ description(unit) }}</p>
+              }
+              <p class="room-meta">{{ i18n.t('home.rooms.unit', { count: unit.capacity }) }}</p>
+              <p class="room-price">
+                {{ i18n.t('common.from') }} <strong>RM {{ unit.basePrice }}</strong> {{ i18n.t('common.perNight') }}
+              </p>
+            </div>
+          </a>
+        }
+      </div>
+    </section>
+  }
 </div>
-
-@if (!roomsLoaded()) {
-  <section class="section rooms" aria-busy="true">
-    <span class="visually-hidden" role="status">{{ i18n.t('common.loading') }}</span>
-    <div class="section-head">
-      <app-skeleton width="14rem" height="2rem" />
-    </div>
-    <div class="room-list">
-      @for (n of skeletonRooms; track n; let first = $first) {
-        <div class="room" [class.room-lead]="first">
-          <app-skeleton [ratio]="first ? '16 / 10' : '4 / 3'" />
-          <div class="room-body">
-            <app-skeleton width="55%" height="1.5rem" />
-            <app-skeleton [lines]="2" height="0.9rem" />
-          </div>
-        </div>
-      }
-    </div>
-  </section>
-} @else if (featured().length > 0) {
-  <section class="section rooms" appReveal>
-    <div class="section-head">
-      <h2>{{ i18n.t('home.rooms.title') }}</h2>
-      <a routerLink="/accommodation" class="text-link">{{ i18n.t('home.rooms.all') }}</a>
-    </div>
-
-    <div class="room-list">
-      @for (unit of featured(); track unit.id; let first = $first; let i = $index) {
-        <a class="room" [class.room-lead]="first" [routerLink]="['/accommodation', unit.slug]" [appReveal]="i * 120">
-          <div class="room-media">
-            @if (unit.photos[0]) {
-              <img appImgFade [src]="unit.photos[0]" [alt]="unit.name" loading="lazy" />
-            } @else {
-              <div class="room-photo-empty" aria-hidden="true"></div>
-            }
-          </div>
-          <div class="room-body">
-            <h3>{{ unit.name }}</h3>
-            @if (first && description(unit)) {
-              <p class="room-desc">{{ description(unit) }}</p>
-            }
-            <p class="room-meta">{{ i18n.t('home.rooms.unit', { count: unit.capacity }) }}</p>
-            <p class="room-price">
-              {{ i18n.t('common.from') }} <strong>RM {{ unit.basePrice }}</strong> {{ i18n.t('common.perNight') }}
-            </p>
-          </div>
-        </a>
-      }
-    </div>
-  </section>
-}
 
 @if (!content() && !failed()) {
   <section class="section facilities-skeleton" aria-busy="true">

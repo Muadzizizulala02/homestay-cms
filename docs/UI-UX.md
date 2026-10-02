@@ -39,15 +39,15 @@ Each home section has its own layout and background, so the page reads as a sequ
 
 | Section | Look | Where |
 |---|---|---|
-| Rooms | image-led list, first room large | plaster page |
+| Rooms | image-led list, first room large; shares a full-width band with the booking bar | plaster page (`home.html`) |
 | What you can count on | light **mist band**: heading + mosaic motif on the left, **icon tiles** on the right that flip to dark ink with a gold icon on hover | `home-facilities` |
 | How booking works | white band, a **journey**: four numbered nodes joined by a gold line that draws itself as it scrolls in (a vertical timeline on phones), ending in a "Start with your dates" button | `home-steps` |
 | House rules | dark **photo section** with icon cards | `policy-showcase` |
 | About the stay | **editorial**: a large lead sentence behind a gold rule, the remainder below, the host's note as a speech card, and a framed photo with an offset gold block | `home-about` |
 
-**Optional background photo per section.** In Admin > Site content > *Home page backgrounds* the owner can put a photo behind *What you can count on*, *How booking works*, *House rules* and *About the stay* (upload, pick from the gallery, or paste an https address; Remove returns to the default). With no photo each section keeps the design in the table above; with one it gets a dark scrim and light text (step nodes turn pale, tiles and the host card stay white) so it stays readable. *House rules* uses the first hero photo until the owner picks one. Stored as `siteSettings.sectionBackgrounds` (`facilities`, `steps`, `rules`, `about`; empty = default). Background addresses are escaped by `shared/ui/css-url.ts`, so a stray quote can never inject CSS.
+**Optional background photo per section.** In Admin > Site content > *Home page backgrounds* the owner can put a photo behind *Choose your room*, *What you can count on*, *How booking works*, *House rules* and *About the stay* (upload, pick from the gallery, or paste an https address; Remove returns to the default). With no photo each section keeps the design in the table above; with one it gets a dark scrim and light text (step nodes turn pale, tiles and the host card stay white) so it stays readable. *House rules* uses the first hero photo until the owner picks one. The rooms photo starts at the hero's lower edge, so the booking bar straddles hero and photo (the bar and rooms share the `.rooms-band`); it is only shown while the rooms load or when there are rooms. Stored as `siteSettings.sectionBackgrounds` (`rooms`, `facilities`, `steps`, `rules`, `about`; empty = default). Background addresses are escaped by `shared/ui/css-url.ts`, so a stray quote can never inject CSS.
 
-The full-bleed sections sit flush against each other (no gap between the facilities band, the booking steps, the house rules and About).
+The full-bleed sections sit flush against each other (no gap between the rooms band, the facilities band, the booking steps, the house rules and About); the space under the rooms is the rooms band's own padding.
 
 The About text is split by `about-text.ts` (first paragraph, or first sentence, becomes the lead); the photo is the second hero photo; with no photo, host note or body text the section simply simplifies. A section with nothing to show (no facilities) is omitted; the booking steps are always shown. Everything is translated and respects `prefers-reduced-motion` (nodes and lines are simply shown).
 

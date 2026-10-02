@@ -3,11 +3,10 @@
 }
 
 // A full-width light band (mist) so the section reads as its own space between the plaster rooms
-// above and the white booking steps below. With a photo (set in the admin) it gets a dark scrim
-// and light text instead.
+// above and the white booking steps below. It sits flush under the rooms band (whose padding gives
+// the gap). With a photo (set in the admin) it gets a dark scrim and light text instead.
 .band {
   position: relative;
-  margin-top: clamp(3rem, 7vw, 5rem);
   background: var(--mist);
   background-size: cover;
   background-position: center;

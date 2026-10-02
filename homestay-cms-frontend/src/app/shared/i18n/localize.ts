@@ -70,7 +70,7 @@ export function clampInterval(seconds: number | undefined): number {
   return Math.min(30, Math.max(2, Math.round(seconds)));
 }
 
-const SECTION_KEYS: readonly SectionKey[] = ['facilities', 'steps', 'rules', 'about'];
+const SECTION_KEYS: readonly SectionKey[] = ['rooms', 'facilities', 'steps', 'rules', 'about'];
 
 /** Every section always has an entry; missing or non-string values become '' (the default design). */
 export function sectionBackgrounds(settings: Pick<SiteSettings, 'sectionBackgrounds'>): Record<SectionKey, string> {

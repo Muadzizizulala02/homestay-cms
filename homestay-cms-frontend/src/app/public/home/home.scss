@@ -51,6 +51,49 @@
   }
 }
 
+// The booking bar and the rooms share one full-width band. It starts at the hero's lower edge (the
+// bar straddles the two) and ends with its own padding, so the band below sits flush against it.
+// With a photo (set in the admin) it gets a dark scrim and light text.
+.rooms-band {
+  position: relative;
+  // Its own formatting context, so the bar's negative margin lifts only the bar over the hero,
+  // not the band (and its photo) as well.
+  display: flow-root;
+  padding-bottom: clamp(3rem, 7vw, 5rem);
+  background-size: cover;
+  background-position: center;
+
+  &.has-photo::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(20, 52, 58, 0.84);
+  }
+
+  // Above the scrim.
+  .rooms {
+    position: relative;
+  }
+}
+
+// On a photo: light text, and faint light-on-dark skeletons as on the hero. The room photos and
+// the booking bar (which sets its own colours) are unchanged.
+.rooms-band.has-photo .rooms {
+  color: var(--paper);
+  --skeleton-bg: rgba(255, 255, 255, 0.16);
+  --skeleton-sheen: rgba(255, 255, 255, 0.2);
+
+  .room-desc,
+  .room-meta {
+    color: rgba(255, 255, 255, 0.84);
+  }
+
+  // The brighter gold keeps the keyboard focus ring at 3:1 or more even over a pale photo.
+  :focus-visible {
+    outline-color: var(--kunyit);
+  }
+}
+
 // The booking bar overlaps the hero's lower edge.
 .bar-wrap {
   position: relative;

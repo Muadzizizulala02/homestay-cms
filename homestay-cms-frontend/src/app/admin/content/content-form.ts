@@ -187,18 +187,26 @@ export function isHttpUrl(value: string): boolean {
   return value.trim() !== '' && isHttpUrlOrEmpty(value);
 }
 
+/** In the order the sections appear on the home page. */
 export const BACKGROUND_SECTIONS: readonly { key: SectionKey; label: string }[] = [
+  { key: 'rooms', label: 'Choose your room' },
   { key: 'facilities', label: 'What you can count on' },
   { key: 'steps', label: 'How booking works' },
   { key: 'rules', label: 'House rules' },
   { key: 'about', label: 'About the stay' },
 ];
 
-/** All four section keys, trimmed; missing or non-string entries become ''. */
+/** Every section key, trimmed; missing or non-string entries become ''. */
 export function normalizeBackgrounds(raw: SectionBackgrounds | undefined): Record<SectionKey, string> {
   const source: Record<string, unknown> = raw ?? {};
   const pick = (key: SectionKey): string => (typeof source[key] === 'string' ? (source[key] as string).trim() : '');
-  return { facilities: pick('facilities'), steps: pick('steps'), rules: pick('rules'), about: pick('about') };
+  return {
+    rooms: pick('rooms'),
+    facilities: pick('facilities'),
+    steps: pick('steps'),
+    rules: pick('rules'),
+    about: pick('about'),
+  };
 }
 
 /** A copy of the backgrounds with one section changed. */

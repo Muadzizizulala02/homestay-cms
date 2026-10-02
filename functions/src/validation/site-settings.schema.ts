@@ -77,6 +77,7 @@ export const updateSiteSettingsSchema = z.object({
   // One optional photo per home section; '' (or absent) keeps the default design. Zod drops unknown keys.
   sectionBackgrounds: z
     .object({
+      rooms: urlOrEmpty.optional(),
       facilities: urlOrEmpty.optional(),
       steps: urlOrEmpty.optional(),
       rules: urlOrEmpty.optional(),

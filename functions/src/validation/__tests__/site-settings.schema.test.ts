@@ -93,6 +93,12 @@ describe('updateSiteSettingsSchema', () => {
     expect(parsed.sectionBackgrounds?.about).toBe('https://a.example/x.jpg');
   });
 
+  it('accepts a background for the rooms section too', () => {
+    const parsed = updateSiteSettingsSchema.parse({ sectionBackgrounds: { rooms: 'https://a.example/rooms.jpg' } });
+    expect(parsed.sectionBackgrounds?.rooms).toBe('https://a.example/rooms.jpg');
+    expect(updateSiteSettingsSchema.safeParse({ sectionBackgrounds: { rooms: 'javascript:alert(1)' } }).success).toBe(false);
+  });
+
   it('only allows http(s) background addresses', () => {
     expect(updateSiteSettingsSchema.safeParse({ sectionBackgrounds: { steps: 'javascript:alert(1)' } }).success).toBe(false);
     expect(updateSiteSettingsSchema.safeParse({ sectionBackgrounds: { about: 'data:image/png;base64,AAAA' } }).success).toBe(false);
